@@ -17,7 +17,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.Nicepeachat.Splash">
+            android:theme="@style/Theme.Npchat.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

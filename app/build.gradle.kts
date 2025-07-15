@@ -13,8 +13,8 @@ kotlin {
 }
 
 android {
-    namespace = "ru.saime.nice_pea_chat"
-    compileSdk = 34
+    namespace = "ru.dsaime.npchat"
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "ru.saime.nice_pea_chat"

@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "nice-pea-chat"
+rootProject.name = "npchat"
 include(":app")
