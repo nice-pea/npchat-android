@@ -22,10 +22,10 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import ru.dsaime.npchat.common.functions.ToastDuration
 import ru.dsaime.npchat.common.functions.toast
-import ru.dsaime.npchat.data.NPChatRepository
-import ru.dsaime.npchat.data.store.AuthenticationStore
 import ru.dsaime.npchat.data.NPChatLocalPrefs
+import ru.dsaime.npchat.data.NPChatRepository
 import ru.dsaime.npchat.data.Profile
+import ru.dsaime.npchat.data.store.AuthenticationStore
 import ru.dsaime.npchat.screens.chats.RouteChats
 import ru.dsaime.npchat.ui.components.Button
 import ru.dsaime.npchat.ui.components.Input
@@ -173,7 +173,7 @@ class LoginViewModel(
     private suspend fun enter() {
         val server = serverFieldState.text.toString()
         val key = keyFieldState.text.toString()
-        authnRepo.login(key = key, server = server)
+        authnRepo.login(token = key, server = server)
             .onSuccess { res ->
                 authnStore.token = res.session.token
                 npcStore.baseUrl = server

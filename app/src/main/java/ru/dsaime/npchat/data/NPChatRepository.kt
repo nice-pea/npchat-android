@@ -1,23 +1,23 @@
 package ru.dsaime.npchat.data
 
-import ru.dsaime.npchat.data.ApiModel
-import ru.dsaime.npchat.network.authzHeaderValue
-
 class NPChatRepository(
     private val api: NPChatApi,
     private val localPrefs: NPChatLocalPrefs,
 ) {
-    suspend fun authn(token: String, server: String = localPrefs.baseUrl): Result<ApiModel.Authn> {
-        return api.authn(
-            server = server,
-            token = authzHeaderValue(token),
-        )
+    suspend fun isSessionActual(): Boolean {
+        if (localPrefs.baseUrl.isBlank() || localPrefs.token.isBlank()) {
+            return false
+        }
+
+        return api.me().isSuccess
     }
 
-    suspend fun login(key: String, server: String = localPrefs.baseUrl): Result<ApiModel.Login> {
-        return api.login(
+    suspend fun login(login: String, password: String, server: String): Result<ApiModel.User> {
+        val resp = api.login(
             server = server,
-            key = key,
+            body = ApiModel.LoginBody(login, password)
         )
+
+        return resp.map { it.user }
     }
 }

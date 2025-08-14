@@ -29,9 +29,10 @@ fun retrofit(
         .setLevel(HttpLoggingInterceptor.Level.BODY)
 
     val client = OkHttpClient.Builder()
-        // Добавить
+        // Подставлять токен в заголовок
         .addInterceptor(AuthorizationInterceptor(localPrefs))
-        .addInterceptor(ReplaceNpcUrlPlaceholderInterceptor(localPrefs))
+        // Подменять url на сохраненный в prefs
+        .addInterceptor(ReplaceUrlPlaceholderInterceptor(localPrefs))
         .addInterceptor(logging)
         .addInterceptor(RetryInterceptor(3))
         .callTimeout(10.seconds.toJavaDuration())
@@ -43,7 +44,7 @@ fun retrofit(
         .create()
 
     return Retrofit.Builder()
-        .baseUrl(NpcUrlPlaceholder)
+        .baseUrl(NPChatBaseUrlPlaceholder)
         .client(client)
         .addConverterFactory(GsonConverterFactory.create(gson))
         .addCallAdapterFactory(ResultCallAdapterFactory.create())
@@ -73,25 +74,25 @@ private class RetryInterceptor(private val retryAttempts: Int) : Interceptor {
     }
 }
 
-const val NpcUrlPlaceholder = "http://<npc_host>:7511"
+const val NPChatBaseUrlPlaceholder = "http://npchat.placeholder:1"
 
-fun npcBaseUrl(store: NPChatLocalPrefs, default: String = ""): String {
-    return if (store.baseUrl != "") {
-        store.baseUrl
+fun npcBaseUrl(localPrefs: NPChatLocalPrefs, default: String = ""): String {
+    return if (localPrefs.baseUrl != "") {
+        localPrefs.baseUrl
     } else if (default != "") {
         default
     } else {
-        NpcUrlPlaceholder
+        NPChatBaseUrlPlaceholder
     }
 }
 
-private class ReplaceNpcUrlPlaceholderInterceptor(
-    private val store: NPChatLocalPrefs,
+private class ReplaceUrlPlaceholderInterceptor(
+    private val localPrefs: NPChatLocalPrefs,
 ) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val urlString = chain.request().url.toString()
-        if (urlString.startsWith(NpcUrlPlaceholder) && store.baseUrl != "") {
-            val newUrl = URL(store.baseUrl + urlString.removePrefix(NpcUrlPlaceholder))
+        if (urlString.startsWith(NPChatBaseUrlPlaceholder) && localPrefs.baseUrl != "") {
+            val newUrl = URL(localPrefs.baseUrl + urlString.removePrefix(NPChatBaseUrlPlaceholder))
             val request = chain.request().newBuilder()
                 .url(newUrl)
                 .build()
@@ -103,20 +104,15 @@ private class ReplaceNpcUrlPlaceholderInterceptor(
 }
 
 const val AuthorizationHeader = "Authorization"
-const val AuthorizationType = "NpcUserToken"
-
-fun authzHeaderValue(token: String): String {
-    return "$AuthorizationType $token"
-}
 
 // Перехватчик, добавляющий токен из prefs в заголовок Authorization
 private class AuthorizationInterceptor(
     private val localPrefs: NPChatLocalPrefs,
 ) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
-        if (localPrefs.token != "" && chain.request().header(AuthorizationHeader) == null) {
+        if (localPrefs.token != "" && chain.request().header(AuthorizationHeader).isNullOrBlank()) {
             return chain.request().newBuilder()
-                .addHeader(AuthorizationHeader, authzHeaderValue(localPrefs.token))
+                .addHeader(AuthorizationHeader, "Bearer ${localPrefs.token}")
                 .build()
                 .run(chain::proceed)
         }

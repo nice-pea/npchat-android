@@ -22,4 +22,7 @@ interface NPChatApi {
         @Path("server", encoded = true) server: String,
         @Body body: ApiModel.LoginBody,
     ): Result<ApiModel.RegistrationResp>
+
+    @GET("{server}/me")
+    suspend fun me(): Result<ApiModel.User>
 }
