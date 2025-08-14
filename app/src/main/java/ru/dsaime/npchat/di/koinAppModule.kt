@@ -9,8 +9,8 @@ import ru.dsaime.npchat.data.NPChatApi
 import ru.dsaime.npchat.data.NPChatLocalPrefs
 import ru.dsaime.npchat.data.NPChatRepository
 import ru.dsaime.npchat.network.retrofit
-import ru.dsaime.npchat.screens.chats.ChatsViewModel
 import ru.dsaime.npchat.screens.login.LoginViewModel
+import ru.dsaime.npchat.screens.login.NPChatClient
 import ru.dsaime.npchat.screens.splash.SplashViewModel
 
 
@@ -28,6 +28,16 @@ val appModule = module {
 
     // ViewModels
     viewModelOf(::SplashViewModel)
+    single<NPChatClient> {
+        object : NPChatClient {
+            override fun ping(server: String): Result<Unit> {
+                return listOf(
+                    Result.success(Unit),
+                    Result.failure<Unit>(SecurityException())
+                ).random()
+            }
+        }
+    }
     viewModelOf(::LoginViewModel)
-    viewModelOf(::ChatsViewModel)
+//    viewModelOf(::ChatsViewModel)
 }

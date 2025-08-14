@@ -8,7 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import org.koin.core.Koin
-import ru.dsaime.npchat.screens.login.LoginScreen
+import ru.dsaime.npchat.screens.login.LoginScreenDestination
 import ru.dsaime.npchat.screens.login.RouteLogin
 import ru.dsaime.npchat.screens.splash.RouteSplash
 import ru.dsaime.npchat.screens.splash.SplashScreenDestination
@@ -26,7 +26,7 @@ fun ComposeApp(koin: Koin) {
         startDestination = RouteSplash
     ) {
         composable(RouteSplash) { SplashScreenDestination(navController) }
-        composable(RouteLogin) { LoginScreen(navController) }
+        composable(RouteLogin) { LoginScreenDestination(navController) }
 //        composable(RouteChats) { ChatsScreen(navController) }
 //        composable<RouteMessages> {
 //            val messages = it.toRoute<RouteMessages>()

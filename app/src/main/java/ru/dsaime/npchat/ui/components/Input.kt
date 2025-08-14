@@ -9,6 +9,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -26,8 +27,8 @@ import ru.dsaime.npchat.ui.theme.cursorBrush
 
 @Preview
 @Composable
-private fun PreviewInput() {
-    Input(
+private fun PreviewInputModern() {
+    InputModern(
         modifier = Modifier
             .background(Black)
             .padding(Dp20),
@@ -38,8 +39,62 @@ private fun PreviewInput() {
     )
 }
 
+@Preview
+@Composable
+private fun PreviewInput() {
+    Input(
+        modifier = Modifier
+            .background(Black)
+            .padding(Dp20),
+        title = "Title",
+        placeholder = "Empty",
+        helperText = "Login using for login in your profile without  other credential, it sensitive information, don’t share it",
+        value = "Input text",
+        onValueChange = {},
+    )
+}
+
 @Composable
 fun Input(
+    modifier: Modifier = Modifier,
+    title: String,
+    placeholder: String,
+    helperText: String = "",
+    value: String,
+    onValueChange: (String) -> Unit,
+) {
+    Column(
+        modifier = Modifier.then(modifier)
+    ) {
+        if (title != "") {
+            Text(title, style = Font.White12W500)
+            Gap(Dp6)
+        }
+        TextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Black)
+                .border(Dp1, White)
+                .padding(Dp10),
+            value = value,
+            onValueChange = onValueChange,
+            textStyle = Font.White16W400,
+            placeholder = {
+                Text(text = placeholder, style = Font.GrayCharcoal16W400)
+            },
+            singleLine = true,
+            maxLines = 1,
+        )
+        if (helperText != "") {
+            Gap(Dp2)
+            Text(helperText, style = Font.GrayCharcoal12W400)
+        }
+        Gap(Dp8)
+    }
+}
+
+@Composable
+fun InputModern(
     modifier: Modifier = Modifier,
     title: String,
     placeholder: String,
