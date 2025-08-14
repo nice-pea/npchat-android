@@ -1,12 +1,19 @@
-package ru.dsaime.npchat.data.store
+package ru.dsaime.npchat.data
 
 import android.content.Context
 import androidx.core.content.edit
 
 
-class AuthenticationStore(context: Context) {
+class NPChatLocalPrefs(context: Context) {
     private val name = "common"
     private val sp = context.getSharedPreferences(name, Context.MODE_PRIVATE)
+
+    private val baseUrlKey = "baseUrl"
+    var baseUrl: String
+        get() = sp.getString(baseUrlKey, "").orEmpty()
+        set(value) {
+            sp.edit { putString(baseUrlKey, value) }
+        }
 
     private val tokenKey = "token"
     var token: String

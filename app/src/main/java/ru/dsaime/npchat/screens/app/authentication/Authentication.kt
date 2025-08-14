@@ -6,10 +6,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import ru.dsaime.npchat.data.repositories.AuthenticationRepository
+import ru.dsaime.npchat.data.NPChatRepository
 import ru.dsaime.npchat.data.store.AuthenticationStore
-import ru.dsaime.npchat.data.store.NpcClientStore
-import ru.dsaime.npchat.data.store.Profile
+import ru.dsaime.npchat.data.NPChatLocalPrefs
+import ru.dsaime.npchat.data.Profile
 
 
 sealed interface CheckAuthnResult {
@@ -26,8 +26,8 @@ sealed interface AuthenticationAction {
 
 class AuthenticationViewModel(
     private val store: AuthenticationStore,
-    private val npcStore: NpcClientStore,
-    private val repo: AuthenticationRepository,
+    private val npcStore: NPChatLocalPrefs,
+    private val repo: NPChatRepository,
 ) : ViewModel() {
 
     private val _checkAuthnResult = MutableStateFlow<CheckAuthnResult>(CheckAuthnResult.None)

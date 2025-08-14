@@ -1,4 +1,4 @@
-package ru.dsaime.npchat.data.api.model
+package ru.dsaime.npchat.data
 
 import com.google.gson.annotations.SerializedName
 import java.util.Date
@@ -14,6 +14,11 @@ object ApiModel {
     data class LoginBody(
         @SerializedName("Login")  val login: String,
         @SerializedName("Password")  val password: String,
+    )
+
+    data class RegistrationResp(
+        @SerializedName("User") val user: User,
+        @SerializedName("Session") val session: Session,
     )
 
     data class User(

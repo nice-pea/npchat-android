@@ -22,11 +22,10 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import ru.dsaime.npchat.common.functions.ToastDuration
 import ru.dsaime.npchat.common.functions.toast
-import ru.dsaime.npchat.data.repositories.AuthenticationRepository
-import ru.dsaime.npchat.data.repositories.NpcClient
+import ru.dsaime.npchat.data.NPChatRepository
 import ru.dsaime.npchat.data.store.AuthenticationStore
-import ru.dsaime.npchat.data.store.NpcClientStore
-import ru.dsaime.npchat.data.store.Profile
+import ru.dsaime.npchat.data.NPChatLocalPrefs
+import ru.dsaime.npchat.data.Profile
 import ru.dsaime.npchat.screens.chats.RouteChats
 import ru.dsaime.npchat.ui.components.Button
 import ru.dsaime.npchat.ui.components.Input
@@ -135,9 +134,9 @@ sealed interface LoginAction {
 
 
 class LoginViewModel(
-    private val authnRepo: AuthenticationRepository,
+    private val authnRepo: NPChatRepository,
     private val authnStore: AuthenticationStore,
-    private val npcStore: NpcClientStore,
+    private val npcStore: NPChatLocalPrefs,
     private val apiClient: NpcClient
 ) : ViewModel() {
     val serverFieldState = TextFieldState("")

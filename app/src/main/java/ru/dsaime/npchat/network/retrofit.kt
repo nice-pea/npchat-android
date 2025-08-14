@@ -12,8 +12,7 @@ import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import ru.dsaime.npchat.data.store.AuthenticationStore
-import ru.dsaime.npchat.data.store.NpcClientStore
+import ru.dsaime.npchat.data.NPChatLocalPrefs
 import java.lang.reflect.Type
 import java.net.SocketTimeoutException
 import java.net.URL
@@ -22,16 +21,17 @@ import java.time.format.DateTimeFormatter
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
+// Создает новый ретрофит экземпляр
 fun retrofit(
-    npcClientStore: NpcClientStore,
-    authnStore: AuthenticationStore,
+    localPrefs: NPChatLocalPrefs,
 ): Retrofit {
     val logging = HttpLoggingInterceptor()
         .setLevel(HttpLoggingInterceptor.Level.BODY)
 
     val client = OkHttpClient.Builder()
-        .addInterceptor(AuthorizationInterceptor(authnStore))
-        .addInterceptor(ReplaceNpcUrlPlaceholderInterceptor(npcClientStore))
+        // Добавить
+        .addInterceptor(AuthorizationInterceptor(localPrefs))
+        .addInterceptor(ReplaceNpcUrlPlaceholderInterceptor(localPrefs))
         .addInterceptor(logging)
         .addInterceptor(RetryInterceptor(3))
         .callTimeout(10.seconds.toJavaDuration())
@@ -75,7 +75,7 @@ private class RetryInterceptor(private val retryAttempts: Int) : Interceptor {
 
 const val NpcUrlPlaceholder = "http://<npc_host>:7511"
 
-fun npcBaseUrl(store: NpcClientStore, default: String = ""): String {
+fun npcBaseUrl(store: NPChatLocalPrefs, default: String = ""): String {
     return if (store.baseUrl != "") {
         store.baseUrl
     } else if (default != "") {
@@ -86,7 +86,7 @@ fun npcBaseUrl(store: NpcClientStore, default: String = ""): String {
 }
 
 private class ReplaceNpcUrlPlaceholderInterceptor(
-    private val store: NpcClientStore,
+    private val store: NPChatLocalPrefs,
 ) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val urlString = chain.request().url.toString()
@@ -109,13 +109,14 @@ fun authzHeaderValue(token: String): String {
     return "$AuthorizationType $token"
 }
 
+// Перехватчик, добавляющий токен из prefs в заголовок Authorization
 private class AuthorizationInterceptor(
-    private val store: AuthenticationStore,
+    private val localPrefs: NPChatLocalPrefs,
 ) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
-        if (store.token != "" && chain.request().header(AuthorizationHeader) == null) {
+        if (localPrefs.token != "" && chain.request().header(AuthorizationHeader) == null) {
             return chain.request().newBuilder()
-                .addHeader(AuthorizationHeader, authzHeaderValue(store.token))
+                .addHeader(AuthorizationHeader, authzHeaderValue(localPrefs.token))
                 .build()
                 .run(chain::proceed)
         }

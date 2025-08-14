@@ -24,10 +24,9 @@ import ru.dsaime.npchat.common.asyncDataErr
 import ru.dsaime.npchat.common.asyncDataMutFlow
 import ru.dsaime.npchat.common.asyncDataOk
 import ru.dsaime.npchat.data.repositories.Boundary
-import ru.dsaime.npchat.data.repositories.ChatsRepository
 import ru.dsaime.npchat.data.repositories.MessagesRepository
 import ru.dsaime.npchat.data.store.AuthenticationStore
-import ru.dsaime.npchat.data.store.Profile
+import ru.dsaime.npchat.data.Profile
 import ru.dsaime.npchat.model.Model
 import ru.dsaime.npchat.ui.theme.Font
 import ru.dsaime.npchat.ui.theme.White

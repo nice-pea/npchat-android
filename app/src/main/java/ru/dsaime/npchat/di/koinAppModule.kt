@@ -5,14 +5,10 @@ import org.koin.core.module.dsl.viewModelOf
 import org.koin.core.scope.Scope
 import org.koin.dsl.module
 import retrofit2.Retrofit
-import ru.dsaime.npchat.data.api.AuthenticationApi
-import ru.dsaime.npchat.data.api.ChatsApi
 import ru.dsaime.npchat.data.api.NpcClientApi
-import ru.dsaime.npchat.data.repositories.AuthenticationRepository
-import ru.dsaime.npchat.data.repositories.ChatsRepository
-import ru.dsaime.npchat.data.repositories.NpcClient
+import ru.dsaime.npchat.data.NPChatRepository
 import ru.dsaime.npchat.data.store.AuthenticationStore
-import ru.dsaime.npchat.data.store.NpcClientStore
+import ru.dsaime.npchat.data.NPChatLocalPrefs
 import ru.dsaime.npchat.network.retrofit
 import ru.dsaime.npchat.screens.app.authentication.AuthenticationViewModel
 import ru.dsaime.npchat.screens.chats.ChatsViewModel
@@ -22,7 +18,7 @@ import ru.dsaime.npchat.screens.login.LoginViewModel
 val appModule = module {
     // LocalStore
     singleOf(::AuthenticationStore)
-    singleOf(::NpcClientStore)
+    singleOf(::NPChatLocalPrefs)
 
     // Api
     single { retrofit(get(), get()) }
@@ -32,7 +28,7 @@ val appModule = module {
     single { retroApi(ChatsApi::class.java) }
 
     // Repositories
-    singleOf(::AuthenticationRepository)
+    singleOf(::NPChatRepository)
     singleOf(::NpcClient)
     singleOf(::ChatsRepository)
 

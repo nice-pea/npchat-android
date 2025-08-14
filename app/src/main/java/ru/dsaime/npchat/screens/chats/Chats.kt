@@ -27,7 +27,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import ru.dsaime.npchat.common.AsyncData
-import ru.dsaime.npchat.data.repositories.ChatsRepository
 import ru.dsaime.npchat.data.store.AuthenticationStore
 import ru.dsaime.npchat.model.Model
 import ru.dsaime.npchat.screens.chat.messages.RouteMessages
