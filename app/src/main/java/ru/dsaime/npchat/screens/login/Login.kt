@@ -102,6 +102,7 @@ fun LoginScreen(
     ) {
         Row {
             Input(
+                modifier = Modifier.weight(1f),
                 title = "Сервер",
                 placeholder = "http://example.com",
                 value = state.server,

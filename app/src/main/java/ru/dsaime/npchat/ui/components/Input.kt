@@ -9,7 +9,6 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -27,8 +26,8 @@ import ru.dsaime.npchat.ui.theme.cursorBrush
 
 @Preview
 @Composable
-private fun PreviewInputModern() {
-    InputModern(
+private fun PreviewInputState() {
+    Input(
         modifier = Modifier
             .background(Black)
             .padding(Dp20),
@@ -70,7 +69,7 @@ fun Input(
             Text(title, style = Font.White12W500)
             Gap(Dp6)
         }
-        TextField(
+        BasicTextField(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Black)
@@ -78,12 +77,14 @@ fun Input(
                 .padding(Dp10),
             value = value,
             onValueChange = onValueChange,
+            cursorBrush = cursorBrush,
             textStyle = Font.White16W400,
-            placeholder = {
-                Text(text = placeholder, style = Font.GrayCharcoal16W400)
-            },
-            singleLine = true,
-            maxLines = 1,
+            decorationBox = { innerTextField ->
+                if (value.isBlank()) {
+                    Text(placeholder, style = Font.GrayCharcoal16W400)
+                }
+                innerTextField()
+            }
         )
         if (helperText != "") {
             Gap(Dp2)
@@ -94,7 +95,7 @@ fun Input(
 }
 
 @Composable
-fun InputModern(
+fun Input(
     modifier: Modifier = Modifier,
     title: String,
     placeholder: String,
