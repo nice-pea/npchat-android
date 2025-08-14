@@ -16,6 +16,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import ru.dsaime.npchat.common.AsyncData
@@ -31,6 +32,7 @@ import ru.dsaime.npchat.model.Model
 import ru.dsaime.npchat.ui.theme.Font
 import ru.dsaime.npchat.ui.theme.White
 
+@Serializable
 data class RouteMessages(
     val chatID: Int,
 )

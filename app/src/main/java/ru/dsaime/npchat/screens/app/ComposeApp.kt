@@ -33,9 +33,9 @@ fun ComposeApp(koin: Koin) {
         composable(RouteSplash) { SplashScreen(navController) }
         composable(RouteLogin) { LoginScreen(navController) }
         composable(RouteChats) { ChatsScreen(navController) }
-        composable<RouteMessages> {
-            val messages = it.toRoute<RouteMessages>()
-            MessagesScreen(navController, messages.chatID)
-        }
+//        composable<RouteMessages> {
+//            val messages = it.toRoute<RouteMessages>()
+//            MessagesScreen(navController, messages.chatID)
+//        }
     }
 }
