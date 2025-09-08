@@ -4,9 +4,9 @@ import android.content.Context
 import androidx.core.content.edit
 
 
+// Представляет собой локальное хранилище доступов к api
 class NPChatLocalPrefs(context: Context) {
-    private val name = "common"
-    private val sp = context.getSharedPreferences(name, Context.MODE_PRIVATE)
+    private val sp = context.getSharedPreferences("common", Context.MODE_PRIVATE)
 
     private val baseUrlKey = "baseUrl"
     var baseUrl: String

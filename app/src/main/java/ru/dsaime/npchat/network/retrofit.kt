@@ -22,16 +22,14 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
 // Создает новый ретрофит экземпляр
-fun retrofit(
-    localPrefs: NPChatLocalPrefs,
-): Retrofit {
+fun retrofit(localPrefs: NPChatLocalPrefs): Retrofit {
     val logging = HttpLoggingInterceptor()
         .setLevel(HttpLoggingInterceptor.Level.BODY)
 
+    // Инициализировать http клиент
     val client = OkHttpClient.Builder()
-        // Подставлять токен в заголовок
+        // Установить перехватчики на http клиент
         .addInterceptor(AuthorizationInterceptor(localPrefs))
-        // Подменять url на сохраненный в prefs
         .addInterceptor(ReplaceUrlPlaceholderInterceptor(localPrefs))
         .addInterceptor(logging)
         .addInterceptor(RetryInterceptor(3))
@@ -43,6 +41,7 @@ fun retrofit(
         .registerTypeAdapter(OffsetDateTime::class.java, OffsetDateTimeAdapter)
         .create()
 
+    // Инициализировать refrofit (обертка http клиента)
     return Retrofit.Builder()
         .baseUrl(NPChatBaseUrlPlaceholder)
         .client(client)
@@ -51,6 +50,7 @@ fun retrofit(
         .build()
 }
 
+// Правило разбора json полей типа OffsetDateTime
 private object OffsetDateTimeAdapter : JsonDeserializer<OffsetDateTime> {
     override fun deserialize(
         json: JsonElement?,
@@ -61,6 +61,7 @@ private object OffsetDateTimeAdapter : JsonDeserializer<OffsetDateTime> {
     }
 }
 
+// Перехватчик, выполнеюший повторный запрос, при таймауте
 private class RetryInterceptor(private val retryAttempts: Int) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         repeat(retryAttempts) {
@@ -77,15 +78,12 @@ private class RetryInterceptor(private val retryAttempts: Int) : Interceptor {
 const val NPChatBaseUrlPlaceholder = "http://npchat.placeholder:1"
 
 fun npcBaseUrl(localPrefs: NPChatLocalPrefs, default: String = ""): String {
-    return if (localPrefs.baseUrl != "") {
-        localPrefs.baseUrl
-    } else if (default != "") {
-        default
-    } else {
-        NPChatBaseUrlPlaceholder
-    }
+    return localPrefs.baseUrl
+        .ifEmpty { default }
+        .ifEmpty { NPChatBaseUrlPlaceholder }
 }
 
+// Перехватчик, подставляющий в запрос url выбранного сервера
 private class ReplaceUrlPlaceholderInterceptor(
     private val localPrefs: NPChatLocalPrefs,
 ) : Interceptor {
@@ -103,16 +101,18 @@ private class ReplaceUrlPlaceholderInterceptor(
     }
 }
 
-const val AuthorizationHeader = "Authorization"
 
 // Перехватчик, добавляющий токен из prefs в заголовок Authorization
 private class AuthorizationInterceptor(
     private val localPrefs: NPChatLocalPrefs,
 ) : Interceptor {
+
+    val authorizationHeader = "Authorization"
+
     override fun intercept(chain: Interceptor.Chain): Response {
-        if (localPrefs.token != "" && chain.request().header(AuthorizationHeader).isNullOrBlank()) {
+        if (localPrefs.token != "" && chain.request().header(authorizationHeader).isNullOrBlank()) {
             return chain.request().newBuilder()
-                .addHeader(AuthorizationHeader, "Bearer ${localPrefs.token}")
+                .addHeader(authorizationHeader, "Bearer ${localPrefs.token}")
                 .build()
                 .run(chain::proceed)
         }
