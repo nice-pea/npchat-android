@@ -6,31 +6,33 @@ import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
 import com.skydoves.retrofit.adapters.result.ResultCallAdapterFactory
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import ru.dsaime.npchat.data.NPChatLocalPrefs
 import java.lang.reflect.Type
 import java.net.SocketTimeoutException
-import java.net.URL
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
 // Создает новый ретрофит экземпляр
-fun retrofit(localPrefs: NPChatLocalPrefs): Retrofit {
+fun retrofit(
+    bearerTokenProvider: BearerTokenProvider,
+    baseUrlProvider: BaseUrlProvider,
+): Retrofit {
     val logging = HttpLoggingInterceptor()
         .setLevel(HttpLoggingInterceptor.Level.BODY)
 
     // Инициализировать http клиент
     val client = OkHttpClient.Builder()
         // Установить перехватчики на http клиент
-        .addInterceptor(AuthorizationInterceptor(localPrefs))
-        .addInterceptor(ReplaceUrlPlaceholderInterceptor(localPrefs))
+        .addInterceptor(AuthorizationInterceptor(bearerTokenProvider))
+        .addInterceptor(DynamicBaseUrlInterceptor(baseUrlProvider))
         .addInterceptor(logging)
         .addInterceptor(RetryInterceptor(3))
         .callTimeout(10.seconds.toJavaDuration())
@@ -41,9 +43,9 @@ fun retrofit(localPrefs: NPChatLocalPrefs): Retrofit {
         .registerTypeAdapter(OffsetDateTime::class.java, OffsetDateTimeAdapter)
         .create()
 
-    // Инициализировать refrofit (обертка http клиента)
+    // Инициализировать retrofit (обертка http клиента)
     return Retrofit.Builder()
-        .baseUrl(NPChatBaseUrlPlaceholder)
+        .baseUrl("http://npchat.placeholder:1")
         .client(client)
         .addConverterFactory(GsonConverterFactory.create(gson))
         .addCallAdapterFactory(ResultCallAdapterFactory.create())
@@ -61,7 +63,7 @@ private object OffsetDateTimeAdapter : JsonDeserializer<OffsetDateTime> {
     }
 }
 
-// Перехватчик, выполнеюший повторный запрос, при таймауте
+// Перехватчик, выполняющий повторный запрос, при таймауте
 private class RetryInterceptor(private val retryAttempts: Int) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         repeat(retryAttempts) {
@@ -75,48 +77,90 @@ private class RetryInterceptor(private val retryAttempts: Int) : Interceptor {
     }
 }
 
-const val NPChatBaseUrlPlaceholder = "http://npchat.placeholder:1"
-
-fun npcBaseUrl(localPrefs: NPChatLocalPrefs, default: String = ""): String {
-    return localPrefs.baseUrl
-        .ifEmpty { default }
-        .ifEmpty { NPChatBaseUrlPlaceholder }
-}
+//fun npcBaseUrl(localPrefs: NPChatLocalPrefs, default: String = ""): String {
+//    return localPrefs.baseUrl
+//        .ifEmpty { default }
+//        .ifEmpty { NPChatBaseUrlPlaceholder }
+//}
 
 // Перехватчик, подставляющий в запрос url выбранного сервера
-private class ReplaceUrlPlaceholderInterceptor(
-    private val localPrefs: NPChatLocalPrefs,
-) : Interceptor {
-    override fun intercept(chain: Interceptor.Chain): Response {
-        val urlString = chain.request().url.toString()
-        if (urlString.startsWith(NPChatBaseUrlPlaceholder) && localPrefs.baseUrl != "") {
-            val newUrl = URL(localPrefs.baseUrl + urlString.removePrefix(NPChatBaseUrlPlaceholder))
-            val request = chain.request().newBuilder()
-                .url(newUrl)
-                .build()
-            return chain.proceed(request)
-        }
+//private class ReplaceUrlPlaceholderInterceptor(
+//    private val localPrefs: NPChatLocalPrefs,
+//) : Interceptor {
+//    override fun intercept(chain: Interceptor.Chain): Response {
+//        val urlString = chain.request().url.toString()
+//        if (urlString.startsWith(NPChatBaseUrlPlaceholder) && localPrefs.baseUrl != "") {
+//            val newUrl = URL(localPrefs.baseUrl + urlString.removePrefix(NPChatBaseUrlPlaceholder))
+//            val request = chain.request().newBuilder()
+//                .url(newUrl)
+//                .build()
+//            return chain.proceed(request)
+//        }
+//
+//        return chain.proceed(chain.request())
+//    }
+//}
 
-        return chain.proceed(chain.request())
+fun interface BaseUrlProvider {
+    fun baseUrl(): String
+}
+
+// Перехватчик, динамически подменяющий baseUrl на выданный провайдером либо переданный через заголовок
+private class DynamicBaseUrlInterceptor(
+    private val baseUrlProvider: BaseUrlProvider
+) : Interceptor {
+
+    private val overrideHostHeader = "X-Override-Host"
+
+    override fun intercept(chain: Interceptor.Chain): Response {
+        // Получить новый base URL
+        val baseUrl = chain.request().headers[overrideHostHeader]
+            // Если заголовок пустой, взять из провайдера
+            .orEmpty().ifBlank { baseUrlProvider.baseUrl() }
+            .toHttpUrl()
+
+        // Собрать новый URL
+        val newUrl = chain.request().url.newBuilder()
+            .scheme(baseUrl.scheme)
+            .host(baseUrl.host)
+            .port(baseUrl.port)
+            .build()
+
+        // Собрать запрос с новым URL
+        val newRequest = chain.request().newBuilder()
+            .url(newUrl) // Подставить новый url
+            .removeHeader(overrideHostHeader) // Удалить заголовок
+            .build()
+
+        // Продолжить выполнение цепочки
+        return chain.proceed(newRequest)
     }
 }
 
+fun interface BearerTokenProvider {
+    fun token(): String
+}
 
 // Перехватчик, добавляющий токен из prefs в заголовок Authorization
 private class AuthorizationInterceptor(
-    private val localPrefs: NPChatLocalPrefs,
+    private val bearerTokenProvider: BearerTokenProvider,
 ) : Interceptor {
 
     val authorizationHeader = "Authorization"
 
     override fun intercept(chain: Interceptor.Chain): Response {
-        if (localPrefs.token != "" && chain.request().header(authorizationHeader).isNullOrBlank()) {
-            return chain.request().newBuilder()
-                .addHeader(authorizationHeader, "Bearer ${localPrefs.token}")
-                .build()
-                .run(chain::proceed)
-        }
+        // Если заголовок уже заполнен, не продолжать
+        if (chain.request().header(authorizationHeader).isNullOrBlank())
+            return chain.proceed(chain.request())
 
-        return chain.proceed(chain.request())
+        // Получить токен из провайдера
+        val token = bearerTokenProvider.token()
+            // Если токен пустой, выйти
+            .ifEmpty { return chain.proceed(chain.request()) }
+
+        return chain.request().newBuilder()
+            // Добавить заголовок с токеном
+            .addHeader(authorizationHeader, "Bearer $token")
+            .build().run(chain::proceed)
     }
 }

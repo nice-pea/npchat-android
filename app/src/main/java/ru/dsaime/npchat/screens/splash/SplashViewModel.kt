@@ -6,8 +6,8 @@ import ru.dsaime.npchat.base.BaseViewModel
 import ru.dsaime.npchat.base.ViewEvent
 import ru.dsaime.npchat.base.ViewSideEffect
 import ru.dsaime.npchat.base.ViewState
+import ru.dsaime.npchat.data.AuthServiceBase
 import ru.dsaime.npchat.data.NPChatLocalPrefs
-import ru.dsaime.npchat.data.NPChatRepository
 
 class SplashContract {
     sealed interface Event : ViewEvent {
@@ -28,7 +28,7 @@ class SplashContract {
 
 class SplashViewModel(
     private val localPrefs: NPChatLocalPrefs,
-    private val repo: NPChatRepository,
+    private val repo: AuthServiceBase,
 ) : BaseViewModel<SplashContract.Event,
         SplashContract.State,
         SplashContract.Effect>() {

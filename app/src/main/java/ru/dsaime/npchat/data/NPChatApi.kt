@@ -2,27 +2,31 @@ package ru.dsaime.npchat.data
 
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
-import retrofit2.http.Path
 
-interface NPChatApi {
-    @GET("{server}/ping")
+private const val overrideHostHeader = "X-Override-Host"
+
+interface NPChatApiDyn {
+    @GET("/ping")
     suspend fun ping(
-        @Path("server", encoded = true) server: String,
+        @Header(overrideHostHeader) host: String,
     ): Result<Unit>
 
-    @POST("{server}/auth/password/registration")
-    suspend fun auth(
-        @Path("server", encoded = true) server: String,
+    @POST("/auth/password/registration")
+    suspend fun registration(
+        @Header(overrideHostHeader) host: String,
         @Body body: ApiModel.RegistrationBody,
-    ): Result<ApiModel.RegistrationResp>
+    ): Result<ApiModel.AuthResp>
 
-    @POST("{server}/auth/password/login")
+    @POST("/auth/password/login")
     suspend fun login(
-        @Path("server", encoded = true) server: String,
+        @Header(overrideHostHeader) host: String,
         @Body body: ApiModel.LoginBody,
-    ): Result<ApiModel.RegistrationResp>
+    ): Result<ApiModel.AuthResp>
+}
 
-    @GET("{server}/me")
+interface NPChatApi {
+    @GET("/me")
     suspend fun me(): Result<ApiModel.User>
 }

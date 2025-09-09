@@ -1,22 +1,22 @@
 package ru.dsaime.npchat.data
 
 import com.google.gson.annotations.SerializedName
-import java.util.Date
+import java.time.OffsetDateTime
 
 object ApiModel {
     data class RegistrationBody(
-        @SerializedName("Login")  val login: String,
-        @SerializedName("Password")  val password: String,
-        @SerializedName("Name")  val name: String,
-        @SerializedName("Nick")  val nick: String,
+        @SerializedName("login") val login: String,
+        @SerializedName("password") val password: String,
+        @SerializedName("name") val name: String,
+        @SerializedName("nick") val nick: String,
     )
 
     data class LoginBody(
-        @SerializedName("Login")  val login: String,
-        @SerializedName("Password")  val password: String,
+        @SerializedName("login") val login: String,
+        @SerializedName("password") val password: String,
     )
 
-    data class RegistrationResp(
+    data class AuthResp(
         @SerializedName("User") val user: User,
         @SerializedName("Session") val session: Session,
     )
@@ -38,20 +38,6 @@ object ApiModel {
 
     data class Token(
         @SerializedName("Token") val token: String,
-        @SerializedName("Expiry") val expiry: Date
+        @SerializedName("Expiry") val expiry: OffsetDateTime
     )
-
-//    data class Authn(
-//        val user: Model.User,
-//        val session: Model.Session
-//    )
-//
-//    data class Login(
-//        val user: Model.User,
-//        val session: Model.Session
-//    )
-//
-//    data class Chats(
-//        val chats: List<Model.Chat>,
-//    )
 }

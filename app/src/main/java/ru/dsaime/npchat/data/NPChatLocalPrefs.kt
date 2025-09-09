@@ -3,8 +3,8 @@ package ru.dsaime.npchat.data
 import android.content.Context
 import androidx.core.content.edit
 
-
 // Представляет собой локальное хранилище доступов к api
+@Deprecated(level = DeprecationLevel.ERROR, message = "dnt use it")
 class NPChatLocalPrefs(context: Context) {
     private val sp = context.getSharedPreferences("common", Context.MODE_PRIVATE)
 

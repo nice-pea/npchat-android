@@ -27,7 +27,7 @@ import ru.dsaime.npchat.base.ViewSideEffect
 import ru.dsaime.npchat.base.ViewState
 import ru.dsaime.npchat.common.functions.ToastDuration
 import ru.dsaime.npchat.common.functions.toast
-import ru.dsaime.npchat.data.NPChatRepository
+import ru.dsaime.npchat.data.AuthServiceBase
 import ru.dsaime.npchat.screens.chats.RouteChats
 import ru.dsaime.npchat.ui.components.Button
 import ru.dsaime.npchat.ui.components.Input
@@ -201,7 +201,7 @@ interface NPChatClient {
 }
 
 class LoginViewModel(
-    private val repo: NPChatRepository,
+    private val repo: AuthServiceBase,
     private val client: NPChatClient,
 ) : BaseViewModel<LoginContract.Event, LoginContract.State, LoginContract.Effect>() {
 
