@@ -7,7 +7,7 @@ import retrofit2.http.POST
 
 private const val overrideHostHeader = "X-Override-Host"
 
-interface NPChatApiDyn {
+interface NPChatApi {
     @GET("/ping")
     suspend fun ping(
         @Header(overrideHostHeader) host: String,
@@ -24,9 +24,11 @@ interface NPChatApiDyn {
         @Header(overrideHostHeader) host: String,
         @Body body: ApiModel.LoginBody,
     ): Result<ApiModel.AuthResp>
-}
 
-interface NPChatApi {
     @GET("/me")
     suspend fun me(): Result<ApiModel.User>
+
+//    @GET("/events")
+//    @Streaming
+//    suspend fun events(): Response<ResponseBody>
 }

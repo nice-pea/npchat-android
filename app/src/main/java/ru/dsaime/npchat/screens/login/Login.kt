@@ -15,6 +15,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import com.github.michaelbull.result.onFailure
+import com.github.michaelbull.result.onSuccess
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
@@ -28,6 +30,7 @@ import ru.dsaime.npchat.base.ViewState
 import ru.dsaime.npchat.common.functions.ToastDuration
 import ru.dsaime.npchat.common.functions.toast
 import ru.dsaime.npchat.data.AuthServiceBase
+import ru.dsaime.npchat.data.NPChatApi
 import ru.dsaime.npchat.screens.chats.RouteChats
 import ru.dsaime.npchat.ui.components.Button
 import ru.dsaime.npchat.ui.components.Input
@@ -194,15 +197,9 @@ sealed interface CheckConnResult {
     data class Err(val msg: String) : CheckConnResult
 }
 
-
-interface NPChatClient {
-    fun ping(server: String): Result<Unit>
-//    fun healthCheck(): Result<Health>
-}
-
 class LoginViewModel(
     private val repo: AuthServiceBase,
-    private val client: NPChatClient,
+    private val client: NPChatApi,
 ) : BaseViewModel<LoginContract.Event, LoginContract.State, LoginContract.Effect>() {
 
     private suspend fun checkConn() {
@@ -227,14 +224,13 @@ class LoginViewModel(
 
         repo.login(
             login = viewState.value.login,
-            password = viewState.value.password,
-            server = viewState.value.server,
+            pass = viewState.value.password,
+            host = viewState.value.server,
         ).onSuccess {
             setEffect { LoginContract.Effect.Navigation.ToHome }
-        }.onFailure { res ->
+        }.onFailure { message ->
             setEffect {
-                val err = res.message.orEmpty().ifEmpty { "emptyErr" }
-                LoginContract.Effect.ShowError(err)
+                LoginContract.Effect.ShowError(message)
             }
         }
     }

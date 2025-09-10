@@ -48,5 +48,5 @@ interface SessionsService {
 
 // Описывает интерфейс доступа к потоку событий
 interface EventsFlowProvider {
-    fun eventsFlow(session: Session): Flow<Event>
+    suspend fun eventsFlow(session: Session): Flow<Event>
 }

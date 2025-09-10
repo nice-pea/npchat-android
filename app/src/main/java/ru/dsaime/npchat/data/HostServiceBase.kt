@@ -1,7 +1,7 @@
 package ru.dsaime.npchat.data
 
 class HostServiceBase(
-    private val apiDyn: NPChatApiDyn
+    private val apiDyn: NPChatApi
 ) : HostService {
 
     private var currentHost: String? = null

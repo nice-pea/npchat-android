@@ -64,6 +64,9 @@ dependencies {
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     testImplementation(libs.mockk)
+    testImplementation(kotlin("test"))
+    testImplementation(libs.junit.jupiter.api)
+    testRuntimeOnly(libs.junit.jupiter.engine)
 
     // Отладка
     debugImplementation(libs.androidx.ui.tooling)
@@ -74,6 +77,8 @@ dependencies {
     implementation(libs.converter.gson)
     implementation(libs.okhttp3.logging.interceptor)
     implementation(libs.retrofit.adapters.result)
+    implementation(libs.okhttp.sse)
+    implementation(libs.ktor.client.core)
 
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)

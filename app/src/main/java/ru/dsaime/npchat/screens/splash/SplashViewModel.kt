@@ -7,7 +7,7 @@ import ru.dsaime.npchat.base.ViewEvent
 import ru.dsaime.npchat.base.ViewSideEffect
 import ru.dsaime.npchat.base.ViewState
 import ru.dsaime.npchat.data.AuthServiceBase
-import ru.dsaime.npchat.data.NPChatLocalPrefs
+import ru.dsaime.npchat.data.SessionsService
 
 class SplashContract {
     sealed interface Event : ViewEvent {
@@ -27,7 +27,7 @@ class SplashContract {
 }
 
 class SplashViewModel(
-    private val localPrefs: NPChatLocalPrefs,
+    private val sessionsService: SessionsService,
     private val repo: AuthServiceBase,
 ) : BaseViewModel<SplashContract.Event,
         SplashContract.State,
@@ -38,7 +38,8 @@ class SplashViewModel(
     override fun handleEvents(event: SplashContract.Event) {
         when (event) {
             SplashContract.Event.CheckSession -> viewModelScope.launch {
-                if (repo.isSessionActual())
+                val current = sessionsService.currentSession()
+                if (current == null || !sessionsService.sessionIsActual(current))
                     setEffect { SplashContract.Effect.Navigation.ToHome }
                 else
                     setEffect { SplashContract.Effect.Navigation.ToLogin }
