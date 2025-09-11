@@ -4,6 +4,9 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
+import com.google.gson.JsonPrimitive
+import com.google.gson.JsonSerializationContext
+import com.google.gson.JsonSerializer
 import com.skydoves.retrofit.adapters.result.ResultCallAdapterFactory
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
@@ -47,8 +50,16 @@ fun retrofit(
         .build()
 }
 
-// Правило разбора json полей типа OffsetDateTime
-private object OffsetDateTimeAdapter : JsonDeserializer<OffsetDateTime> {
+// Правило разбора и сериализации json полей типа OffsetDateTime
+object OffsetDateTimeAdapter : JsonSerializer<OffsetDateTime>, JsonDeserializer<OffsetDateTime> {
+    override fun serialize(
+        src: OffsetDateTime?,
+        typeOfSrc: Type?,
+        context: JsonSerializationContext?
+    ): JsonElement? {
+        return src?.let { JsonPrimitive(it.toString()) }
+    }
+
     override fun deserialize(
         json: JsonElement?,
         typeOfT: Type?,

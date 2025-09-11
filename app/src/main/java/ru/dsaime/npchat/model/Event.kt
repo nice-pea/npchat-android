@@ -1,17 +1,11 @@
 package ru.dsaime.npchat.model
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonObject
-import ru.dsaime.npchat.common.serializers.OffsetDateTimeStringSerializer
+import com.google.gson.annotations.SerializedName
 import java.time.OffsetDateTime
 
 
-@Serializable
 data class Event(
-    @SerialName("Type") val type: String, // Тип события
-    @Serializable(with = OffsetDateTimeStringSerializer::class)
-    @SerialName("CreatedIn") val createdIn: OffsetDateTime, // Время создания
-//        Recipients []uuid.UUID    // Получатели (id пользователей)
-    @SerialName("Data") val data: JsonObject, // Полезная нагрузка
+    @SerializedName("Type") val type: String, // Тип события
+    @SerializedName("CreatedIn") val createdIn: OffsetDateTime, // Время создания
+    @SerializedName("Data") val data: Map<String, Any>, // Полезная нагрузка
 )
