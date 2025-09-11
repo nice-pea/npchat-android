@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    kotlin("plugin.serialization") version "2.2.20"
 }
 
 
@@ -45,6 +46,9 @@ android {
     buildFeatures {
         compose = true
     }
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {
@@ -58,15 +62,17 @@ dependencies {
     implementation(libs.androidx.material3)
 
     // Тестирование
-    testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     testImplementation(libs.mockk)
     testImplementation(kotlin("test"))
-    testImplementation(libs.junit.jupiter.api)
-    testRuntimeOnly(libs.junit.jupiter.engine)
+    // Ktor
+    testImplementation(libs.ktor.server)
+    testImplementation(libs.ktor.server.sse)
+    testImplementation(libs.ktor.server.jetty.jakarta)
+    testImplementation(libs.ktor.server.netty)
 
     // Отладка
     debugImplementation(libs.androidx.ui.tooling)
@@ -78,13 +84,23 @@ dependencies {
     implementation(libs.okhttp3.logging.interceptor)
     implementation(libs.retrofit.adapters.result)
     implementation(libs.okhttp.sse)
+    // Ktor
     implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.serialization.gson)
+    implementation(libs.ktor.client.logging)
+    testImplementation(libs.ktor.client.mock)
 
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.koin.androidx.compose)
 
-    // A multiplatform Result monad for modelling success or failure operations.
+    // A multiplatform Result monad for modeling success or failure operations.
     implementation(libs.kotlin.result)
+
+    // logging
+    implementation(libs.slf4j.android)
+//    implementation(libs.logback.classic)
 }

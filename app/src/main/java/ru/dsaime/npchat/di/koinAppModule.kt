@@ -6,7 +6,7 @@ import retrofit2.Retrofit
 import ru.dsaime.npchat.data.AuthService
 import ru.dsaime.npchat.data.AuthServiceBase
 import ru.dsaime.npchat.data.EventsFlowProvider
-import ru.dsaime.npchat.data.EventsFlowProviderBase
+import ru.dsaime.npchat.data.EventsFlowProviderKtorSSE
 import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.data.HostServiceBase
 import ru.dsaime.npchat.data.NPChatApi
@@ -38,7 +38,7 @@ val appModule = module {
     single<AuthService> { AuthServiceBase(get()) }
     single<HostService> { HostServiceBase(get()) }
     single<SessionsService> { SessionsServiceBase(get(), get()) }
-    single<EventsFlowProvider> { EventsFlowProviderBase(get()) }
+    single<EventsFlowProvider> { EventsFlowProviderKtorSSE(get(), get()) }
 
     // ViewModels
     viewModelOf(::SplashViewModel)

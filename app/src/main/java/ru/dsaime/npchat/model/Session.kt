@@ -2,6 +2,7 @@ package ru.dsaime.npchat.model
 
 import java.time.OffsetDateTime
 
+//@Serializable
 data class Session(
     val id: String,
     val name: String,

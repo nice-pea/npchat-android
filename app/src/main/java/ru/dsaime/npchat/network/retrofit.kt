@@ -1,6 +1,5 @@
 package ru.dsaime.npchat.network
 
-import com.google.gson.FieldNamingPolicy
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
@@ -38,16 +37,12 @@ fun retrofit(
         .callTimeout(10.seconds.toJavaDuration())
         .build()
 
-    val gson = GsonBuilder()
-        .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-        .registerTypeAdapter(OffsetDateTime::class.java, OffsetDateTimeAdapter)
-        .create()
 
     // Инициализировать retrofit (обертка http клиента)
     return Retrofit.Builder()
         .baseUrl("http://npchat.placeholder:1")
         .client(client)
-        .addConverterFactory(GsonConverterFactory.create(gson))
+        .addConverterFactory(GsonConverterFactory.create(retroGson))
         .addCallAdapterFactory(ResultCallAdapterFactory.create())
         .build()
 }
@@ -100,6 +95,10 @@ private class RetryInterceptor(private val retryAttempts: Int) : Interceptor {
 //        return chain.proceed(chain.request())
 //    }
 //}
+
+val retroGson = GsonBuilder()
+    .registerTypeAdapter(OffsetDateTime::class.java, OffsetDateTimeAdapter)
+    .create()
 
 fun interface BaseUrlProvider {
     fun baseUrl(): String
