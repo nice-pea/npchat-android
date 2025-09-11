@@ -1,7 +1,7 @@
 package ru.dsaime.npchat.data
 
 class HostServiceBase(
-    private val apiDyn: NPChatApi
+    private val api: NPChatApi
 ) : HostService {
 
     private var currentHost: String? = null
@@ -12,7 +12,12 @@ class HostServiceBase(
         currentHost = host
     }
 
-    override suspend fun ping(host: String): Boolean {
-        return apiDyn.ping(host).isSuccess
+    override fun wellKnown(): List<String> {
+        return listOf(
+            "https://api.npchat.dsaime.ru:443",
+            "http://localhost:8080",
+        )
     }
+
+    override suspend fun ping(host: String) = api.ping(host).isSuccess
 }

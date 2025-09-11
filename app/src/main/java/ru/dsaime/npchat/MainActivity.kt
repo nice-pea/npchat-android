@@ -6,7 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
-import ru.dsaime.npchat.di.appModule
+import ru.dsaime.npchat.di.koin.appModule
 import ru.dsaime.npchat.screens.app.ComposeApp
 import ru.dsaime.npchat.ui.theme.NPChatTheme
 

@@ -22,4 +22,8 @@ class SessionsServiceBase(
         return api.me().isSuccess
     }
 
+    override suspend fun refresh(session: Session): Boolean {
+        TODO("Not yet implemented")
+    }
+
 }

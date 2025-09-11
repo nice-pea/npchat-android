@@ -36,6 +36,7 @@ interface AuthService {
 interface HostService {
     fun currentHost(): String?
     fun changeHost(host: String)
+    fun wellKnown(): List<String>
     suspend fun ping(host: String = currentHost().orEmpty()): Boolean
 }
 
@@ -44,6 +45,7 @@ interface SessionsService {
     fun currentSession(): Session?
     fun changeSession(session: Session)
     suspend fun sessionIsActual(session: Session): Boolean
+    suspend fun refresh(session: Session): Boolean
 }
 
 // Описывает интерфейс доступа к потоку событий

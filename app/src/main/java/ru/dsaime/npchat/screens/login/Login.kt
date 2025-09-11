@@ -1,18 +1,16 @@
 package ru.dsaime.npchat.screens.login
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.github.michaelbull.result.onFailure
@@ -29,16 +27,13 @@ import ru.dsaime.npchat.base.ViewSideEffect
 import ru.dsaime.npchat.base.ViewState
 import ru.dsaime.npchat.common.functions.ToastDuration
 import ru.dsaime.npchat.common.functions.toast
-import ru.dsaime.npchat.data.AuthServiceBase
-import ru.dsaime.npchat.data.NPChatApi
+import ru.dsaime.npchat.data.AuthService
+import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.screens.chats.RouteChats
 import ru.dsaime.npchat.ui.components.Button
 import ru.dsaime.npchat.ui.components.Input
-import ru.dsaime.npchat.ui.theme.BlueSky
-import ru.dsaime.npchat.ui.theme.Copper
 import ru.dsaime.npchat.ui.theme.Dp20
-import ru.dsaime.npchat.ui.theme.Olive
-import ru.dsaime.npchat.ui.theme.Pink
+import ru.dsaime.npchat.ui.theme.White
 
 
 @Preview(
@@ -48,11 +43,10 @@ import ru.dsaime.npchat.ui.theme.Pink
 @Composable
 private fun PreviewLoginScreen() {
     LoginScreen(
-        state = LoginContract.State(),
+        state = LoginState(),
         effectFlow = flow { },
         onEventSent = {},
-        onNavigationRequested = {}
-    )
+        onNavigationRequested = {})
 }
 
 const val RouteLogin = "Login"
@@ -69,30 +63,29 @@ fun LoginScreenDestination(
         onEventSent = vm::handleEvents,
         onNavigationRequested = {
             when (it) {
-                LoginContract.Effect.Navigation.ToHome -> navController.navigate(RouteChats)
-//                LoginContract.Effect.Navigation.ToOAuth -> navController.navigate(RouteOAuthLogin)
-//                LoginContract.Effect.Navigation.ToRegistration -> navController.navigate(RouteRegistration)
+                LoginEffect.Navigation.ToHome -> navController.navigate(RouteChats)
+//                LoginEffect.Navigation.ToOAuth -> navController.navigate(RouteOAuthLogin)
+//                LoginEffect.Navigation.ToRegistration -> navController.navigate(RouteRegistration)
                 else -> {}
             }
-        }
-    )
+        })
 }
 
 
 @Composable
 fun LoginScreen(
-    state: LoginContract.State,
-    effectFlow: Flow<LoginContract.Effect>?,
-    onEventSent: (LoginContract.Event) -> Unit,
-    onNavigationRequested: (LoginContract.Effect.Navigation) -> Unit
+    state: LoginState,
+    effectFlow: Flow<LoginEffect>?,
+    onEventSent: (LoginEvent) -> Unit,
+    onNavigationRequested: (LoginEffect.Navigation) -> Unit
 ) {
     val ctx = LocalContext.current
     LaunchedEffect(1) {
         effectFlow?.onEach { effect ->
             when (effect) {
-//                is SplashContract.Effect.Navigation -> onNavigationRequested(effect)
-                is LoginContract.Effect.Navigation -> onNavigationRequested(effect)
-                is LoginContract.Effect.ShowError -> toast(effect.msg, ctx, ToastDuration.LONG)
+//                is SplashEffect.Navigation -> onNavigationRequested(effect)
+                is LoginEffect.Navigation -> onNavigationRequested(effect)
+                is LoginEffect.ShowError -> toast(effect.msg, ctx, ToastDuration.LONG)
             }
         }?.collect()
     }
@@ -109,85 +102,72 @@ fun LoginScreen(
                 title = "Сервер",
                 placeholder = "http://example.com",
                 value = state.server,
-                onValueChange = { onEventSent(LoginContract.Event.SetServer(it)) }
-            )
+                onValueChange = { onEventSent(LoginEvent.SetServer(it)) })
             androidx.compose.material3.Button(
-                modifier = Modifier
-                    .background(
-                        when (state.connStatus) {
-                            LoginContract.ConnStatus.Err -> Pink
-                            LoginContract.ConnStatus.Incompatible -> Copper
-                            LoginContract.ConnStatus.None -> Olive
-                            LoginContract.ConnStatus.Ok -> BlueSky
-                        }
-                    )
-                    .size(20.dp),
-                onClick = { onEventSent(LoginContract.Event.CheckConn) },
-            )
-            {}
+//                modifier = Modifier
+//                    .background()
+//                    .size(20.dp),
+                onClick = { onEventSent(LoginEvent.CheckConn) },
+            ) { Text(state.connStatus::class.simpleName ?: "null", color = White) }
         }
         Input(
             title = "Логин",
             placeholder = "Enter key for access to server",
             value = state.login,
-            onValueChange = { onEventSent(LoginContract.Event.SetLogin(it)) }
-        )
+            onValueChange = { onEventSent(LoginEvent.SetLogin(it)) })
         Input(
             title = "Пароль",
             placeholder = "Enter key for access to server",
             value = state.password,
-            onValueChange = { onEventSent(LoginContract.Event.SetPassword(it)) }
-        )
+            onValueChange = { onEventSent(LoginEvent.SetPassword(it)) })
         Button(
-            onClick = { onEventSent(LoginContract.Event.Enter) },
+            onClick = { onEventSent(LoginEvent.Enter) },
             text = "Enter",
         )
         Button(
-            onClick = { onEventSent(LoginContract.Event.GoToRegistration) },
+            onClick = { onEventSent(LoginEvent.GoToRegistration) },
             text = "Перейти к регистрации",
         )
         Button(
-            onClick = { onEventSent(LoginContract.Event.GoToOAuth) },
+            onClick = { onEventSent(LoginEvent.GoToOAuth) },
             text = "Вход через сторонний сервис",
         )
     }
 
 }
 
-class LoginContract {
-    sealed interface Event : ViewEvent {
-        object CheckConn : Event
-        object Enter : Event
-        object GoToRegistration : Event
-        object GoToOAuth : Event
-        class SetServer(val value: String) : Event
-        class SetLogin(val value: String) : Event
-        class SetPassword(val value: String) : Event
-    }
+sealed interface LoginEvent : ViewEvent {
+    object CheckConn : LoginEvent
+    object Enter : LoginEvent
+    object GoToRegistration : LoginEvent
+    object GoToOAuth : LoginEvent
+    class SetServer(val value: String) : LoginEvent
+    class SetLogin(val value: String) : LoginEvent
+    class SetPassword(val value: String) : LoginEvent
+}
 
-    data class State(
-        val server: String = "",
-        val connStatus: ConnStatus = ConnStatus.None,
-        val login: String = "",
-        val password: String = "",
-        val isLoading: Boolean = false,
-    ) : ViewState
+data class LoginState(
+    val server: String = "",
+    val connStatus: LoginConnStatus = LoginConnStatus.None,
+    val login: String = "",
+    val password: String = "",
+    val isLoading: Boolean = false,
+) : ViewState
 
-    sealed interface ConnStatus {
-        object Ok : ConnStatus
-        object Incompatible : ConnStatus
-        object Err : ConnStatus
-        object None : ConnStatus
-    }
+sealed interface LoginConnStatus {
+    object Ok : LoginConnStatus
+    object Incompatible : LoginConnStatus
+    object Err : LoginConnStatus
+    object None : LoginConnStatus
+}
 
-    sealed interface Effect : ViewSideEffect {
-        data class ShowError(val msg: String) : Effect
+sealed interface LoginEffect : ViewSideEffect {
+    data class ShowError(val msg: String) : LoginEffect
 
-        sealed interface Navigation : Effect {
-            object ToOAuth : Navigation
-            object ToRegistration : Navigation
-            object ToHome : Navigation
-        }
+    sealed interface Navigation : LoginEffect {
+        object ToOAuth : Navigation
+        object ToRegistration : Navigation
+        object ToHome : Navigation
     }
 }
 
@@ -198,28 +178,31 @@ sealed interface CheckConnResult {
 }
 
 class LoginViewModel(
-    private val repo: AuthServiceBase,
-    private val client: NPChatApi,
-) : BaseViewModel<LoginContract.Event, LoginContract.State, LoginContract.Effect>() {
+    private val repo: AuthService,
+    private val hostService: HostService,
+) : BaseViewModel<LoginEvent, LoginState, LoginEffect>() {
 
     private suspend fun checkConn() {
-        client.ping(viewState.value.server)
-            .onSuccess {
-                setState { copy(connStatus = LoginContract.ConnStatus.Ok) }
-            }
-            .onFailure { res ->
-                setState { copy(connStatus = LoginContract.ConnStatus.Err) }
-                val err = res.message.orEmpty().ifEmpty { "emptyErr" }
-                LoginContract.Effect.ShowError(err)
-            }
+        if (hostService.ping(viewState.value.server))
+            setState { copy(connStatus = LoginConnStatus.Ok) }
+        else
+            setState { copy(connStatus = LoginConnStatus.Err) }
+
+//        client.ping(viewState.value.server).onSuccess {
+//            setState { copy(connStatus = LoginConnStatus.Ok) }
+//        }.onFailure { res ->
+//            setState { copy(connStatus = LoginConnStatus.Err) }
+//            val err = res.message.orEmpty().ifEmpty { "emptyErr" }
+//            LoginEffect.ShowError(err)
+//        }
     }
 
     private suspend fun enter() {
-        if (viewState.value.connStatus == LoginContract.ConnStatus.None) {
+        if (viewState.value.connStatus == LoginConnStatus.None) {
             checkConn()
         }
-        if (viewState.value.connStatus == LoginContract.ConnStatus.Err) {
-            setEffect { LoginContract.Effect.ShowError("нет соединения с сервером") }
+        if (viewState.value.connStatus == LoginConnStatus.Err) {
+            setEffect { LoginEffect.ShowError("нет соединения с сервером") }
         }
 
         repo.login(
@@ -227,25 +210,25 @@ class LoginViewModel(
             pass = viewState.value.password,
             host = viewState.value.server,
         ).onSuccess {
-            setEffect { LoginContract.Effect.Navigation.ToHome }
+            setEffect { LoginEffect.Navigation.ToHome }
         }.onFailure { message ->
             setEffect {
-                LoginContract.Effect.ShowError(message)
+                LoginEffect.ShowError(message)
             }
         }
     }
 
-    override fun setInitialState() = LoginContract.State()
+    override fun setInitialState() = LoginState()
 
-    override fun handleEvents(event: LoginContract.Event) {
+    override fun handleEvents(event: LoginEvent) {
         when (event) {
-            LoginContract.Event.CheckConn -> viewModelScope.launch { checkConn() }
-            LoginContract.Event.Enter -> viewModelScope.launch { enter() }
-            LoginContract.Event.GoToOAuth -> setEffect { LoginContract.Effect.Navigation.ToOAuth }
-            LoginContract.Event.GoToRegistration -> setEffect { LoginContract.Effect.Navigation.ToRegistration }
-            is LoginContract.Event.SetLogin -> setState { copy(login = event.value) }
-            is LoginContract.Event.SetPassword -> setState { copy(password = event.value) }
-            is LoginContract.Event.SetServer -> setState { copy(server = event.value) }
+            LoginEvent.CheckConn -> viewModelScope.launch { checkConn() }
+            LoginEvent.Enter -> viewModelScope.launch { enter() }
+            LoginEvent.GoToOAuth -> setEffect { LoginEffect.Navigation.ToOAuth }
+            LoginEvent.GoToRegistration -> setEffect { LoginEffect.Navigation.ToRegistration }
+            is LoginEvent.SetLogin -> setState { copy(login = event.value) }
+            is LoginEvent.SetPassword -> setState { copy(password = event.value) }
+            is LoginEvent.SetServer -> setState { copy(server = event.value) }
         }
     }
 

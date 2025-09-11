@@ -101,6 +101,6 @@ dependencies {
     implementation(libs.kotlin.result)
 
     // logging
-    implementation(libs.slf4j.android)
+//    implementation(libs.slf4j.android)
 //    implementation(libs.logback.classic)
 }

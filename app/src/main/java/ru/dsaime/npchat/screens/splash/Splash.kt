@@ -49,8 +49,8 @@ fun SplashScreenDestination(
         onEventSent = vm::handleEvents,
         onNavigationRequested = {
             when (it) {
-                SplashContract.Effect.Navigation.ToHome -> navController.navigate(RouteChats)
-                SplashContract.Effect.Navigation.ToLogin -> navController.navigate(RouteLogin)
+                SplashEffect.Navigation.ToHome -> navController.navigate(RouteChats)
+                SplashEffect.Navigation.ToLogin -> navController.navigate(RouteLogin)
             }
         }
     )
@@ -60,14 +60,14 @@ fun SplashScreenDestination(
 
 @Composable
 fun SplashScreen(
-    effectFlow: Flow<SplashContract.Effect>?,
-    onEventSent: (SplashContract.Event) -> Unit,
-    onNavigationRequested: (SplashContract.Effect.Navigation) -> Unit
+    effectFlow: Flow<SplashEffect>?,
+    onEventSent: (SplashEvent) -> Unit,
+    onNavigationRequested: (SplashEffect.Navigation) -> Unit
 ) {
     LaunchedEffect(1) {
         effectFlow?.onEach { effect ->
             when (effect) {
-                is SplashContract.Effect.Navigation -> onNavigationRequested(effect)
+                is SplashEffect.Navigation -> onNavigationRequested(effect)
             }
         }?.collect()
     }
@@ -88,6 +88,6 @@ fun SplashScreen(
     }
 
     LaunchedEffect(1) {
-        onEventSent(SplashContract.Event.CheckSession)
+        onEventSent(SplashEvent.CheckSession)
     }
 }

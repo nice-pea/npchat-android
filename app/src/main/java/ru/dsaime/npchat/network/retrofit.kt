@@ -13,6 +13,7 @@ import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
+import okio.IOException
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.lang.reflect.Type
@@ -127,7 +128,15 @@ private class DynamicBaseUrlInterceptor(
         val baseUrl = chain.request().headers[overrideHostHeader]
             // Если заголовок пустой, взять из провайдера
             .orEmpty().ifBlank { baseUrlProvider.baseUrl() }
-            .toHttpUrl()
+            .run {
+                // Гарантия на случай если формат url будет неверный
+                try {
+                    toHttpUrl()
+                } catch (e: Exception) {
+                    // Выбросить IOException, чтобы okio смог обработать
+                    throw IOException(e.localizedMessage)
+                }
+            }
 
         // Собрать новый URL
         val newUrl = chain.request().url.newBuilder()

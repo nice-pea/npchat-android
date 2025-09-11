@@ -46,17 +46,21 @@ class EventsFlowProviderKtorSSETest {
                 }
             }.start(false)
 
-            val connector = server.application.engine.resolvedConnectors().first()
+            // Получить порт сервера
+            val port = server.application.engine.resolvedConnectors().first().port
 
+            // Создать клиент
             val client = HttpClient(OkHttp) {
                 install(SSE)
             }
 
+            // Сохранить все события в список
             val receivedEvents =
-                EventsFlowProviderKtorSSE(client, { "http://localhost:${connector.port}" })
+                EventsFlowProviderKtorSSE(client, { "http://localhost:$port" })
                     .eventsFlow(session)
                     .toList()
 
+            // Остановить сервер
             server.stop()
             assertEquals(expectedEvents.size, receivedEvents.size)
         }

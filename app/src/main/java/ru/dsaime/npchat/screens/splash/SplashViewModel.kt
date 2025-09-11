@@ -6,43 +6,39 @@ import ru.dsaime.npchat.base.BaseViewModel
 import ru.dsaime.npchat.base.ViewEvent
 import ru.dsaime.npchat.base.ViewSideEffect
 import ru.dsaime.npchat.base.ViewState
-import ru.dsaime.npchat.data.AuthServiceBase
+import ru.dsaime.npchat.data.AuthService
 import ru.dsaime.npchat.data.SessionsService
 
-class SplashContract {
-    sealed interface Event : ViewEvent {
-        object CheckSession : Event
-    }
+sealed interface SplashEvent : ViewEvent {
+    object CheckSession : SplashEvent
+}
 
-    object State : ViewState
+object SplashState : ViewState
 
-    sealed interface Effect : ViewSideEffect {
+sealed interface SplashEffect : ViewSideEffect {
 //        data class ShowError(val msg: String) : Effect
 
-        sealed interface Navigation : Effect {
-            object ToLogin : Navigation
-            object ToHome : Navigation
-        }
+    sealed interface Navigation : SplashEffect {
+        object ToLogin : Navigation
+        object ToHome : Navigation
     }
 }
 
 class SplashViewModel(
     private val sessionsService: SessionsService,
-    private val repo: AuthServiceBase,
-) : BaseViewModel<SplashContract.Event,
-        SplashContract.State,
-        SplashContract.Effect>() {
+    private val repo: AuthService,
+) : BaseViewModel<SplashEvent, SplashState, SplashEffect>() {
+    override fun setInitialState() = SplashState
 
-    override fun setInitialState() = SplashContract.State
-
-    override fun handleEvents(event: SplashContract.Event) {
+    override fun handleEvents(event: SplashEvent) {
         when (event) {
-            SplashContract.Event.CheckSession -> viewModelScope.launch {
+            SplashEvent.CheckSession -> viewModelScope.launch {
                 val current = sessionsService.currentSession()
-                if (current == null || !sessionsService.sessionIsActual(current))
-                    setEffect { SplashContract.Effect.Navigation.ToHome }
-                else
-                    setEffect { SplashContract.Effect.Navigation.ToLogin }
+                if (current == null || !sessionsService.sessionIsActual(current)) {
+                    setEffect { SplashEffect.Navigation.ToLogin }
+                } else {
+                    setEffect { SplashEffect.Navigation.ToHome }
+                }
             }
         }
     }
