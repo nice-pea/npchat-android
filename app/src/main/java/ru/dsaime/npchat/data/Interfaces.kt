@@ -33,13 +33,13 @@ interface BasicAuthService {
 
 // Описывает интерфейс работы с хостами
 interface HostService {
-    fun currentHost(): String?
+    suspend fun currentHost(): String?
 
-    fun changeHost(host: String)
+    suspend fun changeHost(host: String)
 
-    fun wellKnown(): List<String>
+    suspend fun known(): List<String>
 
-    suspend fun ping(host: String = currentHost().orEmpty()): Boolean
+    suspend fun ping(host: String): Boolean
 }
 
 // Описывает интерфейс работы с сессией

@@ -6,9 +6,11 @@ import androidx.room.Database
 import androidx.room.Delete
 import androidx.room.Entity
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.RoomDatabase
+import java.time.OffsetDateTime
 
 @Database(entities = [Session::class, Host::class], version = 1)
 abstract class AppDatabase : RoomDatabase() {
@@ -20,16 +22,16 @@ abstract class AppDatabase : RoomDatabase() {
 @Dao
 interface SessionDao {
     @Query("SELECT * FROM Session")
-    fun getAll(): List<Session>
+    suspend fun getAll(): List<Session>
 
     @Query("SELECT * FROM Session WHERE id IN (:ids)")
-    fun loadAllByIds(ids: IntArray): List<Session>
+    suspend fun loadAllByIds(ids: IntArray): List<Session>
 
     @Insert
-    fun insertAll(vararg sessions: Session)
+    suspend fun insertAll(vararg sessions: Session)
 
     @Delete
-    fun delete(session: Session)
+    suspend fun delete(session: Session)
 }
 
 @Entity
@@ -46,20 +48,23 @@ data class Session(
 @Dao
 interface HostDao {
     @Query("SELECT * FROM Host")
-    fun getAll(): List<Host>
+    suspend fun getAll(): List<Host>
 
 //    @Query("SELECT * FROM Host WHERE base_url IN (:ids)")
 //    fun loadAllByIds(ids: IntArray): List<Host>
 
-    @Insert
-    fun insertAll(vararg hosts: Host)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(vararg hosts: Host)
 
     @Delete
-    fun delete(host: Host)
+    suspend fun delete(host: Host)
 }
 
 @Entity
 data class Host(
     @PrimaryKey @ColumnInfo("base_url") val baseUrl: String,
-    @ColumnInfo("last_used_at") val lastUsedAt: String,
-)
+    @ColumnInfo("last_used_at") val lastUsedAt: String = OffsetDateTime.now().toString(),
+) {
+    val lastUsed: OffsetDateTime
+        get() = OffsetDateTime.parse(lastUsedAt)
+}

@@ -15,6 +15,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
@@ -98,12 +99,14 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center,
     ) {
         Row {
+            val host = state.host.value()
             Input(
                 modifier = Modifier.weight(1f),
                 title = "Сервер",
                 placeholder = "http://example.com",
-                value = state.server,
+                value = host ?: state.host::class.simpleName!!,
                 onValueChange = { onEventSent(LoginEvent.SetServer(it)) },
+                enabled = host != null,
             )
             androidx.compose.material3.Button(
 //                modifier = Modifier
@@ -162,12 +165,24 @@ sealed interface LoginEvent : ViewEvent {
 }
 
 data class LoginState(
-    val server: String = "",
+    val host: LoginHost = LoginHost.None,
     val connStatus: LoginConnStatus = LoginConnStatus.None,
     val login: String = "",
     val password: String = "",
     val isLoading: Boolean = false,
 ) : ViewState
+
+sealed interface LoginHost {
+    data class Value(
+        val text: String,
+    ) : LoginHost
+
+    object Loading : LoginHost
+
+    object None : LoginHost
+
+    fun value(): String? = (this as? LoginHost.Value)?.text
+}
 
 sealed interface LoginConnStatus {
     object Ok : LoginConnStatus
@@ -198,8 +213,16 @@ class LoginViewModel(
     private val hostService: HostService,
     private val sessionsService: SessionsService,
 ) : BaseViewModel<LoginEvent, LoginState, LoginEffect>() {
+    init {
+        viewModelScope.launch {
+            delay(100)
+            loadPreferredHost()
+        }
+    }
+
     private suspend fun checkConn() {
-        if (hostService.ping(viewState.value.server)) {
+        val host = viewState.value.host.value() ?: return
+        if (hostService.ping(host)) {
             setState { copy(connStatus = LoginConnStatus.Ok) }
         } else {
             setState { copy(connStatus = LoginConnStatus.Err) }
@@ -207,6 +230,12 @@ class LoginViewModel(
     }
 
     private suspend fun enter() {
+        val host =
+            viewState.value.host.value() ?: run {
+                LoginEffect.ShowError("host не установлен").emit()
+                return
+            }
+
         if (viewState.value.connStatus == LoginConnStatus.None) {
             checkConn()
         }
@@ -219,21 +248,18 @@ class LoginViewModel(
             .login(
                 login = viewState.value.login,
                 pass = viewState.value.password,
-                host = viewState.value.server,
+                host = host,
             ).onSuccess {
                 sessionsService.changeSession(it.session)
-                hostService.changeHost(viewState.value.server)
+                hostService.changeHost(host)
                 LoginEffect.Navigation.ToHome.emit()
             }.onFailure { message ->
                 LoginEffect.ShowError(message).emit()
             }
     }
 
+    //    override fun setInitialState(): LoginState = LoginState()
     override fun setInitialState(): LoginState = LoginState()
-//    override fun setInitialState(): LoginState {
-//        val prefHost = preferredHost(hostService)
-//        return LoginState(server = prefHost.orEmpty())
-//    }
 
     override fun handleEvents(event: LoginEvent) {
         when (event) {
@@ -243,17 +269,23 @@ class LoginViewModel(
             LoginEvent.GoToRegistration -> LoginEffect.Navigation.ToRegistration.emit()
             is LoginEvent.SetLogin -> setState { copy(login = event.value) }
             is LoginEvent.SetPassword -> setState { copy(password = event.value) }
-            is LoginEvent.SetServer -> setState { copy(server = event.value) }
+            is LoginEvent.SetServer -> setState { copy(host = LoginHost.Value(event.value)) }
         }
+    }
+
+    private suspend fun loadPreferredHost() {
+        setState { copy(host = LoginHost.Loading) }
+        val prefHost = preferredHost(hostService)
+        setState { copy(host = LoginHost.Value(prefHost.orEmpty())) }
     }
 }
 
 // Возвращает сервер по специальному алгоритму
-fun preferredHost(hostService: HostService): String? {
+suspend fun preferredHost(hostService: HostService): String? {
     val current = hostService.currentHost()
     if (current != null && current.isNotBlank()) {
         return current
     }
 
-    return hostService.wellKnown().firstOrNull()
+    return hostService.known().firstOrNull()
 }

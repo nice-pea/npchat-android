@@ -55,12 +55,13 @@ private fun PreviewInput() {
 
 @Composable
 fun Input(
-    modifier: Modifier = Modifier,
     title: String,
     placeholder: String,
-    helperText: String = "",
     value: String,
     onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    helperText: String = "",
+    enabled: Boolean = true,
 ) {
     Column(
         modifier = Modifier.then(modifier)
@@ -75,6 +76,7 @@ fun Input(
                 .background(Black)
                 .border(Dp1, White)
                 .padding(Dp10),
+            enabled = enabled,
             value = value,
             onValueChange = onValueChange,
             cursorBrush = cursorBrush,
@@ -96,11 +98,12 @@ fun Input(
 
 @Composable
 fun Input(
-    modifier: Modifier = Modifier,
     title: String,
     placeholder: String,
-    helperText: String = "",
     textFieldState: TextFieldState,
+    modifier: Modifier = Modifier,
+    helperText: String = "",
+    enabled: Boolean = true,
 ) {
     Column(
         modifier = Modifier.then(modifier)
@@ -115,6 +118,7 @@ fun Input(
                 .background(Black)
                 .border(Dp1, White)
                 .padding(Dp10),
+            enabled = enabled,
             state = textFieldState,
             cursorBrush = cursorBrush,
             textStyle = Font.White16W400,

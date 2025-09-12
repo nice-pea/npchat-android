@@ -1,24 +1,32 @@
 package ru.dsaime.npchat.data
 
+import kotlinx.coroutines.Dispatchers
 import ru.dsaime.npchat.data.room.AppDatabase
+import ru.dsaime.npchat.data.room.Host
 
 class HostServiceBase(
     private val api: NPChatApi,
     private val db: AppDatabase,
 ) : HostService {
-    private var currentHost: String? = null
+    override suspend fun currentHost() =
+        with(Dispatchers.IO) {
+            db
+                .hostDao()
+                .getAll()
+                .maxByOrNull { it.lastUsed }
+                ?.baseUrl
+        }
 
-    override fun currentHost() = currentHost
-
-    override fun changeHost(host: String) {
-        currentHost = host
+    override suspend fun changeHost(host: String) {
+        db.hostDao().insertAll(Host(baseUrl = host))
     }
 
-    override fun wellKnown(): List<String> =
-        listOf(
-            "https://api.npchat.dsaime.ru:443",
-            "http://localhost:8080",
-        )
+    override suspend fun known(): List<String> =
+        db
+            .hostDao()
+            .getAll()
+            .sortedByDescending { it.lastUsed }
+            .map { it.baseUrl }
 
     override suspend fun ping(host: String) = api.ping(host).isSuccess
 }
