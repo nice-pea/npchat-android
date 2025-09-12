@@ -1,54 +1,54 @@
 package ru.dsaime.npchat.screens.chats
 
 //
-//import androidx.compose.foundation.clickable
-//import androidx.compose.foundation.layout.Arrangement
-//import androidx.compose.foundation.layout.Column
-//import androidx.compose.foundation.layout.Row
-//import androidx.compose.foundation.layout.padding
-//import androidx.compose.material.icons.Icons
-//import androidx.compose.material.icons.outlined.Add
-//import androidx.compose.material.icons.outlined.Person
-//import androidx.compose.material3.ExperimentalMaterial3Api
-//import androidx.compose.material3.Icon
-//import androidx.compose.material3.IconButton
-//import androidx.compose.material3.Text
-//import androidx.compose.material3.TopAppBar
-//import androidx.compose.runtime.Composable
-//import androidx.compose.runtime.collectAsState
-//import androidx.compose.ui.Alignment
-//import androidx.compose.ui.Modifier
-//import androidx.compose.ui.draw.clip
-//import androidx.compose.ui.tooling.preview.Preview
-//import androidx.lifecycle.ViewModel
-//import androidx.lifecycle.viewModelScope
-//import androidx.navigation.NavController
-//import kotlinx.coroutines.flow.MutableStateFlow
-//import kotlinx.coroutines.flow.StateFlow
-//import kotlinx.coroutines.launch
-//import org.koin.androidx.compose.koinViewModel
-//import ru.dsaime.npchat.common.AsyncData
-//import ru.dsaime.npchat.data.store.AuthenticationStore
-//import ru.dsaime.npchat.model.Model
-//import ru.dsaime.npchat.screens.chat.messages.RouteMessages
-//import ru.dsaime.npchat.ui.components.Gap
-//import ru.dsaime.npchat.ui.components.Progress
-//import ru.dsaime.npchat.ui.theme.Dp2
-//import ru.dsaime.npchat.ui.theme.Dp20
-//import ru.dsaime.npchat.ui.theme.Dp4
-//import ru.dsaime.npchat.ui.theme.Dp8
-//import ru.dsaime.npchat.ui.theme.Font
-//import ru.dsaime.npchat.ui.theme.RoundMin
-//import ru.dsaime.npchat.ui.theme.White
-//import java.time.OffsetDateTime
+// import androidx.compose.foundation.clickable
+// import androidx.compose.foundation.layout.Arrangement
+// import androidx.compose.foundation.layout.Column
+// import androidx.compose.foundation.layout.Row
+// import androidx.compose.foundation.layout.padding
+// import androidx.compose.material.icons.Icons
+// import androidx.compose.material.icons.outlined.Add
+// import androidx.compose.material.icons.outlined.Person
+// import androidx.compose.material3.ExperimentalMaterial3Api
+// import androidx.compose.material3.Icon
+// import androidx.compose.material3.IconButton
+// import androidx.compose.material3.Text
+// import androidx.compose.material3.TopAppBar
+// import androidx.compose.runtime.Composable
+// import androidx.compose.runtime.collectAsState
+// import androidx.compose.ui.Alignment
+// import androidx.compose.ui.Modifier
+// import androidx.compose.ui.draw.clip
+// import androidx.compose.ui.tooling.preview.Preview
+// import androidx.lifecycle.ViewModel
+// import androidx.lifecycle.viewModelScope
+// import androidx.navigation.NavController
+// import kotlinx.coroutines.flow.MutableStateFlow
+// import kotlinx.coroutines.flow.StateFlow
+// import kotlinx.coroutines.launch
+// import org.koin.androidx.compose.koinViewModel
+// import ru.dsaime.npchat.common.AsyncData
+// import ru.dsaime.npchat.data.store.AuthenticationStore
+// import ru.dsaime.npchat.model.Model
+// import ru.dsaime.npchat.screens.chat.messages.RouteMessages
+// import ru.dsaime.npchat.ui.components.Gap
+// import ru.dsaime.npchat.ui.components.Progress
+// import ru.dsaime.npchat.ui.theme.Dp2
+// import ru.dsaime.npchat.ui.theme.Dp20
+// import ru.dsaime.npchat.ui.theme.Dp4
+// import ru.dsaime.npchat.ui.theme.Dp8
+// import ru.dsaime.npchat.ui.theme.Font
+// import ru.dsaime.npchat.ui.theme.RoundMin
+// import ru.dsaime.npchat.ui.theme.White
+// import java.time.OffsetDateTime
 //
-const val RouteChats = "Chats"
-//private const val AppBarTitle = "Chats"
+// const val RouteChats = "Chats"
+// private const val AppBarTitle = "Chats"
 //
-//@Composable
-//fun ChatsScreen(
+// @Composable
+// fun ChatsScreen(
 //    navController: NavController,
-//) {
+// ) {
 //    val vm = koinViewModel<ChatsViewModel>()
 //    val chats = vm.uiState.chats.collectAsState().value
 //    val selfID = vm.uiState.selfID.collectAsState().value
@@ -71,15 +71,15 @@ const val RouteChats = "Chats"
 //            AsyncData.None -> {}
 //        }
 //    }
-//}
+// }
 //
 //
-//@Composable
-//private fun ChatList(
+// @Composable
+// private fun ChatList(
 //    clickChat: (Model.Chat) -> Unit,
 //    chats: List<Model.Chat>,
 //    selfID: Int,
-//) {
+// ) {
 //    Column(
 //        verticalArrangement = Arrangement.spacedBy(Dp2),
 //    ) {
@@ -91,15 +91,15 @@ const val RouteChats = "Chats"
 //            )
 //        }
 //    }
-//}
+// }
 //
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Composable
-//private fun AppBar(
+// @OptIn(ExperimentalMaterial3Api::class)
+// @Composable
+// private fun AppBar(
 //    clickPlus: () -> Unit,
 //    clickProfile: () -> Unit,
 //    modifier: Modifier = Modifier,
-//) {
+// ) {
 //    TopAppBar(
 //        modifier = modifier,
 //        title = { Text(AppBarTitle, style = Font.White20W400) },
@@ -120,19 +120,19 @@ const val RouteChats = "Chats"
 //            }
 //        }
 //    )
-//}
+// }
 //
 //
-//class ChatsUiState(
+// class ChatsUiState(
 //    val chats: StateFlow<AsyncData<List<Model.Chat>>>,
 //    val selfID: StateFlow<Int>,
-//)
+// )
 //
 //
-//class ChatsViewModel(
+// class ChatsViewModel(
 //    private val repo: ChatsRepository,
 //    private val store: AuthenticationStore,
-//) : ViewModel() {
+// ) : ViewModel() {
 //    private val chats = MutableStateFlow<AsyncData<List<Model.Chat>>>(AsyncData.None)
 //    private val selfID = MutableStateFlow<Int>(0)
 //    val uiState = ChatsUiState(chats = chats, selfID = selfID)
@@ -153,15 +153,15 @@ const val RouteChats = "Chats"
 //            chats.value = AsyncData.Err(err)
 //        }
 //    }
-//}
+// }
 //
 //
-//@Preview(
+// @Preview(
 //    backgroundColor = 0xFF000000,
 //    showBackground = true,
-//)
-//@Composable
-//private fun PreviewChatCard() {
+// )
+// @Composable
+// private fun PreviewChatCard() {
 //    val authorID = 51342
 //    ChatCard(
 //        onClick = {},
@@ -188,16 +188,16 @@ const val RouteChats = "Chats"
 //            unreadMessagesCount = 23
 //        )
 //    )
-//}
+// }
 //
 //
-//@Composable
-//private fun ChatCard(
+// @Composable
+// private fun ChatCard(
 //    modifier: Modifier = Modifier,
 //    onClick: () -> Unit,
 //    chat: Model.Chat,
 //    selfID: Int,
-//) {
+// ) {
 //    val noMessagesPlaceholder = "<No messages>"
 //    val lastMessage = chat.lastMessage
 //    val authorID = lastMessage?.authorId
@@ -264,4 +264,4 @@ const val RouteChats = "Chats"
 //            )
 //        }
 //    }
-//}
+// }

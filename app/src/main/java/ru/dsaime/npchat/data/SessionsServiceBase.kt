@@ -1,10 +1,12 @@
 package ru.dsaime.npchat.data
 
+import ru.dsaime.npchat.data.room.AppDatabase
 import ru.dsaime.npchat.model.Session
 
 class SessionsServiceBase(
     private val api: NPChatApi,
     private val hostService: HostService,
+    private val db: AppDatabase,
 ) : SessionsService {
     private var currentSession: Session? = null
 
@@ -14,12 +16,12 @@ class SessionsServiceBase(
         currentSession = session
     }
 
-    override suspend fun sessionIsActual(session: Session): Boolean {
+    override suspend fun isActual(session: Session): Boolean {
         if (currentSession == null || hostService.currentHost() == null) {
             return false
         }
 
-        return api.me().isSuccess
+        return api.chats().isSuccess
     }
 
     override suspend fun refresh(session: Session): Boolean {

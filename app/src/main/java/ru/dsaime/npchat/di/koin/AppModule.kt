@@ -1,13 +1,15 @@
 package ru.dsaime.npchat.di.koin
 
+import androidx.room.Room
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.sse.SSE
+import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 import retrofit2.Retrofit
-import ru.dsaime.npchat.data.AuthService
-import ru.dsaime.npchat.data.AuthServiceBase
+import ru.dsaime.npchat.data.BasicAuthService
+import ru.dsaime.npchat.data.BasicAuthServiceBase
 import ru.dsaime.npchat.data.EventsFlowProvider
 import ru.dsaime.npchat.data.EventsFlowProviderKtorSSE
 import ru.dsaime.npchat.data.HostService
@@ -15,23 +17,32 @@ import ru.dsaime.npchat.data.HostServiceBase
 import ru.dsaime.npchat.data.NPChatApi
 import ru.dsaime.npchat.data.SessionsService
 import ru.dsaime.npchat.data.SessionsServiceBase
+import ru.dsaime.npchat.data.room.AppDatabase
 import ru.dsaime.npchat.network.BaseUrlProvider
 import ru.dsaime.npchat.network.BearerTokenProvider
 import ru.dsaime.npchat.network.retrofit
+import ru.dsaime.npchat.screens.home.HomeViewModel
 import ru.dsaime.npchat.screens.login.LoginViewModel
+import ru.dsaime.npchat.screens.registration.RegistrationViewModel
 import ru.dsaime.npchat.screens.splash.SplashViewModel
 
 val appModule =
     module {
+        single<AppDatabase> {
+            Room
+                .databaseBuilder(androidContext(), AppDatabase::class.java, "main")
+                .build()
+        }
+
         // Url провайдер, при отсутствии хоста вернет пустую строку
-        single {
+        single<BaseUrlProvider> {
             BaseUrlProvider {
                 get<HostService>().currentHost().orEmpty()
             }
         }
 
         // Токен провайдер, при отсутствии токена, вернет пустую строку
-        single {
+        single<BearerTokenProvider> {
             BearerTokenProvider {
                 get<SessionsService>()
                     .currentSession()
@@ -41,14 +52,14 @@ val appModule =
         }
 
         // Ktor - http client
-        single {
+        single<HttpClient> {
             HttpClient(OkHttp) {
                 install(SSE)
             }
         }
 
         // Retrofit - http client
-        single {
+        single<Retrofit> {
             retrofit(get(), get())
         }
 
@@ -56,13 +67,14 @@ val appModule =
         single<NPChatApi> { get<Retrofit>().create(NPChatApi::class.java) }
 
         // Зависимости
-        single<AuthService> { AuthServiceBase(get()) }
-        single<HostService> { HostServiceBase(get()) }
-        single<SessionsService> { SessionsServiceBase(get(), get()) }
+        single<BasicAuthService> { BasicAuthServiceBase(get()) }
+        single<HostService> { HostServiceBase(get(), get()) }
+        single<SessionsService> { SessionsServiceBase(get(), get(), get()) }
         single<EventsFlowProvider> { EventsFlowProviderKtorSSE(get(), get()) }
 
         // ViewModels
         viewModelOf(::SplashViewModel)
         viewModelOf(::LoginViewModel)
-//    viewModelOf(::ChatsViewModel)
+        viewModelOf(::RegistrationViewModel)
+        viewModelOf(::HomeViewModel)
     }

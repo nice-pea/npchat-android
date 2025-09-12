@@ -7,7 +7,7 @@ import ru.dsaime.npchat.model.Session
 import ru.dsaime.npchat.model.User
 
 // Описывает интерфейс аутентификации
-interface AuthService {
+interface BasicAuthService {
     // Результат аутентификации
     data class AuthResult(
         val user: User,
@@ -48,7 +48,7 @@ interface SessionsService {
 
     fun changeSession(session: Session)
 
-    suspend fun sessionIsActual(session: Session): Boolean
+    suspend fun isActual(session: Session): Boolean
 
     suspend fun refresh(session: Session): Boolean
 }

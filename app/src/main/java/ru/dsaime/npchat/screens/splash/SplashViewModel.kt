@@ -2,11 +2,10 @@ package ru.dsaime.npchat.screens.splash
 
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
-import ru.dsaime.npchat.base.BaseViewModel
-import ru.dsaime.npchat.base.ViewEvent
-import ru.dsaime.npchat.base.ViewSideEffect
-import ru.dsaime.npchat.base.ViewState
-import ru.dsaime.npchat.data.AuthService
+import ru.dsaime.npchat.common.base.BaseViewModel
+import ru.dsaime.npchat.common.base.ViewEvent
+import ru.dsaime.npchat.common.base.ViewSideEffect
+import ru.dsaime.npchat.common.base.ViewState
 import ru.dsaime.npchat.data.SessionsService
 
 sealed interface SplashEvent : ViewEvent {
@@ -27,7 +26,6 @@ sealed interface SplashEffect : ViewSideEffect {
 
 class SplashViewModel(
     private val sessionsService: SessionsService,
-    private val repo: AuthService,
 ) : BaseViewModel<SplashEvent, SplashState, SplashEffect>() {
     override fun setInitialState() = SplashState
 
@@ -35,11 +33,18 @@ class SplashViewModel(
         when (event) {
             SplashEvent.CheckSession ->
                 viewModelScope.launch {
-                    val current = sessionsService.currentSession()
-                    if (current == null || !sessionsService.sessionIsActual(current)) {
-                        setEffect { SplashEffect.Navigation.ToLogin }
+                    val current =
+                        sessionsService.currentSession() ?: run {
+                            // Если нет сохраненной сессии, перейти на экран логина
+                            SplashEffect.Navigation.ToLogin.emit()
+                            return@launch
+                        }
+
+                    if (sessionsService.isActual(current) || sessionsService.refresh(current)) {
+                        // Если сессия актива, прейти на Главный экран
+                        SplashEffect.Navigation.ToHome.emit()
                     } else {
-                        setEffect { SplashEffect.Navigation.ToHome }
+                        SplashEffect.Navigation.ToLogin.emit()
                     }
                 }
         }

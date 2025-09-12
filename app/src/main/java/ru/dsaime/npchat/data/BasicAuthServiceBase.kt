@@ -7,14 +7,14 @@ import ru.dsaime.npchat.model.Session
 import ru.dsaime.npchat.model.User
 
 // Реализует аутентификацию
-class AuthServiceBase(
+class BasicAuthServiceBase(
     private val api: NPChatApi,
-) : AuthService {
+) : BasicAuthService {
     override suspend fun login(
         login: String,
         pass: String,
         host: String,
-    ): Result<AuthService.AuthResult, String> {
+    ): Result<BasicAuthService.AuthResult, String> {
         val reqBody = ApiModel.LoginBody(login, pass)
         return api
             .login(host = host, body = reqBody)
@@ -28,7 +28,7 @@ class AuthServiceBase(
         name: String,
         pass: String,
         host: String,
-    ): Result<AuthService.AuthResult, String> {
+    ): Result<BasicAuthService.AuthResult, String> {
         val reqBody =
             ApiModel.RegistrationBody(
                 login = login,
@@ -43,8 +43,8 @@ class AuthServiceBase(
     }
 }
 
-fun ApiModel.AuthResp.toModel(): AuthService.AuthResult =
-    AuthService.AuthResult(
+fun ApiModel.AuthResp.toModel(): BasicAuthService.AuthResult =
+    BasicAuthService.AuthResult(
         user =
             User(
                 id = user.id,

@@ -1,7 +1,10 @@
 package ru.dsaime.npchat.data
 
+import ru.dsaime.npchat.data.room.AppDatabase
+
 class HostServiceBase(
     private val api: NPChatApi,
+    private val db: AppDatabase,
 ) : HostService {
     private var currentHost: String? = null
 

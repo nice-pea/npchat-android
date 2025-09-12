@@ -1,4 +1,4 @@
-package ru.dsaime.npchat.base
+package ru.dsaime.npchat.common.base
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
@@ -55,8 +55,13 @@ abstract class BaseViewModel<Event : ViewEvent, UiState : ViewState, Effect : Vi
         _viewState.value = newState
     }
 
+    @Deprecated("use .emit()", level = DeprecationLevel.HIDDEN)
     protected fun setEffect(builder: () -> Effect) {
         val effectValue = builder()
         viewModelScope.launch { _effect.send(effectValue) }
+    }
+
+    protected fun Effect.emit() {
+        viewModelScope.launch { _effect.send(this@emit) }
     }
 }

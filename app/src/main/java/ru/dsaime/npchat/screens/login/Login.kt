@@ -21,16 +21,17 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
-import ru.dsaime.npchat.base.BaseViewModel
-import ru.dsaime.npchat.base.ViewEvent
-import ru.dsaime.npchat.base.ViewSideEffect
-import ru.dsaime.npchat.base.ViewState
+import ru.dsaime.npchat.common.base.BaseViewModel
+import ru.dsaime.npchat.common.base.ViewEvent
+import ru.dsaime.npchat.common.base.ViewSideEffect
+import ru.dsaime.npchat.common.base.ViewState
 import ru.dsaime.npchat.common.functions.ToastDuration
 import ru.dsaime.npchat.common.functions.toast
-import ru.dsaime.npchat.data.AuthService
+import ru.dsaime.npchat.data.BasicAuthService
 import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.data.SessionsService
-import ru.dsaime.npchat.screens.chats.RouteChats
+import ru.dsaime.npchat.screens.home.ROUTE_HOME
+import ru.dsaime.npchat.screens.registration.ROUTE_REGISTRATION
 import ru.dsaime.npchat.ui.components.Button
 import ru.dsaime.npchat.ui.components.Input
 import ru.dsaime.npchat.ui.theme.Dp20
@@ -50,7 +51,7 @@ private fun PreviewLoginScreen() {
     )
 }
 
-const val RouteLogin = "Login"
+const val ROUTE_LOGIN = "Login"
 
 @Composable
 fun LoginScreenDestination(navController: NavController) {
@@ -61,9 +62,9 @@ fun LoginScreenDestination(navController: NavController) {
         onEventSent = vm::handleEvents,
         onNavigationRequest = {
             when (it) {
-                LoginEffect.Navigation.ToHome -> navController.navigate(RouteChats)
+                LoginEffect.Navigation.ToHome -> navController.navigate(ROUTE_HOME)
 //                LoginEffect.Navigation.ToOAuth -> navController.navigate(RouteOAuthLogin)
-//                LoginEffect.Navigation.ToRegistration -> navController.navigate(RouteRegistration)
+                LoginEffect.Navigation.ToRegistration -> navController.navigate(ROUTE_REGISTRATION)
                 else -> {}
             }
         },
@@ -193,7 +194,7 @@ sealed interface LoginEffect : ViewSideEffect {
 }
 
 class LoginViewModel(
-    private val repo: AuthService,
+    private val authService: BasicAuthService,
     private val hostService: HostService,
     private val sessionsService: SessionsService,
 ) : BaseViewModel<LoginEvent, LoginState, LoginEffect>() {
@@ -210,11 +211,11 @@ class LoginViewModel(
             checkConn()
         }
         if (viewState.value.connStatus == LoginConnStatus.Err) {
-            setEffect { LoginEffect.ShowError("нет соединения с сервером") }
+            LoginEffect.ShowError("нет соединения с сервером").emit()
             return
         }
 
-        repo
+        authService
             .login(
                 login = viewState.value.login,
                 pass = viewState.value.password,
@@ -222,23 +223,37 @@ class LoginViewModel(
             ).onSuccess {
                 sessionsService.changeSession(it.session)
                 hostService.changeHost(viewState.value.server)
-                setEffect { LoginEffect.Navigation.ToHome }
+                LoginEffect.Navigation.ToHome.emit()
             }.onFailure { message ->
-                setEffect { LoginEffect.ShowError(message) }
+                LoginEffect.ShowError(message).emit()
             }
     }
 
-    override fun setInitialState() = LoginState()
+    override fun setInitialState(): LoginState = LoginState()
+//    override fun setInitialState(): LoginState {
+//        val prefHost = preferredHost(hostService)
+//        return LoginState(server = prefHost.orEmpty())
+//    }
 
     override fun handleEvents(event: LoginEvent) {
         when (event) {
             LoginEvent.CheckConn -> viewModelScope.launch { checkConn() }
             LoginEvent.Enter -> viewModelScope.launch { enter() }
-            LoginEvent.GoToOAuth -> setEffect { LoginEffect.Navigation.ToOAuth }
-            LoginEvent.GoToRegistration -> setEffect { LoginEffect.Navigation.ToRegistration }
+            LoginEvent.GoToOAuth -> LoginEffect.Navigation.ToOAuth.emit()
+            LoginEvent.GoToRegistration -> LoginEffect.Navigation.ToRegistration.emit()
             is LoginEvent.SetLogin -> setState { copy(login = event.value) }
             is LoginEvent.SetPassword -> setState { copy(password = event.value) }
             is LoginEvent.SetServer -> setState { copy(server = event.value) }
         }
     }
+}
+
+// Возвращает сервер по специальному алгоритму
+fun preferredHost(hostService: HostService): String? {
+    val current = hostService.currentHost()
+    if (current != null && current.isNotBlank()) {
+        return current
+    }
+
+    return hostService.wellKnown().firstOrNull()
 }

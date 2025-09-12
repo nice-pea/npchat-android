@@ -28,6 +28,9 @@ interface NPChatApi {
     @GET("/me")
     suspend fun me(): Result<ApiModel.User>
 
+    @GET("/chats")
+    suspend fun chats(): Result<Unit>
+
 //    @GET("/events")
 //    @Streaming
 //    suspend fun events(): Response<ResponseBody>
