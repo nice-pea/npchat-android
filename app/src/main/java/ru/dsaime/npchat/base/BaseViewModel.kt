@@ -18,10 +18,9 @@ interface ViewSideEffect
 
 const val SIDE_EFFECTS_KEY = "side-effects_key"
 
-abstract class BaseViewModel<Event : ViewEvent, UiState : ViewState, Effect : ViewSideEffect> :
-    ViewModel() {
-
+abstract class BaseViewModel<Event : ViewEvent, UiState : ViewState, Effect : ViewSideEffect> : ViewModel() {
     abstract fun setInitialState(): UiState
+
     abstract fun handleEvents(event: Event)
 
     private val initialState: UiState by lazy { setInitialState() }
@@ -29,6 +28,7 @@ abstract class BaseViewModel<Event : ViewEvent, UiState : ViewState, Effect : Vi
     private val _viewState: MutableState<UiState> = mutableStateOf(initialState)
     val viewState: State<UiState> = _viewState
 
+    @Suppress("ktlint:standard:backing-property-naming")
     private val _event: MutableSharedFlow<Event> = MutableSharedFlow()
 
     private val _effect: Channel<Effect> = Channel()

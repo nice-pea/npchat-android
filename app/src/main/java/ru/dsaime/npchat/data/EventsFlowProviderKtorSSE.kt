@@ -13,18 +13,19 @@ class EventsFlowProviderKtorSSE(
     private val client: HttpClient,
     private val baseUrlProvider: BaseUrlProvider,
 ) : EventsFlowProvider {
-    override suspend fun eventsFlow(session: Session) = flow<Event> {
-        client.sse({
-            url("${baseUrlProvider.baseUrl()}/events")
-            headers["Authorization"] = "Bearer ${session.accessToken}"
-        }) {
-            incoming.collect { event ->
-                when (event.event) {
-                    "keepalive" -> println("keepalive event is here")
-                    "error" -> error(event.data ?: "received error event")
-                    "event" -> emit(retroGson.fromJson(event.data, Event::class.java))
+    override suspend fun eventsFlow(session: Session) =
+        flow<Event> {
+            client.sse({
+                url("${baseUrlProvider.baseUrl()}/events")
+                headers["Authorization"] = "Bearer ${session.accessToken}"
+            }) {
+                incoming.collect { event ->
+                    when (event.event) {
+                        "keepalive" -> println("keepalive event is here")
+                        "error" -> error(event.data ?: "received error event")
+                        "event" -> emit(retroGson.fromJson(event.data, Event::class.java))
+                    }
                 }
             }
         }
-    }
 }

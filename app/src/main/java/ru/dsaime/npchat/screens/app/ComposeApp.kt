@@ -10,7 +10,7 @@ import androidx.navigation.compose.rememberNavController
 import org.koin.core.Koin
 import ru.dsaime.npchat.screens.login.LoginScreenDestination
 import ru.dsaime.npchat.screens.login.RouteLogin
-import ru.dsaime.npchat.screens.splash.RouteSplash
+import ru.dsaime.npchat.screens.splash.ROUTE_SPLASH
 import ru.dsaime.npchat.screens.splash.SplashScreenDestination
 import ru.dsaime.npchat.ui.theme.Black
 
@@ -23,9 +23,9 @@ fun ComposeApp(koin: Koin) {
             .fillMaxSize()
             .background(Black),
         navController = navController,
-        startDestination = RouteSplash
+        startDestination = ROUTE_SPLASH
     ) {
-        composable(RouteSplash) { SplashScreenDestination(navController) }
+        composable(ROUTE_SPLASH) { SplashScreenDestination(navController) }
         composable(RouteLogin) { LoginScreenDestination(navController) }
 //        composable(RouteChats) { ChatsScreen(navController) }
 //        composable<RouteMessages> {

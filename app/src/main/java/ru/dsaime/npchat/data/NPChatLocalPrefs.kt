@@ -5,7 +5,9 @@ import androidx.core.content.edit
 
 // Представляет собой локальное хранилище доступов к api
 @Deprecated(level = DeprecationLevel.ERROR, message = "dnt use it")
-class NPChatLocalPrefs(context: Context) {
+class NPChatLocalPrefs(
+    context: Context,
+) {
     private val sp = context.getSharedPreferences("common", Context.MODE_PRIVATE)
 
     private val baseUrlKey = "baseUrl"
@@ -31,11 +33,11 @@ class NPChatLocalPrefs(context: Context) {
 
     private val profileIdKey = "profileId"
     private val profileUsernameKey = "profileUsername"
-    fun profile(): Result<Profile> {
-        return runCatching {
+
+    fun profile(): Result<Profile> =
+        runCatching {
             profile ?: error("no saved profile")
         }
-    }
 
     var profile: Profile?
         get() {

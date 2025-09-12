@@ -16,10 +16,11 @@ class MainActivity : ComponentActivity() {
 
         installSplashScreen()
 
-        val koinApp = startKoin {
-            androidContext(this@MainActivity)
-            modules(appModule)
-        }
+        val koinApp =
+            startKoin {
+                androidContext(this@MainActivity)
+                modules(appModule)
+            }
 
         setContent {
             NPChatTheme {

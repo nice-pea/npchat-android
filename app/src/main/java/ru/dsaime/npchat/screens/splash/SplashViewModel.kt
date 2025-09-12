@@ -20,6 +20,7 @@ sealed interface SplashEffect : ViewSideEffect {
 
     sealed interface Navigation : SplashEffect {
         object ToLogin : Navigation
+
         object ToHome : Navigation
     }
 }
@@ -32,14 +33,15 @@ class SplashViewModel(
 
     override fun handleEvents(event: SplashEvent) {
         when (event) {
-            SplashEvent.CheckSession -> viewModelScope.launch {
-                val current = sessionsService.currentSession()
-                if (current == null || !sessionsService.sessionIsActual(current)) {
-                    setEffect { SplashEffect.Navigation.ToLogin }
-                } else {
-                    setEffect { SplashEffect.Navigation.ToHome }
+            SplashEvent.CheckSession ->
+                viewModelScope.launch {
+                    val current = sessionsService.currentSession()
+                    if (current == null || !sessionsService.sessionIsActual(current)) {
+                        setEffect { SplashEffect.Navigation.ToLogin }
+                    } else {
+                        setEffect { SplashEffect.Navigation.ToHome }
+                    }
                 }
-            }
         }
     }
 }

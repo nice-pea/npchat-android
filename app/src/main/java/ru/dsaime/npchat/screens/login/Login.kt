@@ -29,12 +29,12 @@ import ru.dsaime.npchat.common.functions.ToastDuration
 import ru.dsaime.npchat.common.functions.toast
 import ru.dsaime.npchat.data.AuthService
 import ru.dsaime.npchat.data.HostService
+import ru.dsaime.npchat.data.SessionsService
 import ru.dsaime.npchat.screens.chats.RouteChats
 import ru.dsaime.npchat.ui.components.Button
 import ru.dsaime.npchat.ui.components.Input
 import ru.dsaime.npchat.ui.theme.Dp20
 import ru.dsaime.npchat.ui.theme.White
-
 
 @Preview(
     backgroundColor = 0xFF000000,
@@ -46,54 +46,54 @@ private fun PreviewLoginScreen() {
         state = LoginState(),
         effectFlow = flow { },
         onEventSent = {},
-        onNavigationRequested = {})
+        onNavigationRequest = {},
+    )
 }
 
 const val RouteLogin = "Login"
 
-
 @Composable
-fun LoginScreenDestination(
-    navController: NavController,
-) {
+fun LoginScreenDestination(navController: NavController) {
     val vm = koinViewModel<LoginViewModel>()
     LoginScreen(
         state = vm.viewState.value,
         effectFlow = vm.effect,
         onEventSent = vm::handleEvents,
-        onNavigationRequested = {
+        onNavigationRequest = {
             when (it) {
                 LoginEffect.Navigation.ToHome -> navController.navigate(RouteChats)
 //                LoginEffect.Navigation.ToOAuth -> navController.navigate(RouteOAuthLogin)
 //                LoginEffect.Navigation.ToRegistration -> navController.navigate(RouteRegistration)
                 else -> {}
             }
-        })
+        },
+    )
 }
-
 
 @Composable
 fun LoginScreen(
     state: LoginState,
     effectFlow: Flow<LoginEffect>?,
     onEventSent: (LoginEvent) -> Unit,
-    onNavigationRequested: (LoginEffect.Navigation) -> Unit
+    onNavigationRequest: (LoginEffect.Navigation) -> Unit,
 ) {
     val ctx = LocalContext.current
     LaunchedEffect(1) {
-        effectFlow?.onEach { effect ->
-            when (effect) {
+        effectFlow
+            ?.onEach { effect ->
+                when (effect) {
 //                is SplashEffect.Navigation -> onNavigationRequested(effect)
-                is LoginEffect.Navigation -> onNavigationRequested(effect)
-                is LoginEffect.ShowError -> toast(effect.msg, ctx, ToastDuration.LONG)
-            }
-        }?.collect()
+                    is LoginEffect.Navigation -> onNavigationRequest(effect)
+                    is LoginEffect.ShowError -> toast(effect.msg, ctx, ToastDuration.LONG)
+                }
+            }?.collect()
     }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(Dp20),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(Dp20),
         verticalArrangement = Arrangement.Center,
     ) {
         Row {
@@ -102,7 +102,8 @@ fun LoginScreen(
                 title = "Сервер",
                 placeholder = "http://example.com",
                 value = state.server,
-                onValueChange = { onEventSent(LoginEvent.SetServer(it)) })
+                onValueChange = { onEventSent(LoginEvent.SetServer(it)) },
+            )
             androidx.compose.material3.Button(
 //                modifier = Modifier
 //                    .background()
@@ -114,12 +115,14 @@ fun LoginScreen(
             title = "Логин",
             placeholder = "Enter key for access to server",
             value = state.login,
-            onValueChange = { onEventSent(LoginEvent.SetLogin(it)) })
+            onValueChange = { onEventSent(LoginEvent.SetLogin(it)) },
+        )
         Input(
             title = "Пароль",
             placeholder = "Enter key for access to server",
             value = state.password,
-            onValueChange = { onEventSent(LoginEvent.SetPassword(it)) })
+            onValueChange = { onEventSent(LoginEvent.SetPassword(it)) },
+        )
         Button(
             onClick = { onEventSent(LoginEvent.Enter) },
             text = "Enter",
@@ -133,17 +136,28 @@ fun LoginScreen(
             text = "Вход через сторонний сервис",
         )
     }
-
 }
 
 sealed interface LoginEvent : ViewEvent {
     object CheckConn : LoginEvent
+
     object Enter : LoginEvent
+
     object GoToRegistration : LoginEvent
+
     object GoToOAuth : LoginEvent
-    class SetServer(val value: String) : LoginEvent
-    class SetLogin(val value: String) : LoginEvent
-    class SetPassword(val value: String) : LoginEvent
+
+    class SetServer(
+        val value: String,
+    ) : LoginEvent
+
+    class SetLogin(
+        val value: String,
+    ) : LoginEvent
+
+    class SetPassword(
+        val value: String,
+    ) : LoginEvent
 }
 
 data class LoginState(
@@ -156,17 +170,24 @@ data class LoginState(
 
 sealed interface LoginConnStatus {
     object Ok : LoginConnStatus
+
     object Incompatible : LoginConnStatus
+
     object Err : LoginConnStatus
+
     object None : LoginConnStatus
 }
 
 sealed interface LoginEffect : ViewSideEffect {
-    data class ShowError(val msg: String) : LoginEffect
+    data class ShowError(
+        val msg: String,
+    ) : LoginEffect
 
     sealed interface Navigation : LoginEffect {
         object ToOAuth : Navigation
+
         object ToRegistration : Navigation
+
         object ToHome : Navigation
     }
 }
@@ -174,13 +195,14 @@ sealed interface LoginEffect : ViewSideEffect {
 class LoginViewModel(
     private val repo: AuthService,
     private val hostService: HostService,
+    private val sessionsService: SessionsService,
 ) : BaseViewModel<LoginEvent, LoginState, LoginEffect>() {
-
     private suspend fun checkConn() {
-        if (hostService.ping(viewState.value.server))
+        if (hostService.ping(viewState.value.server)) {
             setState { copy(connStatus = LoginConnStatus.Ok) }
-        else
+        } else {
             setState { copy(connStatus = LoginConnStatus.Err) }
+        }
     }
 
     private suspend fun enter() {
@@ -192,15 +214,18 @@ class LoginViewModel(
             return
         }
 
-        repo.login(
-            login = viewState.value.login,
-            pass = viewState.value.password,
-            host = viewState.value.server,
-        ).onSuccess {
-            setEffect { LoginEffect.Navigation.ToHome }
-        }.onFailure { message ->
-            setEffect { LoginEffect.ShowError(message) }
-        }
+        repo
+            .login(
+                login = viewState.value.login,
+                pass = viewState.value.password,
+                host = viewState.value.server,
+            ).onSuccess {
+                sessionsService.changeSession(it.session)
+                hostService.changeHost(viewState.value.server)
+                setEffect { LoginEffect.Navigation.ToHome }
+            }.onFailure { message ->
+                setEffect { LoginEffect.ShowError(message) }
+            }
     }
 
     override fun setInitialState() = LoginState()
@@ -216,5 +241,4 @@ class LoginViewModel(
             is LoginEvent.SetServer -> setState { copy(server = event.value) }
         }
     }
-
 }

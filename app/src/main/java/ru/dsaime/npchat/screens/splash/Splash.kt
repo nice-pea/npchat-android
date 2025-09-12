@@ -36,8 +36,8 @@ private fun PreviewSplashScreen() {
     )
 }
 
-const val RouteSplash = "Splash"
-private const val Title = "nice-pea-chat\n(NPC)"
+const val ROUTE_SPLASH = "Splash"
+private const val TITLE = "nice-pea-chat\n(NPC)"
 
 @Composable
 fun SplashScreenDestination(
@@ -79,7 +79,7 @@ fun SplashScreen(
     ) {
         Text(
             modifier = Modifier.fadeIn(300.milliseconds),
-            text = Title,
+            text = TITLE,
             style = Font.White16W400,
             textAlign = TextAlign.Center
         )

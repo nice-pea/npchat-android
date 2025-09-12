@@ -6,7 +6,6 @@ import com.github.michaelbull.result.Result
 import ru.dsaime.npchat.model.Session
 import ru.dsaime.npchat.model.User
 
-
 // Реализует аутентификацию
 class AuthServiceBase(
     private val api: NPChatApi,
@@ -14,7 +13,7 @@ class AuthServiceBase(
     override suspend fun login(
         login: String,
         pass: String,
-        host: String
+        host: String,
     ): Result<AuthService.AuthResult, String> {
         val reqBody = ApiModel.LoginBody(login, pass)
         return api
@@ -28,14 +27,15 @@ class AuthServiceBase(
         nick: String,
         name: String,
         pass: String,
-        host: String
+        host: String,
     ): Result<AuthService.AuthResult, String> {
-        val reqBody = ApiModel.RegistrationBody(
-            login = login,
-            password = pass,
-            name = name,
-            nick = nick,
-        )
+        val reqBody =
+            ApiModel.RegistrationBody(
+                login = login,
+                password = pass,
+                name = name,
+                nick = nick,
+            )
         return api
             .registration(host = host, body = reqBody)
             .mapCatching { Ok(it.toModel()) }
@@ -43,23 +43,24 @@ class AuthServiceBase(
     }
 }
 
-fun ApiModel.AuthResp.toModel(): AuthService.AuthResult {
-    return AuthService.AuthResult(
-        user = User(
-            id = user.id,
-            name = user.name,
-            nick = user.nick,
-        ),
-        session = Session(
-            id = session.id,
-            name = session.name,
-            status = session.status,
-            refreshToken = session.refreshToken.token,
-            refreshTokenExpiresAt = session.refreshToken.expiry,
-            accessToken = session.accessToken.token,
-            accessTokenExpiresAt = session.accessToken.expiry,
-        ),
+fun ApiModel.AuthResp.toModel(): AuthService.AuthResult =
+    AuthService.AuthResult(
+        user =
+            User(
+                id = user.id,
+                name = user.name,
+                nick = user.nick,
+            ),
+        session =
+            Session(
+                id = session.id,
+                name = session.name,
+                status = session.status,
+                refreshToken = session.refreshToken.token,
+                refreshTokenExpiresAt = session.refreshToken.expiry,
+                accessToken = session.accessToken.token,
+                accessTokenExpiresAt = session.accessToken.expiry,
+            ),
     )
-}
 
 fun Throwable.toUserMessage(): String = message.orEmpty().ifEmpty { "unknown error" }

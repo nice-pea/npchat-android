@@ -33,11 +33,11 @@ object ApiModel {
         @SerializedName("Name") val name: String,
         @SerializedName("Status") val status: String,
         @SerializedName("AccessToken") val accessToken: Token,
-        @SerializedName("RefreshToken") val refreshToken: Token
+        @SerializedName("RefreshToken") val refreshToken: Token,
     )
 
     data class Token(
         @SerializedName("Token") val token: String,
-        @SerializedName("Expiry") val expiry: OffsetDateTime
+        @SerializedName("Expiry") val expiry: OffsetDateTime,
     )
 }
