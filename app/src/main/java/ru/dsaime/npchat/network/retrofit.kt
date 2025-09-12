@@ -84,29 +84,6 @@ private class RetryInterceptor(private val retryAttempts: Int) : Interceptor {
     }
 }
 
-//fun npcBaseUrl(localPrefs: NPChatLocalPrefs, default: String = ""): String {
-//    return localPrefs.baseUrl
-//        .ifEmpty { default }
-//        .ifEmpty { NPChatBaseUrlPlaceholder }
-//}
-
-// Перехватчик, подставляющий в запрос url выбранного сервера
-//private class ReplaceUrlPlaceholderInterceptor(
-//    private val localPrefs: NPChatLocalPrefs,
-//) : Interceptor {
-//    override fun intercept(chain: Interceptor.Chain): Response {
-//        val urlString = chain.request().url.toString()
-//        if (urlString.startsWith(NPChatBaseUrlPlaceholder) && localPrefs.baseUrl != "") {
-//            val newUrl = URL(localPrefs.baseUrl + urlString.removePrefix(NPChatBaseUrlPlaceholder))
-//            val request = chain.request().newBuilder()
-//                .url(newUrl)
-//                .build()
-//            return chain.proceed(request)
-//        }
-//
-//        return chain.proceed(chain.request())
-//    }
-//}
 
 val retroGson = GsonBuilder()
     .registerTypeAdapter(OffsetDateTime::class.java, OffsetDateTimeAdapter)

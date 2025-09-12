@@ -22,14 +22,14 @@ object ApiModel {
     )
 
     data class User(
-        @SerializedName("Id") val id: String,
+        @SerializedName("ID") val id: String,
         @SerializedName("Name") val name: String,
         @SerializedName("Nick") val nick: String,
     )
 
     data class Session(
-        @SerializedName("Id") val id: String,
-        @SerializedName("UserId") val userId: String,
+        @SerializedName("ID") val id: String,
+        @SerializedName("UserID") val userId: String,
         @SerializedName("Name") val name: String,
         @SerializedName("Status") val status: String,
         @SerializedName("AccessToken") val accessToken: Token,

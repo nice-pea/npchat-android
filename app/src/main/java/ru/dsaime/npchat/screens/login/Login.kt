@@ -171,12 +171,6 @@ sealed interface LoginEffect : ViewSideEffect {
     }
 }
 
-sealed interface CheckConnResult {
-    object None : CheckConnResult
-    object Successful : CheckConnResult
-    data class Err(val msg: String) : CheckConnResult
-}
-
 class LoginViewModel(
     private val repo: AuthService,
     private val hostService: HostService,
@@ -187,14 +181,6 @@ class LoginViewModel(
             setState { copy(connStatus = LoginConnStatus.Ok) }
         else
             setState { copy(connStatus = LoginConnStatus.Err) }
-
-//        client.ping(viewState.value.server).onSuccess {
-//            setState { copy(connStatus = LoginConnStatus.Ok) }
-//        }.onFailure { res ->
-//            setState { copy(connStatus = LoginConnStatus.Err) }
-//            val err = res.message.orEmpty().ifEmpty { "emptyErr" }
-//            LoginEffect.ShowError(err)
-//        }
     }
 
     private suspend fun enter() {
@@ -203,6 +189,7 @@ class LoginViewModel(
         }
         if (viewState.value.connStatus == LoginConnStatus.Err) {
             setEffect { LoginEffect.ShowError("нет соединения с сервером") }
+            return
         }
 
         repo.login(
@@ -212,9 +199,7 @@ class LoginViewModel(
         ).onSuccess {
             setEffect { LoginEffect.Navigation.ToHome }
         }.onFailure { message ->
-            setEffect {
-                LoginEffect.ShowError(message)
-            }
+            setEffect { LoginEffect.ShowError(message) }
         }
     }
 
