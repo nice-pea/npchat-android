@@ -165,7 +165,7 @@ sealed interface LoginEvent : ViewEvent {
 }
 
 data class LoginState(
-    val host: LoginHost = LoginHost.None,
+    val host: LoginHost = LoginHost.Loading,
     val connStatus: LoginConnStatus = LoginConnStatus.None,
     val login: String = "",
     val password: String = "",
@@ -179,7 +179,7 @@ sealed interface LoginHost {
 
     object Loading : LoginHost
 
-    object None : LoginHost
+//    object None : LoginHost
 
     fun value(): String? = (this as? LoginHost.Value)?.text
 }
@@ -216,17 +216,20 @@ class LoginViewModel(
     init {
         viewModelScope.launch {
             delay(100)
-            loadPreferredHost()
+            val prefHost = preferredHost(hostService)
+            setState { copy(host = LoginHost.Value(prefHost.orEmpty())) }
         }
     }
 
     private suspend fun checkConn() {
         val host = viewState.value.host.value() ?: return
-        if (hostService.ping(host)) {
-            setState { copy(connStatus = LoginConnStatus.Ok) }
-        } else {
-            setState { copy(connStatus = LoginConnStatus.Err) }
-        }
+        val status =
+            if (hostService.ping(host)) {
+                LoginConnStatus.Ok
+            } else {
+                LoginConnStatus.Err
+            }
+        setState { copy(connStatus = status) }
     }
 
     private suspend fun enter() {
@@ -271,12 +274,6 @@ class LoginViewModel(
             is LoginEvent.SetPassword -> setState { copy(password = event.value) }
             is LoginEvent.SetServer -> setState { copy(host = LoginHost.Value(event.value)) }
         }
-    }
-
-    private suspend fun loadPreferredHost() {
-        setState { copy(host = LoginHost.Loading) }
-        val prefHost = preferredHost(hostService)
-        setState { copy(host = LoginHost.Value(prefHost.orEmpty())) }
     }
 }
 
