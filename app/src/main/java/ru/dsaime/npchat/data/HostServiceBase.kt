@@ -28,5 +28,15 @@ class HostServiceBase(
             .sortedByDescending { it.lastUsed }
             .map { it.baseUrl }
 
+    // Возвращает сервер по специальному алгоритму
+    override suspend fun preferredHost(): String? {
+        val current = currentHost()
+        if (current != null && current.isNotBlank()) {
+            return current
+        }
+
+        return known().firstOrNull()
+    }
+
     override suspend fun ping(host: String) = api.ping(host).isSuccess
 }

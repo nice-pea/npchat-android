@@ -39,6 +39,9 @@ interface HostService {
 
     suspend fun known(): List<String>
 
+    // Возвращает сервер по специальному алгоритму
+    suspend fun preferredHost(): String?
+
     suspend fun ping(host: String): Boolean
 }
 

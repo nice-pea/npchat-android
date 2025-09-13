@@ -12,6 +12,8 @@ import ru.dsaime.npchat.screens.home.HomeScreenDestination
 import ru.dsaime.npchat.screens.home.ROUTE_HOME
 import ru.dsaime.npchat.screens.login.LoginScreenDestination
 import ru.dsaime.npchat.screens.login.ROUTE_LOGIN
+import ru.dsaime.npchat.screens.registration.ROUTE_REGISTRATION
+import ru.dsaime.npchat.screens.registration.RegistrationScreenDestination
 import ru.dsaime.npchat.screens.splash.ROUTE_SPLASH
 import ru.dsaime.npchat.screens.splash.SplashScreenDestination
 import ru.dsaime.npchat.ui.theme.Black
@@ -29,6 +31,7 @@ fun ComposeApp(koin: Koin) {
     ) {
         composable(ROUTE_SPLASH) { SplashScreenDestination(navController) }
         composable(ROUTE_LOGIN) { LoginScreenDestination(navController) }
+        composable(ROUTE_REGISTRATION) { RegistrationScreenDestination(navController) }
         composable(ROUTE_HOME) { HomeScreenDestination(navController) }
     }
 }

@@ -10,22 +10,22 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
-interface ViewEvent
+// interface ViewEvent
+//
+// interface ViewState
+//
+// interface ViewSideEffect
 
-interface ViewState
-
-interface ViewSideEffect
-
-const val SIDE_EFFECTS_KEY = "side-effects_key"
-
-abstract class BaseViewModel<Event : ViewEvent, UiState : ViewState, Effect : ViewSideEffect> : ViewModel() {
+// abstract class BaseViewModel<Event : ViewEvent, UiState : ViewState, Effect : ViewSideEffect> : ViewModel() {
+abstract class BaseViewModel<Event, UiState, Effect> : ViewModel() {
     abstract fun setInitialState(): UiState
 
     abstract fun handleEvents(event: Event)
 
-    private val initialState: UiState by lazy { setInitialState() }
+    //    private val initialState: UiState by lazy { setInitialState() }
+//    private val initialState: UiState =
 
-    private val _viewState: MutableState<UiState> = mutableStateOf(initialState)
+    private val _viewState: MutableState<UiState> = mutableStateOf(setInitialState())
     val viewState: State<UiState> = _viewState
 
     @Suppress("ktlint:standard:backing-property-naming")

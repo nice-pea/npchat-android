@@ -23,9 +23,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import ru.dsaime.npchat.common.base.BaseViewModel
-import ru.dsaime.npchat.common.base.ViewEvent
-import ru.dsaime.npchat.common.base.ViewSideEffect
-import ru.dsaime.npchat.common.base.ViewState
 import ru.dsaime.npchat.common.functions.ToastDuration
 import ru.dsaime.npchat.common.functions.toast
 import ru.dsaime.npchat.data.BasicAuthService
@@ -142,7 +139,7 @@ fun LoginScreen(
     }
 }
 
-sealed interface LoginEvent : ViewEvent {
+sealed interface LoginEvent {
     object CheckConn : LoginEvent
 
     object Enter : LoginEvent
@@ -170,7 +167,7 @@ data class LoginState(
     val login: String = "",
     val password: String = "",
     val isLoading: Boolean = false,
-) : ViewState
+)
 
 sealed interface LoginHost {
     data class Value(
@@ -179,22 +176,18 @@ sealed interface LoginHost {
 
     object Loading : LoginHost
 
-//    object None : LoginHost
-
-    fun value(): String? = (this as? LoginHost.Value)?.text
+    fun value(): String? = (this as? Value)?.text
 }
 
 sealed interface LoginConnStatus {
     object Ok : LoginConnStatus
-
-    object Incompatible : LoginConnStatus
 
     object Err : LoginConnStatus
 
     object None : LoginConnStatus
 }
 
-sealed interface LoginEffect : ViewSideEffect {
+sealed interface LoginEffect {
     data class ShowError(
         val msg: String,
     ) : LoginEffect
@@ -216,7 +209,7 @@ class LoginViewModel(
     init {
         viewModelScope.launch {
             delay(100)
-            val prefHost = preferredHost(hostService)
+            val prefHost = hostService.preferredHost()
             setState { copy(host = LoginHost.Value(prefHost.orEmpty())) }
         }
     }
@@ -275,14 +268,4 @@ class LoginViewModel(
             is LoginEvent.SetServer -> setState { copy(host = LoginHost.Value(event.value)) }
         }
     }
-}
-
-// Возвращает сервер по специальному алгоритму
-suspend fun preferredHost(hostService: HostService): String? {
-    val current = hostService.currentHost()
-    if (current != null && current.isNotBlank()) {
-        return current
-    }
-
-    return hostService.known().firstOrNull()
 }

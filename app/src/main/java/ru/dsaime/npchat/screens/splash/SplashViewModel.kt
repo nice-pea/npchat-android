@@ -3,18 +3,15 @@ package ru.dsaime.npchat.screens.splash
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import ru.dsaime.npchat.common.base.BaseViewModel
-import ru.dsaime.npchat.common.base.ViewEvent
-import ru.dsaime.npchat.common.base.ViewSideEffect
-import ru.dsaime.npchat.common.base.ViewState
 import ru.dsaime.npchat.data.SessionsService
 
-sealed interface SplashEvent : ViewEvent {
+sealed interface SplashEvent {
     object CheckSession : SplashEvent
 }
 
-object SplashState : ViewState
+object SplashState
 
-sealed interface SplashEffect : ViewSideEffect {
+sealed interface SplashEffect {
 //        data class ShowError(val msg: String) : Effect
 
     sealed interface Navigation : SplashEffect {

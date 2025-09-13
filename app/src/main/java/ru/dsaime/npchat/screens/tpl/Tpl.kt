@@ -10,9 +10,6 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.flow.Flow
 import org.koin.androidx.compose.koinViewModel
 import ru.dsaime.npchat.common.base.BaseViewModel
-import ru.dsaime.npchat.common.base.ViewEvent
-import ru.dsaime.npchat.common.base.ViewSideEffect
-import ru.dsaime.npchat.common.base.ViewState
 import ru.dsaime.npchat.data.BasicAuthService
 import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.data.SessionsService
@@ -46,13 +43,13 @@ fun TplScreen(
     }
 }
 
-sealed interface TplEvent : ViewEvent
+sealed interface TplEvent
 
 data class TplState(
     val server: String = "",
-) : ViewState
+)
 
-sealed interface TplEffect : ViewSideEffect {
+sealed interface TplEffect {
     sealed interface Navigation : TplEffect
 }
 
