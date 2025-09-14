@@ -23,12 +23,12 @@ class OffsetDateTimeNullableSerializer : KSerializer<OffsetDateTime?> {
     }
 
     override fun deserialize(decoder: Decoder): OffsetDateTime? {
-        val epochSecond = decoder.decodeLong()
-        if (epochSecond > 9999999999) {
-            return OffsetDateTime.MAX
-        } else if (epochSecond < -9999999999) {
-            return OffsetDateTime.MIN
-        }
+        val epochSecond =
+            decoder
+                .decodeLong()
+                .coerceAtLeast(OffsetDateTime.MIN.toEpochSecond())
+                .coerceAtMost(OffsetDateTime.MAX.toEpochSecond())
+
         return OffsetDateTime.of(
             LocalDateTime.ofEpochSecond(epochSecond, 0, ZoneOffset.UTC),
             ZoneOffset.UTC,
