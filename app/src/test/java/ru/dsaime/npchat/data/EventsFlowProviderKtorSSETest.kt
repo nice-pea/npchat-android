@@ -20,39 +20,47 @@ import kotlin.test.assertEquals
 class EventsFlowProviderKtorSSETest {
     @Test
     fun eventsFlow() {
-        val session = Session(
-            id = "",
-            name = "",
-            status = "",
-            refreshToken = "",
-            refreshTokenExpiresAt = OffsetDateTime.now(),
-            accessToken = "d5d19d91-1248-4391-8004-606370a21720",
-            accessTokenExpiresAt = OffsetDateTime.now()
-        )
-        val expectedEvents = listOf(
-            Event("qwr", OffsetDateTime.now(), mapOf("a" to 1, "b" to 2)),
-            Event("zcv", OffsetDateTime.now(), mapOf("a" to 1, "b" to 2)),
-        )
+        val session =
+            Session(
+                id = "",
+                name = "",
+                status = "",
+                refreshToken = "",
+                refreshTokenExpiresAt = OffsetDateTime.now(),
+                accessToken = "d5d19d91-1248-4391-8004-606370a21720",
+                accessTokenExpiresAt = OffsetDateTime.now(),
+            )
+        val expectedEvents =
+            listOf(
+                Event("qwr", OffsetDateTime.now(), mapOf("a" to 1, "b" to 2)),
+                Event("zcv", OffsetDateTime.now(), mapOf("a" to 1, "b" to 2)),
+            )
 
         runBlocking {
-            val server = embeddedServer(Netty, 38925) {
-                install(io.ktor.server.sse.SSE)
-                routing {
-                    sse("/events") {
-                        expectedEvents.forEach {
-                            send(retroGson.toJson(it), "event")
+            val server =
+                embeddedServer(Netty, 0) {
+                    install(io.ktor.server.sse.SSE)
+                    routing {
+                        sse("/events") {
+                            expectedEvents.forEach {
+                                send(retroGson.toJson(it), "event")
+                            }
                         }
                     }
-                }
-            }.start(false)
+                }.start(false)
 
             // Получить порт сервера
-            val port = server.application.engine.resolvedConnectors().first().port
+            val port =
+                server.application.engine
+                    .resolvedConnectors()
+                    .first()
+                    .port
 
             // Создать клиент
-            val client = HttpClient(OkHttp) {
-                install(SSE)
-            }
+            val client =
+                HttpClient(OkHttp) {
+                    install(SSE)
+                }
 
             // Сохранить все события в список
             val receivedEvents =
@@ -65,5 +73,4 @@ class EventsFlowProviderKtorSSETest {
             assertEquals(expectedEvents.size, receivedEvents.size)
         }
     }
-
 }
