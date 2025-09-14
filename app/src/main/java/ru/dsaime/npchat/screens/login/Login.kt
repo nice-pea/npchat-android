@@ -15,7 +15,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
@@ -96,14 +95,13 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center,
     ) {
         Row {
-            val host = state.host.value()
             Input(
                 modifier = Modifier.weight(1f),
                 title = "Сервер",
                 placeholder = "http://example.com",
-                value = host ?: state.host::class.simpleName!!,
+                value = state.host,
                 onValueChange = { onEventSent(LoginEvent.SetServer(it)) },
-                enabled = host != null,
+                enabled = state.hostEnabled,
             )
             androidx.compose.material3.Button(
 //                modifier = Modifier
@@ -162,22 +160,13 @@ sealed interface LoginEvent {
 }
 
 data class LoginState(
-    val host: LoginHost = LoginHost.Loading,
+    val host: String = "",
+    val hostEnabled: Boolean = false,
     val connStatus: LoginConnStatus = LoginConnStatus.None,
     val login: String = "",
     val password: String = "",
     val isLoading: Boolean = false,
 )
-
-sealed interface LoginHost {
-    data class Value(
-        val text: String,
-    ) : LoginHost
-
-    object Loading : LoginHost
-
-    fun value(): String? = (this as? Value)?.text
-}
 
 sealed interface LoginConnStatus {
     object Ok : LoginConnStatus
@@ -208,16 +197,14 @@ class LoginViewModel(
 ) : BaseViewModel<LoginEvent, LoginState, LoginEffect>() {
     init {
         viewModelScope.launch {
-            delay(100)
             val prefHost = hostService.preferredHost()
-            setState { copy(host = LoginHost.Value(prefHost.orEmpty())) }
+            setState { copy(host = prefHost.orEmpty()) }
         }
     }
 
     private suspend fun checkConn() {
-        val host = viewState.value.host.value() ?: return
         val status =
-            if (hostService.ping(host)) {
+            if (hostService.ping(viewState.value.host)) {
                 LoginConnStatus.Ok
             } else {
                 LoginConnStatus.Err
@@ -227,7 +214,7 @@ class LoginViewModel(
 
     private suspend fun enter() {
         val host =
-            viewState.value.host.value() ?: run {
+            viewState.value.host.ifBlank {
                 LoginEffect.ShowError("host не установлен").emit()
                 return
             }
@@ -265,7 +252,7 @@ class LoginViewModel(
             LoginEvent.GoToRegistration -> LoginEffect.Navigation.ToRegistration.emit()
             is LoginEvent.SetLogin -> setState { copy(login = event.value) }
             is LoginEvent.SetPassword -> setState { copy(password = event.value) }
-            is LoginEvent.SetServer -> setState { copy(host = LoginHost.Value(event.value)) }
+            is LoginEvent.SetServer -> setState { copy(host = event.value) }
         }
     }
 }
