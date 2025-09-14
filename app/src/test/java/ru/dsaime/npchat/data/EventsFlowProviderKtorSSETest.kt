@@ -57,20 +57,19 @@ class EventsFlowProviderKtorSSETest {
                     .port
 
             // Создать клиент
-            val client =
-                HttpClient(OkHttp) {
-                    install(SSE)
-                }
-
-            // Сохранить все события в список
-            val receivedEvents =
-                EventsFlowProviderKtorSSE(client, { "http://localhost:$port" })
-                    .eventsFlow(session)
-                    .toList()
-
-            // Остановить сервер
-            server.stop()
-            assertEquals(expectedEvents.size, receivedEvents.size)
+            val client = HttpClient(OkHttp) { install(SSE) }
+            try {
+                // Сохранить все события в список
+                val receivedEvents =
+                    EventsFlowProviderKtorSSE(client, { "http://localhost:$port" })
+                        .eventsFlow(session)
+                        .toList()
+                assertEquals(expectedEvents.size, receivedEvents.size)
+            } finally {
+                // Остановить сервер
+                client.close()
+                server.stop(gracePeriodMillis = 0, timeoutMillis = 0)
+            }
         }
     }
 }
