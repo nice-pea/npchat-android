@@ -1,4 +1,4 @@
-package ru.dsaime.npchat.screens.login
+package ru.dsaime.npchat.screens.registration
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,14 +10,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -28,52 +26,35 @@ import ru.dsaime.npchat.data.BasicAuthService
 import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.data.SessionsService
 import ru.dsaime.npchat.screens.home.ROUTE_HOME
-import ru.dsaime.npchat.screens.registration.ROUTE_REGISTRATION
+import ru.dsaime.npchat.screens.login.LoginConnStatus
 import ru.dsaime.npchat.ui.components.Button
 import ru.dsaime.npchat.ui.components.Input
 import ru.dsaime.npchat.ui.theme.Dp20
 import ru.dsaime.npchat.ui.theme.White
 
-@Preview(
-    backgroundColor = 0xFF000000,
-    showBackground = true,
-)
-@Composable
-private fun PreviewLoginScreen() {
-    LoginScreen(
-        state = LoginState(),
-        effectFlow = flow { },
-        onEventSent = {},
-        onNavigationRequest = {},
-    )
-}
-
-const val ROUTE_LOGIN = "Login"
+const val ROUTE_REGISTRATION = "Registration"
 
 @Composable
-fun LoginScreenDestination(navController: NavController) {
-    val vm = koinViewModel<LoginViewModel>()
-    LoginScreen(
+fun RegistrationScreenDestination(navController: NavController) {
+    val vm = koinViewModel<RegistrationViewModel>()
+    RegistrationScreen(
         state = vm.viewState.value,
         effectFlow = vm.effect,
         onEventSent = vm::handleEvents,
         onNavigationRequest = {
             when (it) {
-                LoginEffect.Navigation.ToHome -> navController.navigate(ROUTE_HOME)
-//                LoginEffect.Navigation.ToOAuth -> navController.navigate(RouteOAuthLogin)
-                LoginEffect.Navigation.ToRegistration -> navController.navigate(ROUTE_REGISTRATION)
-                else -> {}
+                RegistrationEffect.Navigation.ToHome -> navController.navigate(ROUTE_HOME)
             }
         },
     )
 }
 
 @Composable
-fun LoginScreen(
-    state: LoginState,
-    effectFlow: Flow<LoginEffect>?,
-    onEventSent: (LoginEvent) -> Unit,
-    onNavigationRequest: (LoginEffect.Navigation) -> Unit,
+fun RegistrationScreen(
+    state: RegistrationState,
+    effectFlow: Flow<RegistrationEffect>?,
+    onEventSent: (RegistrationEvent) -> Unit,
+    onNavigationRequest: (RegistrationEffect.Navigation) -> Unit,
 ) {
     val ctx = LocalContext.current
     LaunchedEffect(1) {
@@ -81,8 +62,8 @@ fun LoginScreen(
             ?.onEach { effect ->
                 when (effect) {
 //                is SplashEffect.Navigation -> onNavigationRequested(effect)
-                    is LoginEffect.Navigation -> onNavigationRequest(effect)
-                    is LoginEffect.ShowError -> toast(effect.msg, ctx, ToastDuration.LONG)
+                    is RegistrationEffect.Navigation -> onNavigationRequest(effect)
+                    is RegistrationEffect.ShowError -> toast(effect.msg, ctx, ToastDuration.LONG)
                 }
             }?.collect()
     }
@@ -100,122 +81,129 @@ fun LoginScreen(
                 title = "Сервер",
                 placeholder = "http://example.com",
                 value = state.host,
-                onValueChange = { onEventSent(LoginEvent.SetServer(it)) },
+                onValueChange = { onEventSent(RegistrationEvent.SetHost(it)) },
                 enabled = state.hostEnabled,
             )
             androidx.compose.material3.Button(
-//                modifier = Modifier
-//                    .background()
-//                    .size(20.dp),
-                onClick = { onEventSent(LoginEvent.CheckConn) },
+                onClick = { onEventSent(RegistrationEvent.CheckConn) },
             ) { Text(state.connStatus::class.simpleName ?: "null", color = White) }
         }
+        Input(
+            title = "Видимое имя",
+            placeholder = "",
+            value = state.name,
+            onValueChange = { onEventSent(RegistrationEvent.SetName(it)) },
+        )
+        Input(
+            title = "Ник",
+            placeholder = "",
+            value = state.nick,
+            onValueChange = { onEventSent(RegistrationEvent.SetNick(it)) },
+        )
         Input(
             title = "Логин",
             placeholder = "Enter key for access to server",
             value = state.login,
-            onValueChange = { onEventSent(LoginEvent.SetLogin(it)) },
+            onValueChange = { onEventSent(RegistrationEvent.SetLogin(it)) },
         )
         Input(
             title = "Пароль",
             placeholder = "Enter key for access to server",
             value = state.password,
-            onValueChange = { onEventSent(LoginEvent.SetPassword(it)) },
+            onValueChange = { onEventSent(RegistrationEvent.SetPassword(it)) },
         )
         Button(
-            onClick = { onEventSent(LoginEvent.Enter) },
-            text = "Enter",
-        )
-        Button(
-            onClick = { onEventSent(LoginEvent.GoToRegistration) },
-            text = "Перейти к регистрации",
-        )
-        Button(
-            onClick = { onEventSent(LoginEvent.GoToOAuth) },
-            text = "Вход через сторонний сервис",
+            onClick = { onEventSent(RegistrationEvent.Confirm) },
+            text = "Регистрация",
         )
     }
 }
 
-sealed interface LoginEvent {
-    object CheckConn : LoginEvent
-
-    object Enter : LoginEvent
-
-    object GoToRegistration : LoginEvent
-
-    object GoToOAuth : LoginEvent
-
-    class SetServer(
+sealed interface RegistrationEvent {
+    class SetHost(
         val value: String,
-    ) : LoginEvent
+    ) : RegistrationEvent
+
+    object Confirm : RegistrationEvent
+
+    object CheckConn : RegistrationEvent
+
+    class SetNick(
+        val value: String,
+    ) : RegistrationEvent
+
+    class SetName(
+        val value: String,
+    ) : RegistrationEvent
 
     class SetLogin(
         val value: String,
-    ) : LoginEvent
+    ) : RegistrationEvent
 
     class SetPassword(
         val value: String,
-    ) : LoginEvent
+    ) : RegistrationEvent
 }
 
-data class LoginState(
+data class RegistrationState(
     val host: String = "",
     val hostEnabled: Boolean = false,
-    val connStatus: LoginConnStatus = LoginConnStatus.None,
+    val connStatus: RegistrationConnStatus = RegistrationConnStatus.None,
+    val name: String = "",
+    val nick: String = "",
     val login: String = "",
     val password: String = "",
-    val isLoading: Boolean = false,
 )
 
-sealed interface LoginConnStatus {
-    object Ok : LoginConnStatus
+sealed interface RegistrationConnStatus {
+    object Ok : RegistrationConnStatus
 
-    object Err : LoginConnStatus
+    object Err : RegistrationConnStatus
 
-    object None : LoginConnStatus
+    object None : RegistrationConnStatus
 }
 
-sealed interface LoginEffect {
+sealed interface RegistrationEffect {
     data class ShowError(
         val msg: String,
-    ) : LoginEffect
+    ) : RegistrationEffect
 
-    sealed interface Navigation : LoginEffect {
-        object ToOAuth : Navigation
-
-        object ToRegistration : Navigation
-
+    sealed interface Navigation : RegistrationEffect {
         object ToHome : Navigation
     }
 }
 
-class LoginViewModel(
+class RegistrationViewModel(
     private val authService: BasicAuthService,
     private val hostService: HostService,
     private val sessionsService: SessionsService,
-) : BaseViewModel<LoginEvent, LoginState, LoginEffect>() {
+) : BaseViewModel<RegistrationEvent, RegistrationState, RegistrationEffect>() {
     init {
-        viewModelScope.launch {
-            val prefHost = hostService.preferredHost()
-            setState { copy(host = prefHost.orEmpty()) }
-        }
+        viewModelScope
+            .launch {
+                val prefHost = hostService.preferredHost()
+                setState { copy(host = prefHost.orEmpty()) }
+            }.invokeOnCompletion {
+                setState { copy(hostEnabled = true) }
+            }
     }
+
+    override fun setInitialState() = RegistrationState()
 
     private suspend fun checkConn() {
         val status =
             if (hostService.ping(viewState.value.host)) {
-                LoginConnStatus.Ok
+                RegistrationConnStatus.Ok
             } else {
-                LoginConnStatus.Err
+                RegistrationConnStatus.Err
             }
         setState { copy(connStatus = status) }
     }
 
-    private suspend fun enter() {
+    private suspend fun confirm() {
         val host =
             viewState.value.host.ifBlank {
-                LoginEffect.ShowError("host не установлен").emit()
+                RegistrationEffect.ShowError("host не установлен").emit()
                 return
             }
 
@@ -223,36 +211,35 @@ class LoginViewModel(
             checkConn()
         }
         if (viewState.value.connStatus == LoginConnStatus.Err) {
-            LoginEffect.ShowError("нет соединения с сервером").emit()
+            RegistrationEffect.ShowError("нет соединения с сервером").emit()
             return
         }
 
         authService
-            .login(
+            .registration(
+                name = viewState.value.name,
+                nick = viewState.value.nick,
                 login = viewState.value.login,
                 pass = viewState.value.password,
                 host = host,
             ).onSuccess {
                 sessionsService.changeSession(it.session)
                 hostService.changeHost(host)
-                LoginEffect.Navigation.ToHome.emit()
+                RegistrationEffect.Navigation.ToHome.emit()
             }.onFailure { message ->
-                LoginEffect.ShowError(message).emit()
+                RegistrationEffect.ShowError(message).emit()
             }
     }
 
-    //    override fun setInitialState(): LoginState = LoginState()
-    override fun setInitialState(): LoginState = LoginState()
-
-    override fun handleEvents(event: LoginEvent) {
+    override fun handleEvents(event: RegistrationEvent) {
         when (event) {
-            LoginEvent.CheckConn -> viewModelScope.launch { checkConn() }
-            LoginEvent.Enter -> viewModelScope.launch { enter() }
-            LoginEvent.GoToOAuth -> LoginEffect.Navigation.ToOAuth.emit()
-            LoginEvent.GoToRegistration -> LoginEffect.Navigation.ToRegistration.emit()
-            is LoginEvent.SetLogin -> setState { copy(login = event.value) }
-            is LoginEvent.SetPassword -> setState { copy(password = event.value) }
-            is LoginEvent.SetServer -> setState { copy(host = event.value) }
+            RegistrationEvent.CheckConn -> viewModelScope.launch { checkConn() }
+            RegistrationEvent.Confirm -> viewModelScope.launch { confirm() }
+            is RegistrationEvent.SetHost -> setState { copy(host = event.value) }
+            is RegistrationEvent.SetLogin -> setState { copy(login = event.value) }
+            is RegistrationEvent.SetName -> setState { copy(name = event.value) }
+            is RegistrationEvent.SetNick -> setState { copy(nick = event.value) }
+            is RegistrationEvent.SetPassword -> setState { copy(password = event.value) }
         }
     }
 }

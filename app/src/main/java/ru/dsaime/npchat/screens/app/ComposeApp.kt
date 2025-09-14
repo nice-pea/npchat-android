@@ -7,35 +7,31 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
 import org.koin.core.Koin
-import ru.dsaime.npchat.screens.chat.messages.MessagesScreen
-import ru.dsaime.npchat.screens.chat.messages.RouteMessages
-import ru.dsaime.npchat.screens.chats.ChatsScreen
-import ru.dsaime.npchat.screens.chats.RouteChats
-import ru.dsaime.npchat.screens.login.LoginScreen
-import ru.dsaime.npchat.screens.login.RouteLogin
-import ru.dsaime.npchat.screens.splash.RouteSplash
-import ru.dsaime.npchat.screens.splash.SplashScreen
+import ru.dsaime.npchat.screens.home.HomeScreenDestination
+import ru.dsaime.npchat.screens.home.ROUTE_HOME
+import ru.dsaime.npchat.screens.login.LoginScreenDestination
+import ru.dsaime.npchat.screens.login.ROUTE_LOGIN
+import ru.dsaime.npchat.screens.registration.ROUTE_REGISTRATION
+import ru.dsaime.npchat.screens.registration.RegistrationScreenDestination
+import ru.dsaime.npchat.screens.splash.ROUTE_SPLASH
+import ru.dsaime.npchat.screens.splash.SplashScreenDestination
 import ru.dsaime.npchat.ui.theme.Black
-
 
 @Composable
 fun ComposeApp(koin: Koin) {
     val navController = rememberNavController()
     NavHost(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Black),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(Black),
         navController = navController,
-        startDestination = RouteSplash
+        startDestination = ROUTE_SPLASH,
     ) {
-        composable(RouteSplash) { SplashScreen(navController) }
-        composable(RouteLogin) { LoginScreen(navController) }
-        composable(RouteChats) { ChatsScreen(navController) }
-//        composable<RouteMessages> {
-//            val messages = it.toRoute<RouteMessages>()
-//            MessagesScreen(navController, messages.chatID)
-//        }
+        composable(ROUTE_SPLASH) { SplashScreenDestination(navController) }
+        composable(ROUTE_LOGIN) { LoginScreenDestination(navController) }
+        composable(ROUTE_REGISTRATION) { RegistrationScreenDestination(navController) }
+        composable(ROUTE_HOME) { HomeScreenDestination(navController) }
     }
 }

@@ -26,7 +26,7 @@ import ru.dsaime.npchat.ui.theme.cursorBrush
 
 @Preview
 @Composable
-private fun PreviewInput() {
+private fun PreviewInputState() {
     Input(
         modifier = Modifier
             .background(Black)
@@ -38,13 +38,30 @@ private fun PreviewInput() {
     )
 }
 
+@Preview
+@Composable
+private fun PreviewInput() {
+    Input(
+        modifier = Modifier
+            .background(Black)
+            .padding(Dp20),
+        title = "Title",
+        placeholder = "Empty",
+        helperText = "Login using for login in your profile without  other credential, it sensitive information, don’t share it",
+        value = "Input text",
+        onValueChange = {},
+    )
+}
+
 @Composable
 fun Input(
-    modifier: Modifier = Modifier,
     title: String,
     placeholder: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
     helperText: String = "",
-    textFieldState: TextFieldState,
+    enabled: Boolean = true,
 ) {
     Column(
         modifier = Modifier.then(modifier)
@@ -59,6 +76,49 @@ fun Input(
                 .background(Black)
                 .border(Dp1, White)
                 .padding(Dp10),
+            enabled = enabled,
+            value = value,
+            onValueChange = onValueChange,
+            cursorBrush = cursorBrush,
+            textStyle = Font.White16W400,
+            decorationBox = { innerTextField ->
+                if (value.isBlank()) {
+                    Text(placeholder, style = Font.GrayCharcoal16W400)
+                }
+                innerTextField()
+            }
+        )
+        if (helperText != "") {
+            Gap(Dp2)
+            Text(helperText, style = Font.GrayCharcoal12W400)
+        }
+        Gap(Dp8)
+    }
+}
+
+@Composable
+fun Input(
+    title: String,
+    placeholder: String,
+    textFieldState: TextFieldState,
+    modifier: Modifier = Modifier,
+    helperText: String = "",
+    enabled: Boolean = true,
+) {
+    Column(
+        modifier = Modifier.then(modifier)
+    ) {
+        if (title != "") {
+            Text(title, style = Font.White12W500)
+            Gap(Dp6)
+        }
+        BasicTextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Black)
+                .border(Dp1, White)
+                .padding(Dp10),
+            enabled = enabled,
             state = textFieldState,
             cursorBrush = cursorBrush,
             textStyle = Font.White16W400,

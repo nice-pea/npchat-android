@@ -1,12 +1,21 @@
-package ru.dsaime.npchat.data.store
+package ru.dsaime.npchat.data
 
 import android.content.Context
 import androidx.core.content.edit
 
+// Представляет собой локальное хранилище доступов к api
+@Deprecated(level = DeprecationLevel.ERROR, message = "dnt use it")
+class NPChatLocalPrefs(
+    context: Context,
+) {
+    private val sp = context.getSharedPreferences("common", Context.MODE_PRIVATE)
 
-class AuthenticationStore(context: Context) {
-    private val name = "common"
-    private val sp = context.getSharedPreferences(name, Context.MODE_PRIVATE)
+    private val baseUrlKey = "baseUrl"
+    var baseUrl: String
+        get() = sp.getString(baseUrlKey, "").orEmpty()
+        set(value) {
+            sp.edit { putString(baseUrlKey, value) }
+        }
 
     private val tokenKey = "token"
     var token: String
@@ -24,11 +33,11 @@ class AuthenticationStore(context: Context) {
 
     private val profileIdKey = "profileId"
     private val profileUsernameKey = "profileUsername"
-    fun profile(): Result<Profile> {
-        return runCatching {
+
+    fun profile(): Result<Profile> =
+        runCatching {
             profile ?: error("no saved profile")
         }
-    }
 
     var profile: Profile?
         get() {
