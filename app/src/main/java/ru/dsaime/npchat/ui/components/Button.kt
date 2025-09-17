@@ -35,9 +35,9 @@ private fun PreviewButton() {
 
 @Composable
 fun Button(
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
     text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
     helperText: String = "",
 ) {
     Column(

@@ -10,14 +10,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.NavController
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
 import org.koin.androidx.compose.koinViewModel
-import ru.dsaime.npchat.screens.home.ROUTE_HOME
-import ru.dsaime.npchat.screens.login.ROUTE_LOGIN
 import ru.dsaime.npchat.ui.components.Gap
 import ru.dsaime.npchat.ui.components.Progress
 import ru.dsaime.npchat.ui.modifiers.fadeIn
@@ -31,7 +28,7 @@ private fun PreviewSplashScreen() {
     SplashScreen(
         effectFlow = flow { },
         onEventSent = {},
-        onNavigationRequested = {},
+        onNavigationRequest = {},
     )
 }
 
@@ -39,33 +36,28 @@ const val ROUTE_SPLASH = "Splash"
 private const val TITLE = "nice-pea-chat\n(NPC)"
 
 @Composable
-fun SplashScreenDestination(navController: NavController) {
+fun SplashScreenDestination(onNavigationRequested: (SplashEffect.Navigation) -> Unit) {
     val vm = koinViewModel<SplashViewModel>()
     SplashScreen(
         effectFlow = vm.effect,
         onEventSent = vm::handleEvents,
-        onNavigationRequested = {
-            when (it) {
-                SplashEffect.Navigation.ToHome -> navController.navigate(ROUTE_HOME)
-                SplashEffect.Navigation.ToLogin -> navController.navigate(ROUTE_LOGIN)
-            }
-        },
+        onNavigationRequest = onNavigationRequested,
     )
 }
 
 @Composable
 fun SplashScreen(
-    effectFlow: Flow<SplashEffect>?,
+    effectFlow: Flow<SplashEffect>,
     onEventSent: (SplashEvent) -> Unit,
-    onNavigationRequested: (SplashEffect.Navigation) -> Unit,
+    onNavigationRequest: (SplashEffect.Navigation) -> Unit,
 ) {
     LaunchedEffect(1) {
         effectFlow
-            ?.onEach { effect ->
+            .onEach { effect ->
                 when (effect) {
-                    is SplashEffect.Navigation -> onNavigationRequested(effect)
+                    is SplashEffect.Navigation -> onNavigationRequest(effect)
                 }
-            }?.collect()
+            }.collect()
     }
 
     Column(

@@ -12,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavController
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
 import kotlinx.coroutines.flow.Flow
@@ -27,8 +26,6 @@ import ru.dsaime.npchat.common.functions.toast
 import ru.dsaime.npchat.data.BasicAuthService
 import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.data.SessionsService
-import ru.dsaime.npchat.screens.home.ROUTE_HOME
-import ru.dsaime.npchat.screens.registration.ROUTE_REGISTRATION
 import ru.dsaime.npchat.ui.components.Button
 import ru.dsaime.npchat.ui.components.Input
 import ru.dsaime.npchat.ui.theme.Dp20
@@ -48,23 +45,14 @@ private fun PreviewLoginScreen() {
     )
 }
 
-const val ROUTE_LOGIN = "Login"
-
 @Composable
-fun LoginScreenDestination(navController: NavController) {
+fun LoginScreenDestination(onNavigationRequest: (LoginEffect.Navigation) -> Unit) {
     val vm = koinViewModel<LoginViewModel>()
     LoginScreen(
         state = vm.viewState.value,
         effectFlow = vm.effect,
         onEventSent = vm::handleEvents,
-        onNavigationRequest = {
-            when (it) {
-                LoginEffect.Navigation.ToHome -> navController.navigate(ROUTE_HOME)
-//                LoginEffect.Navigation.ToOAuth -> navController.navigate(RouteOAuthLogin)
-                LoginEffect.Navigation.ToRegistration -> navController.navigate(ROUTE_REGISTRATION)
-                else -> {}
-            }
-        },
+        onNavigationRequest = onNavigationRequest,
     )
 }
 

@@ -40,4 +40,10 @@ object ApiModel {
         @SerializedName("Token") val token: String,
         @SerializedName("Expiry") val expiry: OffsetDateTime,
     )
+
+    data class Chat(
+        @SerializedName("ID") val id: String,
+        @SerializedName("Name") val name: String,
+        @SerializedName("ChiefID") val chiefId: String,
+    )
 }
