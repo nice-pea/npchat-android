@@ -63,9 +63,14 @@ interface EventsFlowProvider {
 }
 
 interface ChatsService {
-    suspend fun myChats(): List<Chat>
+    suspend fun myChats(keyset: String): Result<MyChatsResult, String>
 
     suspend fun create(name: String): Chat
 
     suspend fun leave(id: String)
 }
+
+class MyChatsResult(
+    val chats: List<Chat>,
+    val nextKeyset: String,
+)

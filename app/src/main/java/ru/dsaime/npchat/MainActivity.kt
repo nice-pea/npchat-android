@@ -16,6 +16,7 @@ import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 import org.koin.core.logger.PrintLogger
 import ru.dsaime.npchat.di.koin.appModule
+import ru.dsaime.npchat.screens.chats.ChatsScreenDestination
 import ru.dsaime.npchat.screens.home.HomeScreenDestination
 import ru.dsaime.npchat.screens.login.LoginEffect
 import ru.dsaime.npchat.screens.login.LoginScreenDestination
@@ -55,11 +56,12 @@ class MainActivity : ComponentActivity() {
                     composable(ROUTE_REGISTRATION) { RegistrationScreenDestination(navController::navRequestHandle) }
                     composable(ROUTE_HOME) {
                         HomeScreenDestination(navController::navRequestHandle) {
+                            val navController = rememberNavController()
                             NavHost(
                                 navController = navController,
                                 startDestination = ROUTE_CHATS,
                             ) {
-//                            composable(ROUTE_CHATS) { ChatsScreenDestination(navController::navRequestHandle) }
+                                composable(ROUTE_CHATS) { ChatsScreenDestination(navController::navRequestHandle) }
                             }
                         }
                     }

@@ -17,21 +17,21 @@ import kotlinx.coroutines.launch
 // interface ViewSideEffect
 
 // abstract class BaseViewModel<Event : ViewEvent, UiState : ViewState, Effect : ViewSideEffect> : ViewModel() {
-abstract class BaseViewModel<Event, UiState, Effect> : ViewModel() {
-    abstract fun setInitialState(): UiState
+abstract class BaseViewModel<ViewEvent, ViewState, ViewSideEffect> : ViewModel() {
+    abstract fun setInitialState(): ViewState
 
-    abstract fun handleEvents(event: Event)
+    abstract fun handleEvents(event: ViewEvent)
 
     //    private val initialState: UiState by lazy { setInitialState() }
 //    private val initialState: UiState =
 
-    private val _viewState: MutableState<UiState> = mutableStateOf(setInitialState())
-    val viewState: State<UiState> = _viewState
+    private val _viewState: MutableState<ViewState> = mutableStateOf(setInitialState())
+    val viewState: State<ViewState> = _viewState
 
     @Suppress("ktlint:standard:backing-property-naming")
-    private val _event: MutableSharedFlow<Event> = MutableSharedFlow()
+    private val _event: MutableSharedFlow<ViewEvent> = MutableSharedFlow()
 
-    private val _effect: Channel<Effect> = Channel()
+    private val _effect: Channel<ViewSideEffect> = Channel()
     val effect = _effect.receiveAsFlow()
 
     init {
@@ -46,22 +46,22 @@ abstract class BaseViewModel<Event, UiState, Effect> : ViewModel() {
         }
     }
 
-    fun setEvent(event: Event) {
+    fun setEvent(event: ViewEvent) {
         viewModelScope.launch { _event.emit(event) }
     }
 
-    protected fun setState(reducer: UiState.() -> UiState) {
+    protected fun setState(reducer: ViewState.() -> ViewState) {
         val newState = viewState.value.reducer()
         _viewState.value = newState
     }
 
     @Deprecated("use .emit()", level = DeprecationLevel.HIDDEN)
-    protected fun setEffect(builder: () -> Effect) {
+    protected fun setEffect(builder: () -> ViewSideEffect) {
         val effectValue = builder()
         viewModelScope.launch { _effect.send(effectValue) }
     }
 
-    protected fun Effect.emit() {
+    protected fun ViewSideEffect.emit() {
         viewModelScope.launch { _effect.send(this@emit) }
     }
 }

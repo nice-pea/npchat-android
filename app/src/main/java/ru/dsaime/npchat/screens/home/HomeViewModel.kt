@@ -1,9 +1,6 @@
 package ru.dsaime.npchat.screens.home
 
 import ru.dsaime.npchat.common.base.BaseViewModel
-import ru.dsaime.npchat.data.BasicAuthService
-import ru.dsaime.npchat.data.HostService
-import ru.dsaime.npchat.data.SessionsService
 
 sealed interface HomeEvent
 
@@ -16,9 +13,9 @@ sealed interface HomeEffect {
 }
 
 class HomeViewModel(
-    private val repo: BasicAuthService,
-    private val hostService: HostService,
-    private val sessionsService: SessionsService,
+//    private val repo: BasicAuthService,
+//    private val hostService: HostService,
+//    private val sessionsService: SessionsService,
 ) : BaseViewModel<HomeEvent, HomeState, HomeEffect>() {
     override fun setInitialState() = HomeState(server = "")
 

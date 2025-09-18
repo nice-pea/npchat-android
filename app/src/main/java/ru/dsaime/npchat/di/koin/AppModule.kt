@@ -11,6 +11,8 @@ import org.koin.dsl.module
 import retrofit2.Retrofit
 import ru.dsaime.npchat.data.BasicAuthService
 import ru.dsaime.npchat.data.BasicAuthServiceBase
+import ru.dsaime.npchat.data.ChatsService
+import ru.dsaime.npchat.data.ChatsServiceBase
 import ru.dsaime.npchat.data.EventsFlowProvider
 import ru.dsaime.npchat.data.EventsFlowProviderKtorSSE
 import ru.dsaime.npchat.data.HostService
@@ -23,6 +25,7 @@ import ru.dsaime.npchat.data.room.InitialCallback
 import ru.dsaime.npchat.network.BaseUrlProvider
 import ru.dsaime.npchat.network.BearerTokenProvider
 import ru.dsaime.npchat.network.retrofit
+import ru.dsaime.npchat.screens.chats.ChatsViewModel
 import ru.dsaime.npchat.screens.home.HomeViewModel
 import ru.dsaime.npchat.screens.login.LoginViewModel
 import ru.dsaime.npchat.screens.registration.RegistrationViewModel
@@ -75,10 +78,12 @@ val appModule =
         single<HostService> { HostServiceBase(get(), get()) }
         single<SessionsService> { SessionsServiceBase(get(), get(), get()) }
         single<EventsFlowProvider> { EventsFlowProviderKtorSSE(get(), get()) }
+        single<ChatsService> { ChatsServiceBase(get()) }
 
         // ViewModels
         viewModelOf(::SplashViewModel)
         viewModelOf(::LoginViewModel)
         viewModelOf(::RegistrationViewModel)
         viewModelOf(::HomeViewModel)
+        viewModelOf(::ChatsViewModel)
     }

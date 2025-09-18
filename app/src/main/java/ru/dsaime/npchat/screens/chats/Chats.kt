@@ -4,6 +4,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -14,21 +17,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewModelScope
+import com.github.michaelbull.result.onFailure
+import com.github.michaelbull.result.onSuccess
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import ru.dsaime.npchat.common.base.BaseViewModel
 import ru.dsaime.npchat.data.ChatsService
 import ru.dsaime.npchat.model.Chat
-import ru.dsaime.npchat.screens.chats.ChatsEffect.Navigation.ToChat
+import ru.dsaime.npchat.screens.chats.Effect.Navigation.ToChat
 import ru.dsaime.npchat.ui.components.Button
 import ru.dsaime.npchat.ui.components.Gap
 import ru.dsaime.npchat.ui.theme.ColorBG
@@ -42,7 +47,7 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun ChatsScreenDestination(onNavigationRequest: (ChatsEffect.Navigation) -> Unit) {
+fun ChatsScreenDestination(onNavigationRequest: (Effect.Navigation) -> Unit) {
     val vm = koinViewModel<ChatsViewModel>()
     ChatsScreen(
         state = vm.viewState.value,
@@ -55,36 +60,50 @@ fun ChatsScreenDestination(onNavigationRequest: (ChatsEffect.Navigation) -> Unit
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatsScreen(
-    state: ChatsState,
-    effectFlow: Flow<ChatsEffect>,
-    onEventSent: (ChatsEvent) -> Unit,
-    onNavigationRequest: (ChatsEffect.Navigation) -> Unit,
+    state: State,
+    effectFlow: Flow<Effect>,
+    onEventSent: (Event) -> Unit,
+    onNavigationRequest: (Effect.Navigation) -> Unit,
 ) {
     LaunchedEffect(1) {
         effectFlow
             .onEach { effect ->
                 when (effect) {
-                    is ChatsEffect.Navigation -> onNavigationRequest(effect)
+                    is Effect.Navigation -> onNavigationRequest(effect)
                 }
             }.collect()
     }
 
-    var isLoadRequesterReached by remember { mutableStateOf(false) }
-    LaunchedEffect(isLoadRequesterReached) {
-        if (isLoadRequesterReached) {
-            onEventSent(ChatsEvent.LoadNextItems)
+    val lazyListState = rememberLazyListState()
+
+    val lastVisibleIndex by
+        remember {
+            derivedStateOf {
+                lazyListState.layoutInfo.visibleItemsInfo
+                    .lastOrNull()
+                    ?.index
+            }
         }
+    LaunchedEffect(lastVisibleIndex) {
+        onEventSent(Event.LastVisibleIndexChanged(lastVisibleIndex))
     }
 
-    val isLoadRequesterVisible by
-        remember {
-            derivedStateOf { state.items.contains(ChatsItem.LoadRequester) }
-        }
-    LaunchedEffect(isLoadRequesterVisible) {
-        if (!isLoadRequesterVisible) {
-            isLoadRequesterReached = false
-        }
-    }
+//    var isPageRequesterReached by remember { mutableStateOf(false) }
+//    LaunchedEffect(isPageRequesterReached) {
+//        if (isPageRequesterReached) {
+//            onEventSent(Event.LoadNextItems)
+//        }
+//    }
+
+//    val isPageRequesterVisible by
+//        remember {
+//            derivedStateOf { state.items.contains(ChatsItem.PageRequester) }
+//        }
+//    LaunchedEffect(isPageRequesterVisible) {
+//        if (!isPageRequesterVisible) {
+//            isPageRequesterReached = false
+//        }
+//    }
 
     Scaffold(
         containerColor = ColorBG,
@@ -99,91 +118,92 @@ fun ChatsScreen(
             )
         },
     ) { paddingValues ->
-        Column(modifier = Modifier.padding(paddingValues)) {
-            state.items.forEach { it ->
-                when (it) {
-                    ChatsItem.LoadRequester -> isLoadRequesterReached = true
-                    ChatsItem.Loading -> CircularProgressIndicator()
-                    is ChatsItem.FailedRequest ->
-                        Button("RetryLoading", onClick = {
-                            onEventSent(ChatsEvent.RetryLoadNextItems)
+        LazyColumn(
+            modifier = Modifier.padding(paddingValues),
+            state = lazyListState,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            items(state.chats) { chat ->
+                ChatCard(
+                    chat = chat,
+                    lastMessage = state.lastMessage[chat.id],
+                    unreadCount = state.unread[chat.id] ?: 0,
+                    onClick = { onEventSent(Event.SelectChat(chat)) },
+                )
+            }
+
+            item {
+                when (state.trailing) {
+                    Trailing.Loading -> CircularProgressIndicator()
+                    is Trailing.Err ->
+                        Button("RetryLoading (err:${state.trailing.msg})", onClick = {
+                            onEventSent(Event.RetryPage)
                         })
 
-                    is ChatsItem.Chat ->
-                        ChatCard(
-                            chat = it.value,
-                            lastMessage = state.lastMessage[it.value.id],
-                            unreadCount = state.unread[it.value.id] ?: 0,
-                            onClick = { onEventSent(ChatsEvent.SelectChat(it.value)) },
-                        )
+                    null -> Text("Конец", style = Font.Text14W400)
                 }
             }
         }
     }
 }
 
-sealed interface ChatsEvent {
+sealed interface Event {
     class SelectChat(
         val chat: Chat,
-    ) : ChatsEvent
+    ) : Event
 
-    object LoadNextItems : ChatsEvent
+    class LastVisibleIndexChanged(
+        val value: Int?,
+    ) : Event
 
-    object RetryLoadNextItems : ChatsEvent
+    //    object LoadNextItems : Event
+//
+    object RetryPage : Event
 
 //    object Reload : ChatsEvent
 //
 //    object LoadNext : ChatsEvent
 }
 
-sealed interface ChatsItem {
-    data class Chat(
-        val value: ru.dsaime.npchat.model.Chat,
-    ) : ChatsItem
+// sealed interface ChatsItem {
+//    data class Chat(
+//        val value: ru.dsaime.npchat.model.Chat,
+//    ) : ChatsItem
+//
+// //    object PageRequester : ChatsItem
+//
+//    class FailedRequest(
+//        val msg: String,
+//    ) : ChatsItem
+//
+//    object Loading : ChatsItem
+// }
 
-    object LoadRequester : ChatsItem
+sealed interface Trailing {
+    class Err(
+        var msg: String,
+    ) : Trailing
 
-    class FailedRequest(
-        val msg: String,
-    ) : ChatsItem
-
-    object Loading : ChatsItem
+    object Loading : Trailing
 }
 
-sealed interface ChatsContent {
+sealed interface Content {
     class Err(
         val msg: String,
-    ) : ChatsContent
+    ) : Content
 
-    object Loading : ChatsContent
+    object Loading : Content
 
-    object Ok : ChatsContent
+    object Ok : Content
 }
 
-data class ChatsState(
-    val content: ChatsContent = ChatsContent.Loading,
-    val items: List<ChatsItem> = emptyList(),
+data class State(
+    val content: Content = Content.Loading,
+    val chats: List<Chat> = emptyList(),
+    val trailing: Trailing? = null,
     val lastMessage: Map<String, MessageUI> = emptyMap(),
     val unread: Map<String, Int> = emptyMap(),
 )
-
-// sealed interface MessageUI {
-//    data class Text(
-//        val author: String,
-//        val text: String,
-//        val date: OffsetDateTime,
-//    ) : MessageUI
-//
-//    data class Deleted(
-//        val author: String,
-//        val date: OffsetDateTime,
-//    ) : MessageUI
-//
-//    data class Action(
-//        val author: String,
-//        val date: OffsetDateTime,
-//    ) : MessageUI
-// }
 
 data class MessageUI(
     val author: String,
@@ -198,8 +218,8 @@ data class MessageUI(
     }
 }
 
-sealed interface ChatsEffect {
-    sealed interface Navigation : ChatsEffect {
+sealed interface Effect {
+    sealed interface Navigation : Effect {
         class ToChat(
             val chat: Chat,
         ) : Navigation
@@ -208,18 +228,53 @@ sealed interface ChatsEffect {
 
 class ChatsViewModel(
     private val chatsService: ChatsService,
-) : BaseViewModel<ChatsEvent, ChatsState, ChatsEffect>() {
-    override fun setInitialState() = ChatsState()
+) : BaseViewModel<Event, State, Effect>() {
+    override fun setInitialState() = State()
+
+    private var keysetForNext = ""
+    private var pagingFinished = false
+    private val itemsBeforeLoading = 10
 
     init {
-        chatsService.myChats()
+
+        viewModelScope.launch {
+            loadNextPage()
+        }
     }
 
-    override fun handleEvents(event: ChatsEvent) {
+    private suspend fun loadNextPage() {
+        setState { copy(trailing = Trailing.Loading) }
+        chatsService
+            .myChats(keysetForNext)
+            .onSuccess {
+                keysetForNext = it.nextKeyset
+                pagingFinished = it.chats.isEmpty()
+                setState { copy(chats = chats + it.chats, trailing = null) }
+            }.onFailure {
+                setState { copy(trailing = Trailing.Err(it)) }
+            }
+    }
+
+    override fun handleEvents(event: Event) {
         when (event) {
-            is ChatsEvent.SelectChat -> ToChat(event.chat).emit()
-            ChatsEvent.LoadNextItems -> TODO()
-            ChatsEvent.RetryLoadNextItems -> TODO()
+            is Event.SelectChat -> ToChat(event.chat).emit()
+            Event.RetryPage -> viewModelScope.launch { loadNextPage() }
+            is Event.LastVisibleIndexChanged -> {
+                if (event.value == null) {
+                    return
+                }
+                if (pagingFinished) {
+                    return
+                }
+                if (viewState.value.trailing is Trailing.Loading) {
+                    return
+                }
+                if (viewState.value.chats.lastIndex - event.value < itemsBeforeLoading) {
+                    viewModelScope.launch {
+                        loadNextPage()
+                    }
+                }
+            }
         }
     }
 }

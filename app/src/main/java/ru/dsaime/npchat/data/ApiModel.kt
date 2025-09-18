@@ -46,4 +46,9 @@ object ApiModel {
         @SerializedName("Name") val name: String,
         @SerializedName("ChiefID") val chiefId: String,
     )
+
+    data class ChatsResp(
+        @SerializedName("NextKeyset") val nextKeyset: String?,
+        @SerializedName("Chats") val chats: List<Chat>,
+    )
 }

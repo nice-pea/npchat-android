@@ -156,7 +156,7 @@ private class AuthorizationInterceptor(
 
     override fun intercept(chain: Interceptor.Chain): Response {
         // Если заголовок уже заполнен, не продолжать
-        if (chain.request().header(authorizationHeader).isNullOrBlank()) {
+        if (!chain.request().header(authorizationHeader).isNullOrBlank()) {
             return chain.proceed(chain.request())
         }
 

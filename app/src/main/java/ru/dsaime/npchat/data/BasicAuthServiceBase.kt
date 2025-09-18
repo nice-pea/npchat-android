@@ -62,5 +62,3 @@ fun ApiModel.AuthResp.toModel(): BasicAuthService.AuthResult =
                 accessTokenExpiresAt = session.accessToken.expiry,
             ),
     )
-
-fun Throwable.toUserMessage(): String = message.orEmpty().ifEmpty { "unknown error" }
