@@ -122,6 +122,10 @@ fun LoginScreen(
             onClick = { onEventSent(LoginEvent.GoToOAuth) },
             text = "Вход через сторонний сервис",
         )
+        Button(
+            onClick = { onEventSent(LoginEvent.GoToTest) },
+            text = "Test",
+        )
     }
 }
 
@@ -145,6 +149,8 @@ sealed interface LoginEvent {
     class SetPassword(
         val value: String,
     ) : LoginEvent
+
+    object GoToTest : LoginEvent
 }
 
 data class LoginState(
@@ -170,6 +176,8 @@ sealed interface LoginEffect {
     ) : LoginEffect
 
     sealed interface Navigation : LoginEffect {
+        object ToTest : Navigation
+
         object ToOAuth : Navigation
 
         object ToRegistration : Navigation
@@ -241,6 +249,7 @@ class LoginViewModel(
             is LoginEvent.SetLogin -> setState { copy(login = event.value) }
             is LoginEvent.SetPassword -> setState { copy(password = event.value) }
             is LoginEvent.SetServer -> setState { copy(host = event.value) }
+            LoginEvent.GoToTest -> LoginEffect.Navigation.ToTest.emit()
         }
     }
 }
