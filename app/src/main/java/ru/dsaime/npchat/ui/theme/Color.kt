@@ -13,6 +13,7 @@ val SkyBlue = Color(0xFF3D93D9)
 val Mint = Color(0xFFA9D8A4)
 val ForestGreen = Color(0xFF40873C)
 
+val ColorScrim = Color(0xFF1A1620).copy(alpha = .2f)
 val ColorBG = Black
 val ColorText = LightGray
 val ColorSender = SkyBlue

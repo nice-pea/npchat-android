@@ -5,13 +5,16 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
@@ -21,8 +24,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -53,11 +56,13 @@ import ru.dsaime.npchat.screens.registration.RegistrationScreenDestination
 import ru.dsaime.npchat.screens.splash.SplashEffect
 import ru.dsaime.npchat.screens.splash.SplashScreenDestination
 import ru.dsaime.npchat.ui.theme.Black
+import ru.dsaime.npchat.ui.theme.ColorBG
 import ru.dsaime.npchat.ui.theme.ColorDeleted
 import ru.dsaime.npchat.ui.theme.ColorPart
-import ru.dsaime.npchat.ui.theme.ColorSenderAlt
+import ru.dsaime.npchat.ui.theme.ColorScrim
+import ru.dsaime.npchat.ui.theme.ColorText
 import ru.dsaime.npchat.ui.theme.NPChatTheme
-import ru.dsaime.npchat.ui.theme.White
+import kotlin.random.Random
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -74,79 +79,78 @@ class MainActivity : ComponentActivity() {
             }
 
         setContent {
-            val sheetVisible = remember { mutableStateOf(false) }
+            var sheetVisible by remember { mutableStateOf(false) }
             NPChatTheme {
                 val navController = rememberNavController()
-                BottomDialogLayout(
-                    sheet = {
-                        Column {
-                            Text("test")
-                            Button(onClick = { sheetVisible.value = false }) { Text("Button") }
-                        }
-                    },
-                    sheetColor = ColorSenderAlt,
-                    visible = sheetVisible,
-                    onClosed = { sheetVisible.value = false },
+                BottomDialog(
+                    isVisibleRequired = sheetVisible,
+                    onClosed = { sheetVisible = false },
                 ) {
-                    NavHost(
-                        modifier =
-                            Modifier
-                                .fillMaxSize()
-                                .background(Black),
-                        navController = navController,
-                        startDestination = ROUTE_SPLASH,
-                    ) {
-                        composable(ROUTE_SPLASH) { SplashScreenDestination(navController::navRequestHandle) }
-                        composable(ROUTE_LOGIN) {
-                            LoginScreenDestination {
-                                when (it) {
-                                    LoginEffect.Navigation.ToTest -> {
-                                        navController.navigate("dialog")
-                                    }
+                    var we by remember { mutableIntStateOf(10) }
+                    Text("test")
+                    Button(onClick = { sheetVisible = false }) { Text("Button") }
+                    Button(onClick = { we = Random.nextInt(10, 499) }) { Text("Add") }
 
-                                    else -> navController.navRequestHandle(it)
+                    Box(Modifier.fillMaxWidth().height(we.dp).background(ColorDeleted))
+                }
+                NavHost(
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .background(Black),
+                    navController = navController,
+                    startDestination = ROUTE_SPLASH,
+                ) {
+                    composable(ROUTE_SPLASH) { SplashScreenDestination(navController::navRequestHandle) }
+                    composable(ROUTE_LOGIN) {
+                        LoginScreenDestination {
+                            when (it) {
+                                LoginEffect.Navigation.ToTest -> {
+                                    navController.navigate("dialog")
                                 }
+
+                                else -> navController.navRequestHandle(it)
                             }
                         }
-                        composable(ROUTE_REGISTRATION) { RegistrationScreenDestination(navController::navRequestHandle) }
-                        composable(ROUTE_HOME) {
-                            HomeScreenDestination(navController::navRequestHandle) {
-                                val navController = rememberNavController()
-                                NavHost(
-                                    navController = navController,
-                                    startDestination = ROUTE_CHATS,
-                                ) {
-                                    composable(ROUTE_CHATS) { ChatsScreenDestination(navController::navRequestHandle) }
-                                }
-                            }
-                        }
-                        dialog("dialog") {
-                            Column(
-                                modifier =
-                                    Modifier
-                                        .height(499.dp)
-                                        .background(ColorDeleted),
+                    }
+                    composable(ROUTE_REGISTRATION) { RegistrationScreenDestination(navController::navRequestHandle) }
+                    composable(ROUTE_HOME) {
+                        HomeScreenDestination(navController::navRequestHandle) {
+                            val navController = rememberNavController()
+                            NavHost(
+                                navController = navController,
+                                startDestination = ROUTE_CHATS,
                             ) {
-                                Text("test")
-                                Text("стэк пустой или нет = ${navController.previousBackStackEntry}")
-                                Button(onClick = {
-                                    navController.navigateUp()
-                                }) {
-                                    Text("Button")
-                                }
-                                Button(onClick = { navController.navigate("dialog2", {}) }) { }
-                                Button(onClick = { sheetVisible.value = true }) { Text("btmsheet") }
+                                composable(ROUTE_CHATS) { ChatsScreenDestination(navController::navRequestHandle) }
                             }
                         }
-                        dialog("dialog2") {
-                            Column(
-                                modifier =
-                                    Modifier
-                                        .height(300.dp)
-                                        .background(ColorPart),
-                            ) {
-                                Text("test2")
+                    }
+                    dialog("dialog") {
+                        Column(
+                            modifier =
+                                Modifier
+                                    .height(499.dp)
+                                    .background(ColorDeleted),
+                        ) {
+                            Text("test")
+                            Text("стэк пустой или нет = ${navController.previousBackStackEntry}")
+                            Button(onClick = {
+                                navController.navigateUp()
+                            }) {
+                                Text("Button")
                             }
+                            Button(onClick = { navController.navigate("dialog2", {}) }) { }
+                            Button(onClick = { sheetVisible = true }) { Text("btmsheet") }
+                        }
+                    }
+                    dialog("dialog2") {
+                        Column(
+                            modifier =
+                                Modifier
+                                    .height(300.dp)
+                                    .background(ColorPart),
+                        ) {
+                            Text("test2")
                         }
                     }
                 }
@@ -155,71 +159,56 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-/*
-* Вызов компонента (visible = false):
-* - isShown = false
-* - state не существует
-* - модалку не показываем
-* Вызов компонента (visible = true):
-* - isShown = true
-* - модалку показать
-* - state visible = true
-* Закрыть снаружи (visible = false):
-* - вызвать state.hide()
-* - ждать когда пропадает
-* Закрыть внутри (onClosed):
-* Открыть после закрытия (visible = true):
-* Открыть после закрытия (onClosed):
-* */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BottomDialogLayout(
-    visible: State<Boolean>,
+fun BottomDialog(
+    isVisibleRequired: Boolean,
     onClosed: () -> Unit,
-    sheet: @Composable ColumnScope.(dismiss: () -> Unit) -> Unit,
-    sheetColor: Color = White,
-//    skipPartiallyExpanded: Boolean = true,
-    content: @Composable () -> Unit,
+    skipPartiallyExpanded: Boolean = true,
+    sheet: @Composable ColumnScope.() -> Unit,
 ) {
-    var isShown by remember { mutableStateOf(visible.value) }
-    LaunchedEffect(visible.value) {
-        isShown = visible.value
-    }
-    LaunchedEffect(isShown) {
-        if (!isShown && visible.value) onClosed()
+    val scope = rememberCoroutineScope()
+    val state =
+        rememberModalBottomSheetState(
+            skipPartiallyExpanded = skipPartiallyExpanded,
+        )
+    LaunchedEffect(isVisibleRequired) {
+        if (isVisibleRequired) {
+            state.show()
+        } else {
+            state.hide()
+        }
     }
 
-//    // Основной контент приложения
-    Box(Modifier.fillMaxSize()) {
-        content()
-        // ModalBottomSheet как отдельный слой
-        if (isShown) {
-            val scope = rememberCoroutineScope()
-            val state =
-                rememberPorkedAroundSheetState(onDismissRequest = {
-                    isShown = false
-                })
-            ModalBottomSheet(
-                shape = RectangleShape,
-                onDismissRequest = { scope.launch { state.hide() } },
-                sheetState = state,
-                containerColor = Color.Transparent, // Прозрачный фон обертки
-                tonalElevation = 0.dp, // Убираем тень, если нужно
-                dragHandle = null, // Убираем хэндл, если не нужен
-            ) {
-                // Контент листа
-                Column(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .background(sheetColor)
-                            .animateContentSize(),
-                ) {
-                    sheet { scope.launch { state.hide() } }
+    if (state.isVisible || state.targetValue != SheetValue.Hidden) {
+        ModalBottomSheet(
+            shape = RectangleShape,
+            onDismissRequest = onClosed,
+            sheetState = state,
+            containerColor = Color.Transparent, // Прозрачный фон обертки
+            scrimColor = ColorScrim,
+            tonalElevation = 0.dp, // Убираем тень, если нужно
+            dragHandle = null, // Убираем хэндл, если не нужен
+        ) {
+            // Контент листа
+            Column(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp)
+                        .background(ColorBG)
+                        .border(1.dp, ColorText)
+                        .padding(20.dp)
+                        .animateContentSize(tween()),
+                content = sheet,
+            )
+
+            // Обработка системной кнопки "Назад"
+            BackHandler {
+                scope.launch {
+                    state.hide()
+                    onClosed()
                 }
-
-                // Обработка системной кнопки "Назад"
-                BackHandler { scope.launch { state.hide() } }
             }
         }
     }
