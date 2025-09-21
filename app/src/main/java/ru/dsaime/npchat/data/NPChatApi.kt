@@ -31,7 +31,7 @@ interface NPChatApi {
 
     @GET("/chats")
     suspend fun chats(
-        @Query("keyset") keyset: String,
+        @Query("page_token") pageToken: String,
     ): Result<ApiModel.ChatsResp>
 
 //    @GET("/events")

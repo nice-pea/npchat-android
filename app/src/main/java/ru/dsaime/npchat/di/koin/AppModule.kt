@@ -23,7 +23,7 @@ import ru.dsaime.npchat.data.SessionsServiceBase
 import ru.dsaime.npchat.data.room.AppDatabase
 import ru.dsaime.npchat.data.room.InitialCallback
 import ru.dsaime.npchat.network.BaseUrlProvider
-import ru.dsaime.npchat.network.BearerTokenProvider
+import ru.dsaime.npchat.network.SessionTokenProvider
 import ru.dsaime.npchat.network.retrofit
 import ru.dsaime.npchat.screens.chats.ChatsViewModel
 import ru.dsaime.npchat.screens.home.HomeViewModel
@@ -51,8 +51,8 @@ val appModule =
         }
 
         // Токен провайдер, при отсутствии токена, вернет пустую строку
-        single<BearerTokenProvider> {
-            BearerTokenProvider {
+        single<SessionTokenProvider> {
+            SessionTokenProvider {
                 get<SessionsService>()
                     .currentSession()
                     ?.accessToken

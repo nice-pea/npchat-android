@@ -8,13 +8,13 @@ import ru.dsaime.npchat.model.Chat
 class ChatsServiceBase(
     private val api: NPChatApi,
 ) : ChatsService {
-    override suspend fun myChats(keyset: String): Result<MyChatsResult, String> =
+    override suspend fun myChats(pageToken: String): Result<MyChatsResult, String> =
         api
-            .chats(keyset)
+            .chats(pageToken)
             .mapCatching {
                 MyChatsResult(
                     chats = it.chats.map(ApiModel.Chat::toModel),
-                    nextKeyset = it.nextKeyset.orEmpty(),
+                    nextPageToken = it.nextPageToken.orEmpty(),
                 ).run(::Ok)
             }.getOrElse { Err(it.toUserMessage()) }
 

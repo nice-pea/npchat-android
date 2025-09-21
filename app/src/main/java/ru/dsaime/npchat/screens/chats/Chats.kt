@@ -231,7 +231,7 @@ class ChatsViewModel(
 ) : BaseViewModel<Event, State, Effect>() {
     override fun setInitialState() = State()
 
-    private var keysetForNext = ""
+    private var pageTokenForNext = ""
     private var pagingFinished = false
     private val itemsBeforeLoading = 10
 
@@ -245,10 +245,10 @@ class ChatsViewModel(
     private suspend fun loadNextPage() {
         setState { copy(trailing = Trailing.Loading) }
         chatsService
-            .myChats(keysetForNext)
+            .myChats(pageTokenForNext)
             .onSuccess {
-                keysetForNext = it.nextKeyset
-                pagingFinished = it.chats.isEmpty()
+                pageTokenForNext = it.nextPageToken
+                pagingFinished = it.nextPageToken.isBlank()
                 setState { copy(chats = chats + it.chats, trailing = null) }
             }.onFailure {
                 setState { copy(trailing = Trailing.Err(it)) }

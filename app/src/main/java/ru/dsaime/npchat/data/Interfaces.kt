@@ -63,7 +63,7 @@ interface EventsFlowProvider {
 }
 
 interface ChatsService {
-    suspend fun myChats(keyset: String): Result<MyChatsResult, String>
+    suspend fun myChats(pageToken: String): Result<MyChatsResult, String>
 
     suspend fun create(name: String): Chat
 
@@ -72,5 +72,5 @@ interface ChatsService {
 
 class MyChatsResult(
     val chats: List<Chat>,
-    val nextKeyset: String,
+    val nextPageToken: String,
 )

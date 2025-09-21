@@ -25,7 +25,7 @@ import kotlin.time.toJavaDuration
 
 // Создает новый ретрофит экземпляр
 fun retrofit(
-    bearerTokenProvider: BearerTokenProvider,
+    sessionTokenProvider: SessionTokenProvider,
     baseUrlProvider: BaseUrlProvider,
 ): Retrofit {
     val logging =
@@ -37,7 +37,7 @@ fun retrofit(
         OkHttpClient
             .Builder()
             // Установить перехватчики на http клиент
-            .addInterceptor(AuthorizationInterceptor(bearerTokenProvider))
+            .addInterceptor(AuthorizationInterceptor(sessionTokenProvider))
             .addInterceptor(DynamicBaseUrlInterceptor(baseUrlProvider))
             .addInterceptor(logging)
             .addInterceptor(RetryInterceptor(3))
@@ -144,13 +144,13 @@ private class DynamicBaseUrlInterceptor(
     }
 }
 
-fun interface BearerTokenProvider {
+fun interface SessionTokenProvider {
     fun token(): String
 }
 
 // Перехватчик, добавляющий токен из prefs в заголовок Authorization
 private class AuthorizationInterceptor(
-    private val bearerTokenProvider: BearerTokenProvider,
+    private val sessionTokenProvider: SessionTokenProvider,
 ) : Interceptor {
     val authorizationHeader = "Authorization"
 
@@ -162,7 +162,7 @@ private class AuthorizationInterceptor(
 
         // Получить токен из провайдера
         val token =
-            bearerTokenProvider
+            sessionTokenProvider
                 .token()
                 // Если токен пустой, выйти
                 .ifEmpty { return chain.proceed(chain.request()) }
@@ -171,7 +171,7 @@ private class AuthorizationInterceptor(
             .request()
             .newBuilder()
             // Добавить заголовок с токеном
-            .addHeader(authorizationHeader, "Bearer $token")
+            .addHeader(authorizationHeader, "SessionToken $token")
             .build()
             .run(chain::proceed)
     }

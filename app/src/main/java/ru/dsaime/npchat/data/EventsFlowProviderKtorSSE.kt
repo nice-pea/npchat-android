@@ -17,7 +17,7 @@ class EventsFlowProviderKtorSSE(
         flow<Event> {
             client.sse({
                 url("${baseUrlProvider.baseUrl()}/events")
-                headers["Authorization"] = "Bearer ${session.accessToken}"
+                headers["Authorization"] = "SessionToken ${session.accessToken}"
             }) {
                 incoming.collect { event ->
                     when (event.event) {
