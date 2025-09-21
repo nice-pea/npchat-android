@@ -6,22 +6,16 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.SheetState
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -30,10 +24,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
@@ -56,7 +47,6 @@ import ru.dsaime.npchat.ui.dialog.BottomDialogProperties
 import ru.dsaime.npchat.ui.dialog.BottomDialogProperty
 import ru.dsaime.npchat.ui.theme.Black
 import ru.dsaime.npchat.ui.theme.ColorDeleted
-import ru.dsaime.npchat.ui.theme.ColorPart
 import ru.dsaime.npchat.ui.theme.NPChatTheme
 import kotlin.random.Random
 
@@ -149,34 +139,6 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     }
-                    dialog("dialog") {
-                        Column(
-                            modifier =
-                                Modifier
-                                    .height(499.dp)
-                                    .background(ColorDeleted),
-                        ) {
-                            Text("test")
-                            Text("стэк пустой или нет = ${navController.previousBackStackEntry}")
-                            Button(onClick = {
-                                navController.navigateUp()
-                            }) {
-                                Text("Button")
-                            }
-                            Button(onClick = { navController.navigate("dialog2", {}) }) { }
-                            Button(onClick = { sheetVisible = true }) { Text("btmsheet") }
-                        }
-                    }
-                    dialog("dialog2") {
-                        Column(
-                            modifier =
-                                Modifier
-                                    .height(300.dp)
-                                    .background(ColorPart),
-                        ) {
-                            Text("test2")
-                        }
-                    }
                 }
             }
         }
@@ -199,24 +161,4 @@ fun NavController.navRequestHandle(req: Any) {
         SplashEffect.Navigation.ToLogin -> navigate(ROUTE_LOGIN)
         LoginEffect.Navigation.ToRegistration -> navigate(ROUTE_REGISTRATION)
     }
-}
-
-@Composable
-@ExperimentalMaterial3Api
-fun rememberPorkedAroundSheetState(
-    onDismissRequest: () -> Unit,
-    skipPartiallyExpanded: Boolean = false,
-    confirmValueChange: (SheetValue) -> Boolean = { true },
-): SheetState {
-    val scope = rememberCoroutineScope()
-    return rememberModalBottomSheetState(skipPartiallyExpanded = skipPartiallyExpanded, confirmValueChange = { value ->
-        val upstreamResult = confirmValueChange(value)
-        if (upstreamResult && value == SheetValue.Hidden) {
-            scope.launch {
-                delay(100)
-                onDismissRequest()
-            }
-        }
-        upstreamResult
-    })
 }
