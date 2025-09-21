@@ -17,8 +17,8 @@ object ApiModel {
     )
 
     data class AuthResp(
-        @SerializedName("User") val user: User,
-        @SerializedName("Session") val session: Session,
+        @SerializedName("user") val user: User,
+        @SerializedName("session") val session: Session,
     )
 
     data class User(
@@ -39,5 +39,16 @@ object ApiModel {
     data class Token(
         @SerializedName("Token") val token: String,
         @SerializedName("Expiry") val expiry: OffsetDateTime,
+    )
+
+    data class Chat(
+        @SerializedName("ID") val id: String,
+        @SerializedName("Name") val name: String,
+        @SerializedName("ChiefID") val chiefId: String,
+    )
+
+    data class ChatsResp(
+        @SerializedName("next_page_token") val nextPageToken: String?,
+        @SerializedName("Chats") val chats: List<Chat>,
     )
 }

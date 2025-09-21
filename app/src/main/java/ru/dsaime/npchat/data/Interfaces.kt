@@ -2,6 +2,7 @@ package ru.dsaime.npchat.data
 
 import com.github.michaelbull.result.Result
 import kotlinx.coroutines.flow.Flow
+import ru.dsaime.npchat.model.Chat
 import ru.dsaime.npchat.model.Event
 import ru.dsaime.npchat.model.Session
 import ru.dsaime.npchat.model.User
@@ -60,3 +61,16 @@ interface SessionsService {
 interface EventsFlowProvider {
     suspend fun eventsFlow(session: Session): Flow<Event>
 }
+
+interface ChatsService {
+    suspend fun myChats(pageToken: String): Result<MyChatsResult, String>
+
+    suspend fun create(name: String): Chat
+
+    suspend fun leave(id: String)
+}
+
+class MyChatsResult(
+    val chats: List<Chat>,
+    val nextPageToken: String,
+)

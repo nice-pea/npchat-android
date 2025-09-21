@@ -11,7 +11,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavController
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
 import kotlinx.coroutines.flow.Flow
@@ -25,27 +24,20 @@ import ru.dsaime.npchat.common.functions.toast
 import ru.dsaime.npchat.data.BasicAuthService
 import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.data.SessionsService
-import ru.dsaime.npchat.screens.home.ROUTE_HOME
 import ru.dsaime.npchat.screens.login.LoginConnStatus
 import ru.dsaime.npchat.ui.components.Button
 import ru.dsaime.npchat.ui.components.Input
 import ru.dsaime.npchat.ui.theme.Dp20
 import ru.dsaime.npchat.ui.theme.White
 
-const val ROUTE_REGISTRATION = "Registration"
-
 @Composable
-fun RegistrationScreenDestination(navController: NavController) {
+fun RegistrationScreenDestination(onNavigationRequest: (RegistrationEffect.Navigation) -> Unit) {
     val vm = koinViewModel<RegistrationViewModel>()
     RegistrationScreen(
         state = vm.viewState.value,
         effectFlow = vm.effect,
         onEventSent = vm::handleEvents,
-        onNavigationRequest = {
-            when (it) {
-                RegistrationEffect.Navigation.ToHome -> navController.navigate(ROUTE_HOME)
-            }
-        },
+        onNavigationRequest = onNavigationRequest,
     )
 }
 

@@ -21,7 +21,7 @@ class SessionsServiceBase(
             return false
         }
 
-        return api.chats().isSuccess
+        return api.chats("").isSuccess
     }
 
     override suspend fun refresh(session: Session): Boolean {
