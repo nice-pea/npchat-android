@@ -25,7 +25,7 @@ import ru.dsaime.npchat.data.BasicAuthService
 import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.data.SessionsService
 import ru.dsaime.npchat.screens.login.LoginConnStatus
-import ru.dsaime.npchat.ui.components.Button
+import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.components.Input
 import ru.dsaime.npchat.ui.theme.Dp20
 import ru.dsaime.npchat.ui.theme.White
@@ -104,7 +104,7 @@ fun RegistrationScreen(
             value = state.password,
             onValueChange = { onEventSent(RegistrationEvent.SetPassword(it)) },
         )
-        Button(
+        LeftButton(
             onClick = { onEventSent(RegistrationEvent.Confirm) },
             text = "Регистрация",
         )

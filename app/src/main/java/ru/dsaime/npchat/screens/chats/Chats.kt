@@ -34,7 +34,7 @@ import ru.dsaime.npchat.common.base.BaseViewModel
 import ru.dsaime.npchat.data.ChatsService
 import ru.dsaime.npchat.model.Chat
 import ru.dsaime.npchat.screens.chats.Effect.Navigation.ToChat
-import ru.dsaime.npchat.ui.components.Button
+import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.components.Gap
 import ru.dsaime.npchat.ui.theme.ColorBG
 import ru.dsaime.npchat.ui.theme.ColorText
@@ -136,7 +136,7 @@ fun ChatsScreen(
                 when (state.trailing) {
                     Trailing.Loading -> CircularProgressIndicator()
                     is Trailing.Err ->
-                        Button("RetryLoading (err:${state.trailing.msg})", onClick = {
+                        LeftButton("RetryLoading (err:${state.trailing.msg})", onClick = {
                             onEventSent(Event.RetryPage)
                         })
 

@@ -26,7 +26,7 @@ import ru.dsaime.npchat.common.functions.toast
 import ru.dsaime.npchat.data.BasicAuthService
 import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.data.SessionsService
-import ru.dsaime.npchat.ui.components.Button
+import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.components.Input
 import ru.dsaime.npchat.ui.theme.Dp20
 import ru.dsaime.npchat.ui.theme.White
@@ -110,19 +110,19 @@ fun LoginScreen(
             value = state.password,
             onValueChange = { onEventSent(LoginEvent.SetPassword(it)) },
         )
-        Button(
+        LeftButton(
             onClick = { onEventSent(LoginEvent.Enter) },
             text = "Enter",
         )
-        Button(
+        LeftButton(
             onClick = { onEventSent(LoginEvent.GoToRegistration) },
             text = "Перейти к регистрации",
         )
-        Button(
+        LeftButton(
             onClick = { onEventSent(LoginEvent.GoToOAuth) },
             text = "Вход через сторонний сервис",
         )
-        Button(
+        LeftButton(
             onClick = { onEventSent(LoginEvent.GoToTest) },
             text = "Test",
         )
