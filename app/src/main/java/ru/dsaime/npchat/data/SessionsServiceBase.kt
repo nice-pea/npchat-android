@@ -1,5 +1,6 @@
 package ru.dsaime.npchat.data
 
+import kotlinx.coroutines.Dispatchers
 import ru.dsaime.npchat.data.room.AppDatabase
 import ru.dsaime.npchat.model.Session
 
@@ -8,16 +9,23 @@ class SessionsServiceBase(
     private val hostService: HostService,
     private val db: AppDatabase,
 ) : SessionsService {
-    private var currentSession: Session? = null
+    override suspend fun currentSession() =
+        with(Dispatchers.IO) {
+            db
+                .sessionDao()
+                .last()
+                ?.toModel()
+        }
 
-    override fun currentSession() = currentSession
-
-    override fun changeSession(session: Session) {
-        currentSession = session
+    override suspend fun changeSession(session: Session) {
+        db.sessionDao().upsert(
+            ru.dsaime.npchat.data.room
+                .Session(session),
+        )
     }
 
     override suspend fun isActual(session: Session): Boolean {
-        if (currentSession == null || hostService.currentHost() == null) {
+        if (db.sessionDao().last() == null || hostService.currentHost() == null) {
             return false
         }
 

@@ -15,9 +15,9 @@ sealed interface SplashEffect {
 //        data class ShowError(val msg: String) : Effect
 
     sealed interface Navigation : SplashEffect {
-        object ToLogin : Navigation
+        object Login : Navigation
 
-        object ToHome : Navigation
+        object Home : Navigation
     }
 }
 
@@ -33,15 +33,15 @@ class SplashViewModel(
                     val current =
                         sessionsService.currentSession() ?: run {
                             // Если нет сохраненной сессии, перейти на экран логина
-                            SplashEffect.Navigation.ToLogin.emit()
+                            SplashEffect.Navigation.Login.emit()
                             return@launch
                         }
 
                     if (sessionsService.isActual(current) || sessionsService.refresh(current)) {
                         // Если сессия актива, прейти на Главный экран
-                        SplashEffect.Navigation.ToHome.emit()
+                        SplashEffect.Navigation.Home.emit()
                     } else {
-                        SplashEffect.Navigation.ToLogin.emit()
+                        SplashEffect.Navigation.Login.emit()
                     }
                 }
         }

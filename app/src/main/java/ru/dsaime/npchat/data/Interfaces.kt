@@ -48,9 +48,9 @@ interface HostService {
 
 // Описывает интерфейс работы с сессией
 interface SessionsService {
-    fun currentSession(): Session?
+    suspend fun currentSession(): Session?
 
-    fun changeSession(session: Session)
+    suspend fun changeSession(session: Session)
 
     suspend fun isActual(session: Session): Boolean
 

@@ -53,10 +53,12 @@ val appModule =
         // Токен провайдер, при отсутствии токена, вернет пустую строку
         single<SessionTokenProvider> {
             SessionTokenProvider {
-                get<SessionsService>()
-                    .currentSession()
-                    ?.accessToken
-                    .orEmpty()
+                runBlocking {
+                    get<SessionsService>()
+                        .currentSession()
+                        ?.accessToken
+                        .orEmpty()
+                }
             }
         }
 

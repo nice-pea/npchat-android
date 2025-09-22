@@ -33,9 +33,8 @@ import org.koin.androidx.compose.koinViewModel
 import ru.dsaime.npchat.common.base.BaseViewModel
 import ru.dsaime.npchat.data.ChatsService
 import ru.dsaime.npchat.model.Chat
-import ru.dsaime.npchat.screens.chats.Effect.Navigation.ToChat
-import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.components.Gap
+import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.theme.ColorBG
 import ru.dsaime.npchat.ui.theme.ColorText
 import ru.dsaime.npchat.ui.theme.Dp20
@@ -220,8 +219,8 @@ data class MessageUI(
 
 sealed interface Effect {
     sealed interface Navigation : Effect {
-        class ToChat(
-            val chat: Chat,
+        class Chat(
+            val chat: ru.dsaime.npchat.model.Chat,
         ) : Navigation
     }
 }
@@ -257,7 +256,7 @@ class ChatsViewModel(
 
     override fun handleEvents(event: Event) {
         when (event) {
-            is Event.SelectChat -> ToChat(event.chat).emit()
+            is Event.SelectChat -> Effect.Navigation.Chat(event.chat).emit()
             Event.RetryPage -> viewModelScope.launch { loadNextPage() }
             is Event.LastVisibleIndexChanged -> {
                 if (event.value == null) {

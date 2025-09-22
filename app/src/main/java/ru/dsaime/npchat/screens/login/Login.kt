@@ -26,8 +26,8 @@ import ru.dsaime.npchat.common.functions.toast
 import ru.dsaime.npchat.data.BasicAuthService
 import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.data.SessionsService
-import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.components.Input
+import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.theme.Dp20
 import ru.dsaime.npchat.ui.theme.White
 
@@ -176,13 +176,13 @@ sealed interface LoginEffect {
     ) : LoginEffect
 
     sealed interface Navigation : LoginEffect {
-        object ToTest : Navigation
+        object Test : Navigation
 
-        object ToOAuth : Navigation
+        object OAuth : Navigation
 
-        object ToRegistration : Navigation
+        object Registration : Navigation
 
-        object ToHome : Navigation
+        object Home : Navigation
     }
 }
 
@@ -231,7 +231,7 @@ class LoginViewModel(
             ).onSuccess {
                 sessionsService.changeSession(it.session)
                 hostService.changeHost(host)
-                LoginEffect.Navigation.ToHome.emit()
+                LoginEffect.Navigation.Home.emit()
             }.onFailure { message ->
                 LoginEffect.ShowError(message).emit()
             }
@@ -244,12 +244,12 @@ class LoginViewModel(
         when (event) {
             LoginEvent.CheckConn -> viewModelScope.launch { checkConn() }
             LoginEvent.Enter -> viewModelScope.launch { enter() }
-            LoginEvent.GoToOAuth -> LoginEffect.Navigation.ToOAuth.emit()
-            LoginEvent.GoToRegistration -> LoginEffect.Navigation.ToRegistration.emit()
+            LoginEvent.GoToOAuth -> LoginEffect.Navigation.OAuth.emit()
+            LoginEvent.GoToRegistration -> LoginEffect.Navigation.Registration.emit()
             is LoginEvent.SetLogin -> setState { copy(login = event.value) }
             is LoginEvent.SetPassword -> setState { copy(password = event.value) }
             is LoginEvent.SetServer -> setState { copy(host = event.value) }
-            LoginEvent.GoToTest -> LoginEffect.Navigation.ToTest.emit()
+            LoginEvent.GoToTest -> LoginEffect.Navigation.Test.emit()
         }
     }
 }

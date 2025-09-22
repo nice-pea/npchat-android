@@ -25,8 +25,8 @@ import ru.dsaime.npchat.data.BasicAuthService
 import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.data.SessionsService
 import ru.dsaime.npchat.screens.login.LoginConnStatus
-import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.components.Input
+import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.theme.Dp20
 import ru.dsaime.npchat.ui.theme.White
 
@@ -161,7 +161,7 @@ sealed interface RegistrationEffect {
     ) : RegistrationEffect
 
     sealed interface Navigation : RegistrationEffect {
-        object ToHome : Navigation
+        object Home : Navigation
     }
 }
 
@@ -217,7 +217,7 @@ class RegistrationViewModel(
             ).onSuccess {
                 sessionsService.changeSession(it.session)
                 hostService.changeHost(host)
-                RegistrationEffect.Navigation.ToHome.emit()
+                RegistrationEffect.Navigation.Home.emit()
             }.onFailure { message ->
                 RegistrationEffect.ShowError(message).emit()
             }
