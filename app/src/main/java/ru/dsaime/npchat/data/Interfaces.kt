@@ -65,7 +65,7 @@ interface EventsFlowProvider {
 interface ChatsService {
     suspend fun myChats(pageToken: String): Result<MyChatsResult, String>
 
-    suspend fun create(name: String): Chat
+    suspend fun create(name: String): Result<Chat, String>
 
     suspend fun leave(id: String)
 }

@@ -10,28 +10,22 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
-// interface ViewEvent
-//
+// interface ViewAction
 // interface ViewState
-//
 // interface ViewSideEffect
 
-// abstract class BaseViewModel<Event : ViewEvent, UiState : ViewState, Effect : ViewSideEffect> : ViewModel() {
-abstract class BaseViewModel<ViewEvent, ViewState, ViewSideEffect> : ViewModel() {
-    abstract fun setInitialState(): ViewState
+abstract class BaseViewModel<A, S, E> : ViewModel() {
+    protected abstract fun setInitialState(): S
 
-    abstract fun handleEvents(event: ViewEvent)
+    protected abstract fun handleEvents(event: A)
 
-    //    private val initialState: UiState by lazy { setInitialState() }
-//    private val initialState: UiState =
-
-    private val _viewState: MutableState<ViewState> = mutableStateOf(setInitialState())
-    val viewState: State<ViewState> = _viewState
+    private val _viewState: MutableState<S> = mutableStateOf(setInitialState())
+    val viewState: State<S> = _viewState
 
     @Suppress("ktlint:standard:backing-property-naming")
-    private val _event: MutableSharedFlow<ViewEvent> = MutableSharedFlow()
+    private val _event: MutableSharedFlow<A> = MutableSharedFlow()
 
-    private val _effect: Channel<ViewSideEffect> = Channel()
+    private val _effect: Channel<E> = Channel()
     val effect = _effect.receiveAsFlow()
 
     init {
@@ -46,22 +40,37 @@ abstract class BaseViewModel<ViewEvent, ViewState, ViewSideEffect> : ViewModel()
         }
     }
 
-    fun setEvent(event: ViewEvent) {
-        viewModelScope.launch { _event.emit(event) }
-    }
-
-    protected fun setState(reducer: ViewState.() -> ViewState) {
+    protected fun setState(reducer: S.() -> S) {
         val newState = viewState.value.reducer()
         _viewState.value = newState
     }
 
     @Deprecated("use .emit()", level = DeprecationLevel.HIDDEN)
-    protected fun setEffect(builder: () -> ViewSideEffect) {
+    protected fun setEffect(builder: () -> E) {
         val effectValue = builder()
         viewModelScope.launch { _effect.send(effectValue) }
     }
 
-    protected fun ViewSideEffect.emit() {
+    protected fun E.emit() {
         viewModelScope.launch { _effect.send(this@emit) }
     }
+
+    // Отправить событие из UI во ViewModel
+    fun setEvent(event: A) {
+        viewModelScope.launch { _event.emit(event) }
+    }
+
+    // Сокращение, чтобы вместо { vm.handleEvents(CreateChatEvent.Back) }
+    // Писать vm.eventHandler(CreateChatEvent.Back)
+    fun eventHandler(event: A): () -> Unit = { setEvent(event) }
+
+    // Сокращение, чтобы вместо { vm.handleEvents(CreateChatEvent.SetName(it)) }
+    // Писать vm.eventHandler(CreateChatEvent::SetName)
+    fun <T> eventHandler(eventConstructor: (T) -> A): (T) -> Unit = { setEvent(eventConstructor(it)) }
 }
+
+// Сокращение для лямбды
+fun <A> ((A) -> Unit).eventHandler(event: A): () -> Unit = { invoke(event) }
+
+// Сокращение для лямбды
+fun <A, T> ((A) -> T).eventHandler(eventConstructor: (T) -> A): (T) -> Unit = { invoke(eventConstructor(it)) }

@@ -26,8 +26,15 @@ import org.koin.core.logger.Level
 import org.koin.core.logger.PrintLogger
 import ru.dsaime.npchat.di.koin.appModule
 import ru.dsaime.npchat.model.Chat
-import ru.dsaime.npchat.screens.chats.ChatsScreenDestination
-import ru.dsaime.npchat.screens.chats.Effect
+import ru.dsaime.npchat.screens.chat.chats.ChatsEffect
+import ru.dsaime.npchat.screens.chat.chats.ChatsScreenDestination
+import ru.dsaime.npchat.screens.chat.create.CreateChatDialogContent
+import ru.dsaime.npchat.screens.chat.create.CreateChatEffect
+import ru.dsaime.npchat.screens.chat.create.CreateChatReq
+import ru.dsaime.npchat.screens.control.main.ControlDialogContent
+import ru.dsaime.npchat.screens.control.main.ControlEffect
+import ru.dsaime.npchat.screens.control.main.ControlReq
+import ru.dsaime.npchat.screens.home.HomeEffect
 import ru.dsaime.npchat.screens.home.HomeScreenDestination
 import ru.dsaime.npchat.screens.login.LoginEffect
 import ru.dsaime.npchat.screens.login.LoginScreenDestination
@@ -58,7 +65,6 @@ class MainActivity : ComponentActivity() {
             }
 
         setContent {
-//            var sheetVisible by remember { mutableStateOf(false) }
             val dialogs = remember { mutableStateListOf<Any>() }
             val onBack by
                 remember {
@@ -71,14 +77,6 @@ class MainActivity : ComponentActivity() {
                         } else {
                             null
                         }
-//                        dialogs.lastIndex
-//                            .takeIf { it > 0 }
-//                            ?.let { lastIndex ->
-//                                {
-//                                    dialogs.removeAt(lastIndex)
-//                                    Unit
-//                                }
-//                            }
                     }
                 }
             NPChatTheme {
@@ -99,6 +97,7 @@ class MainActivity : ComponentActivity() {
                     BackHandler(dialogs.size > 1) {
                         dialogs.removeLastOrNull()
                     }
+                    val showBackButton = dialogs.isNotEmpty()
                     when (val args = dialogs.lastOrNull()) {
                         is DialogChatArgs ->
                             ChatDialogContent(
@@ -108,6 +107,8 @@ class MainActivity : ComponentActivity() {
                             )
 
                         is DialogLeaveArgs -> LeaveDialogContent(args = args, onBack = onBack, confirm = closeDialog)
+                        is ControlReq -> ControlDialogContent { navController.navRequestHandle(it, dialogs) }
+                        is CreateChatReq -> CreateChatDialogContent(showBackButton) { navController.navRequestHandle(it, dialogs) }
                     }
                 }
                 NavHost(
@@ -148,6 +149,8 @@ private const val ROUTE_LOGIN = "Login"
 private const val ROUTE_REGISTRATION = "Registration"
 private const val ROUTE_CHATS = "Chats"
 
+// private const val DIALOG_CREATE_CHAT = "CreateChat"
+
 fun NavController.navRequestHandle(
     req: Any,
     dialogs: MutableList<Any>,
@@ -158,10 +161,18 @@ fun NavController.navRequestHandle(
         RegistrationEffect.Navigation.Home,
         -> navigate(ROUTE_HOME)
 
-        SplashEffect.Navigation.Login -> navigate(ROUTE_LOGIN)
+        SplashEffect.Navigation.Login,
+        ControlEffect.Navigation.Login,
+        -> navigate(ROUTE_LOGIN)
+
         LoginEffect.Navigation.Registration -> navigate(ROUTE_REGISTRATION)
 
-        is Effect.Navigation.Chat -> dialogs.add(DialogChatArgs(req.chat))
+        is ChatsEffect.Navigation.Chat -> dialogs.add(DialogChatArgs(req.chat))
+        HomeEffect.Navigation.Chats -> navigate(ROUTE_CHATS)
+        HomeEffect.Navigation.Control -> dialogs.add(ControlReq)
+        ControlEffect.Navigation.CreateChat -> dialogs.add(CreateChatReq)
+
+        CreateChatEffect.Navigation.Back -> dialogs.removeLastOrNull()
     }
 }
 

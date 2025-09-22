@@ -82,6 +82,8 @@ data class BottomDialogProperty(
 fun BottomDialogHeader(
     title: String,
     onBack: (() -> Unit)? = null,
+//    isBackVisible: Boolean = false,
+//    onBack: () -> Unit = { },
 ) {
     Row(
         modifier = Modifier.padding(bottom = 20.dp),

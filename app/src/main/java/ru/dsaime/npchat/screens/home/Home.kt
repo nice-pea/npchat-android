@@ -14,13 +14,18 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onEach
 import org.koin.androidx.compose.koinViewModel
+import ru.dsaime.npchat.common.base.eventHandler
 import ru.dsaime.npchat.ui.modifiers.topBorder
 import ru.dsaime.npchat.ui.theme.ColorBG
 import ru.dsaime.npchat.ui.theme.ColorPart
@@ -34,7 +39,7 @@ fun HomeScreenDestination(
     HomeScreen(
         state = vm.viewState.value,
         effectFlow = vm.effect,
-        onEventSent = vm::handleEvents,
+        onEventSent = vm::setEvent,
         onNavigationRequest = onNavigationRequest,
         content = content,
     )
@@ -44,7 +49,7 @@ fun HomeScreenDestination(
 @Composable
 private fun HomeScreenPreview() {
     HomeScreen(
-        state = HomeState(),
+        state = HomeState,
         effectFlow = flow { },
         onEventSent = {},
         onNavigationRequest = {},
@@ -60,14 +65,23 @@ fun HomeScreen(
     onNavigationRequest: (HomeEffect.Navigation) -> Unit,
     content: @Composable () -> Unit,
 ) {
+    val ctx = LocalContext.current
+    LaunchedEffect(1) {
+        effectFlow
+            .onEach { effect ->
+                when (effect) {
+                    is HomeEffect.Navigation -> onNavigationRequest(effect)
+                }
+            }.collect()
+    }
     Scaffold(
         containerColor = ColorBG,
         bottomBar = {
             val items =
                 listOf(
-                    BottomNavigationItem(title = "Уведомления", icon = Icons.Filled.Notifications),
-                    BottomNavigationItem(title = "Чат", icon = Icons.Filled.Email),
-                    BottomNavigationItem(title = "Настройки", icon = Icons.Filled.Settings),
+                    BottomNavigationItem("Уведомления", Icons.Filled.Notifications, HomeEvent.NavChats),
+                    BottomNavigationItem("Чат", Icons.Filled.Email, HomeEvent.NavChats),
+                    BottomNavigationItem("Настройки", Icons.Filled.Settings, HomeEvent.NavControl),
                 )
             NavigationBar(
                 modifier =
@@ -80,7 +94,7 @@ fun HomeScreen(
                 items.forEach {
                     NavigationBarItem(
                         selected = false,
-                        onClick = {},
+                        onClick = onEventSent.eventHandler(it.event),
                         icon = { Icon(it.icon, contentDescription = it.title) },
                         colors =
                             NavigationBarItemDefaults.colors(
@@ -100,4 +114,5 @@ fun HomeScreen(
 data class BottomNavigationItem(
     val title: String,
     val icon: ImageVector,
+    val event: HomeEvent,
 )

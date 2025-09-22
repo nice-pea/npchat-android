@@ -51,7 +51,7 @@ fun LoginScreenDestination(onNavigationRequest: (LoginEffect.Navigation) -> Unit
     LoginScreen(
         state = vm.viewState.value,
         effectFlow = vm.effect,
-        onEventSent = vm::handleEvents,
+        onEventSent = vm::setEvent,
         onNavigationRequest = onNavigationRequest,
     )
 }

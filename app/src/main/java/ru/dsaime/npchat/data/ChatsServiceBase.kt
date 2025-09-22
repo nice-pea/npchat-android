@@ -18,7 +18,7 @@ class ChatsServiceBase(
                 ).run(::Ok)
             }.getOrElse { Err(it.toUserMessage()) }
 
-    override suspend fun create(name: String): Chat {
+    override suspend fun create(name: String): Result<Chat, String> {
         TODO("Not yet implemented")
     }
 
