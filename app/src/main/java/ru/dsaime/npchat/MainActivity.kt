@@ -5,7 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
@@ -13,12 +12,14 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
@@ -39,7 +40,6 @@ import ru.dsaime.npchat.ui.dialog.BottomDialog
 import ru.dsaime.npchat.ui.dialog.BottomDialogHeader
 import ru.dsaime.npchat.ui.dialog.BottomDialogProperties
 import ru.dsaime.npchat.ui.dialog.BottomDialogProperty
-import ru.dsaime.npchat.ui.modifiers.fadeIn
 import ru.dsaime.npchat.ui.theme.Black
 import ru.dsaime.npchat.ui.theme.NPChatTheme
 
@@ -83,10 +83,19 @@ class MainActivity : ComponentActivity() {
                 }
             NPChatTheme {
                 val navController = rememberNavController()
+                val scope = rememberCoroutineScope()
                 BottomDialog(
                     isVisibleRequired = dialogs.isNotEmpty(),
                     onClosed = { dialogs.clear() },
                 ) { dismissRequest ->
+                    // Диалоги будут очищаться после того как скроется BottomSheet
+                    val closeDialog: () -> Unit = {
+                        scope.launch {
+                            dismissRequest()
+                            dialogs.clear()
+                        }
+                    }
+                    // Кнопка назад будет возвращать на предыдущий диалог
                     BackHandler(dialogs.size > 1) {
                         dialogs.removeLastOrNull()
                     }
@@ -98,15 +107,7 @@ class MainActivity : ComponentActivity() {
                                 leave = { dialogs.add(DialogLeaveArgs(args.chat)) },
                             )
 
-                        is DialogLeaveArgs ->
-                            LeaveDialogContent(
-                                args = args,
-                                onBack = onBack,
-                                confirm = {
-                                    dismissRequest()
-                                    dialogs.clear()
-                                },
-                            )
+                        is DialogLeaveArgs -> LeaveDialogContent(args = args, onBack = onBack, confirm = closeDialog)
                     }
                 }
                 NavHost(
@@ -174,16 +175,14 @@ fun ChatDialogContent(
     onBack: (() -> Unit)? = null,
     leave: () -> Unit,
 ) {
-    Column(modifier = Modifier.fadeIn()) {
-        val chat = args.chat
-        BottomDialogHeader(chat.name, onBack)
-        BottomDialogProperties(
-            BottomDialogProperty("ID", chat.id),
-            BottomDialogProperty("Name", chat.name),
-            BottomDialogProperty("ChiefID", chat.chiefId),
-        )
-        LeftButton("Покинуть чат", leave)
-    }
+    val chat = args.chat
+    BottomDialogHeader(chat.name, onBack)
+    BottomDialogProperties(
+        BottomDialogProperty("ID", chat.id),
+        BottomDialogProperty("Name", chat.name),
+        BottomDialogProperty("ChiefID", chat.chiefId),
+    )
+    LeftButton("Покинуть чат", leave)
 }
 
 class DialogLeaveArgs(
@@ -196,13 +195,11 @@ fun LeaveDialogContent(
     onBack: (() -> Unit)? = null,
     confirm: () -> Unit,
 ) {
-    Column(modifier = Modifier.fadeIn()) {
-        BottomDialogHeader("Покинуть чат", onBack)
-        BottomDialogProperties(
-            BottomDialogProperty("ID", args.chat.id),
-            BottomDialogProperty("Name", args.chat.name),
-            BottomDialogProperty("ChiefID", args.chat.chiefId),
-        )
-        LeftButton("Подтвердить", confirm, isRight = true)
-    }
+    BottomDialogHeader("Покинуть чат", onBack)
+    BottomDialogProperties(
+        BottomDialogProperty("ID", args.chat.id),
+        BottomDialogProperty("Name", args.chat.name),
+        BottomDialogProperty("ChiefID", args.chat.chiefId),
+    )
+    LeftButton("Подтвердить", confirm, isRight = true)
 }

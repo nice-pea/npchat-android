@@ -19,14 +19,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
 import ru.dsaime.npchat.ui.components.Gap
 import ru.dsaime.npchat.ui.theme.ColorBG
 import ru.dsaime.npchat.ui.theme.ColorScrim
@@ -110,7 +108,7 @@ fun BottomDialog(
     isVisibleRequired: Boolean,
     onClosed: () -> Unit,
     skipPartiallyExpanded: Boolean = true,
-    sheet: @Composable ColumnScope.(dismissRequest: () -> Unit) -> Unit,
+    sheet: @Composable ColumnScope.(dismissRequest: suspend () -> Unit) -> Unit,
 ) {
     val state =
         rememberModalBottomSheetState(
@@ -123,7 +121,7 @@ fun BottomDialog(
             state.hide()
         }
     }
-    val scope = rememberCoroutineScope()
+//    val scope = rememberCoroutineScope()
     if (state.isVisible || state.targetValue != SheetValue.Hidden) {
         ModalBottomSheet(
             shape = RectangleShape,
@@ -144,7 +142,11 @@ fun BottomDialog(
                         .padding(20.dp)
                         .animateContentSize(tween()),
             ) {
-                sheet { scope.launch { state.hide() } }
+                sheet {
+//                    scope.launch {
+                    state.hide()
+//                    }
+                }
             }
         }
     }
