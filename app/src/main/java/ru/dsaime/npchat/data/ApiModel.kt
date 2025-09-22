@@ -45,10 +45,25 @@ object ApiModel {
         @SerializedName("ID") val id: String,
         @SerializedName("Name") val name: String,
         @SerializedName("ChiefID") val chiefId: String,
-    )
+    ) {
+        fun toModel() =
+            ru.dsaime.npchat.model.Chat(
+                id = id,
+                name = name,
+                chiefId = chiefId,
+            )
+    }
 
     data class ChatsResp(
         @SerializedName("next_page_token") val nextPageToken: String?,
         @SerializedName("Chats") val chats: List<Chat>,
+    )
+
+    data class CreateChatBody(
+        @SerializedName("Name") val name: String,
+    )
+
+    data class CreateChatResp(
+        @SerializedName("Chat") val chat: Chat,
     )
 }

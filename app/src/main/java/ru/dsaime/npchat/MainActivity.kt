@@ -168,6 +168,9 @@ fun NavController.navRequestHandle(
         LoginEffect.Navigation.Registration -> navigate(ROUTE_REGISTRATION)
 
         is ChatsEffect.Navigation.Chat -> dialogs.add(DialogChatArgs(req.chat))
+        is CreateChatEffect.Navigation.Chat -> dialogs.add(DialogChatArgs(req.chat))
+        is CreateChatEffect.Navigation.Close -> dialogs.removeIf { it is CreateChatReq }
+
         HomeEffect.Navigation.Chats -> navigate(ROUTE_CHATS)
         HomeEffect.Navigation.Control -> dialogs.add(ControlReq)
         ControlEffect.Navigation.CreateChat -> dialogs.add(CreateChatReq)

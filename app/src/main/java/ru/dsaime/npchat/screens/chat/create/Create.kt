@@ -36,7 +36,7 @@ fun CreateChatDialogContent(
             .onEach { effect ->
                 when (effect) {
                     is CreateChatEffect.Navigation -> onNavigationRequest(effect)
-                    is CreateChatEffect.ShowError -> toast(effect.msg, ctx, ToastDuration.LONG)
+                    is CreateChatEffect.ShowToast -> toast(effect.msg, ctx, ToastDuration.LONG)
                 }
             }.collect()
     }
@@ -73,7 +73,7 @@ data class CreateChatState(
 )
 
 sealed interface CreateChatEffect {
-    data class ShowError(
+    data class ShowToast(
         val msg: String,
     ) : CreateChatEffect
 
@@ -83,7 +83,8 @@ sealed interface CreateChatEffect {
         ) : Navigation
 
         object Back : Navigation
-//        object Close : Navigation
+
+        object Close : Navigation
     }
 }
 
@@ -100,10 +101,11 @@ class CreateChatViewModel(
                     chatsService
                         .create(viewState.value.name)
                         .onSuccess {
+                            CreateChatEffect.ShowToast("Чат создан").emit()
                             CreateChatEffect.Navigation.Chat(it).emit()
-//                            CreateChatEffect.Navigation.Close.emit()
+                            CreateChatEffect.Navigation.Close.emit()
                         }.onFailure {
-                            CreateChatEffect.ShowError(it).emit()
+                            CreateChatEffect.ShowToast(it).emit()
                         }
                 }
 

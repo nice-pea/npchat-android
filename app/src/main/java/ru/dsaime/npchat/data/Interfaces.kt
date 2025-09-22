@@ -67,7 +67,7 @@ interface ChatsService {
 
     suspend fun create(name: String): Result<Chat, String>
 
-    suspend fun leave(id: String)
+    suspend fun leave(id: String): Result<Unit, String>
 }
 
 class MyChatsResult(
