@@ -23,7 +23,7 @@ fun TplScreenDestination(navController: NavController) {
     TplScreen(
         state = vm.viewState.value,
         effectFlow = vm.effect,
-        onEventSent = vm::handleEvents,
+        onEventSent = vm::setEvent,
         onNavigationRequest = {},
     )
 }

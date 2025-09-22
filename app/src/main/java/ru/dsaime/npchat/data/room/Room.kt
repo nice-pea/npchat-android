@@ -10,6 +10,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.RoomDatabase
+import java.time.Instant
 import java.time.OffsetDateTime
 
 @Database(entities = [Session::class, Host::class], version = 1)
@@ -21,14 +22,17 @@ abstract class AppDatabase : RoomDatabase() {
 
 @Dao
 interface SessionDao {
-    @Query("SELECT * FROM Session")
-    suspend fun getAll(): List<Session>
+    @Query("SELECT * FROM Session ORDER BY last_used_at DESC LIMIT 1")
+    suspend fun last(): Session?
 
-    @Query("SELECT * FROM Session WHERE id IN (:ids)")
-    suspend fun loadAllByIds(ids: IntArray): List<Session>
+//    @Query("SELECT * FROM Session")
+//    suspend fun getAll(): List<Session>
 
-    @Insert
-    suspend fun insertAll(vararg sessions: Session)
+//    @Query("SELECT * FROM Session WHERE id IN (:ids)")
+//    suspend fun loadAllByIds(ids: IntArray): List<Session>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(vararg sessions: Session)
 
     @Delete
     suspend fun delete(session: Session)
@@ -43,7 +47,32 @@ data class Session(
     @ColumnInfo("refresh_token_expires_at") val refreshTokenExpiresAt: String,
     @ColumnInfo("access_token") val accessToken: String,
     @ColumnInfo("access_token_expires_at") val accessTokenExpiresAt: String,
-)
+    @ColumnInfo("last_used_at") val lastUsedAt: Long = OffsetDateTime.now().toEpochSecond(),
+) {
+    val lastUsed: OffsetDateTime
+        get() = Instant.ofEpochSecond(lastUsedAt).atOffset(OffsetDateTime.now().offset)
+
+    fun toModel() =
+        ru.dsaime.npchat.model.Session(
+            id = id,
+            name = name,
+            status = status,
+            refreshToken = refreshToken,
+            refreshTokenExpiresAt = OffsetDateTime.parse(refreshTokenExpiresAt),
+            accessToken = accessToken,
+            accessTokenExpiresAt = OffsetDateTime.parse(accessTokenExpiresAt),
+        )
+
+    constructor(session: ru.dsaime.npchat.model.Session) : this(
+        id = session.id,
+        name = session.name,
+        status = session.status,
+        refreshToken = session.refreshToken,
+        refreshTokenExpiresAt = session.refreshTokenExpiresAt.toString(),
+        accessToken = session.accessToken,
+        accessTokenExpiresAt = session.accessTokenExpiresAt.toString(),
+    )
+}
 
 @Dao
 interface HostDao {
@@ -54,7 +83,7 @@ interface HostDao {
 //    fun loadAllByIds(ids: IntArray): List<Host>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(vararg hosts: Host)
+    suspend fun upsert(vararg hosts: Host)
 
     @Delete
     suspend fun delete(host: Host)

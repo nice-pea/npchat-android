@@ -40,7 +40,7 @@ fun SplashScreenDestination(onNavigationRequested: (SplashEffect.Navigation) -> 
     val vm = koinViewModel<SplashViewModel>()
     SplashScreen(
         effectFlow = vm.effect,
-        onEventSent = vm::handleEvents,
+        onEventSent = vm::setEvent,
         onNavigationRequest = onNavigationRequested,
     )
 }

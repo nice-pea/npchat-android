@@ -2,24 +2,29 @@ package ru.dsaime.npchat.screens.home
 
 import ru.dsaime.npchat.common.base.BaseViewModel
 
-sealed interface HomeEvent
+sealed interface HomeEvent {
+    object NavChats : HomeEvent
 
-data class HomeState(
-    val server: String = "",
-)
-
-sealed interface HomeEffect {
-    sealed interface Navigation : HomeEffect
+    object NavControl : HomeEvent
 }
 
-class HomeViewModel(
-//    private val repo: BasicAuthService,
-//    private val hostService: HostService,
-//    private val sessionsService: SessionsService,
-) : BaseViewModel<HomeEvent, HomeState, HomeEffect>() {
-    override fun setInitialState() = HomeState(server = "")
+object HomeState
+
+sealed interface HomeEffect {
+    sealed interface Navigation : HomeEffect {
+        object Control : Navigation
+
+        object Chats : Navigation
+    }
+}
+
+class HomeViewModel : BaseViewModel<HomeEvent, HomeState, HomeEffect>() {
+    override fun setInitialState() = HomeState
 
     override fun handleEvents(event: HomeEvent) {
-        TODO("Not yet implemented")
+        when (event) {
+            HomeEvent.NavChats -> HomeEffect.Navigation.Chats.emit()
+            HomeEvent.NavControl -> HomeEffect.Navigation.Control.emit()
+        }
     }
 }

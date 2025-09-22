@@ -25,8 +25,8 @@ import ru.dsaime.npchat.data.BasicAuthService
 import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.data.SessionsService
 import ru.dsaime.npchat.screens.login.LoginConnStatus
-import ru.dsaime.npchat.ui.components.Button
 import ru.dsaime.npchat.ui.components.Input
+import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.theme.Dp20
 import ru.dsaime.npchat.ui.theme.White
 
@@ -36,7 +36,7 @@ fun RegistrationScreenDestination(onNavigationRequest: (RegistrationEffect.Navig
     RegistrationScreen(
         state = vm.viewState.value,
         effectFlow = vm.effect,
-        onEventSent = vm::handleEvents,
+        onEventSent = vm::setEvent,
         onNavigationRequest = onNavigationRequest,
     )
 }
@@ -104,7 +104,7 @@ fun RegistrationScreen(
             value = state.password,
             onValueChange = { onEventSent(RegistrationEvent.SetPassword(it)) },
         )
-        Button(
+        LeftButton(
             onClick = { onEventSent(RegistrationEvent.Confirm) },
             text = "Регистрация",
         )
@@ -161,7 +161,7 @@ sealed interface RegistrationEffect {
     ) : RegistrationEffect
 
     sealed interface Navigation : RegistrationEffect {
-        object ToHome : Navigation
+        object Home : Navigation
     }
 }
 
@@ -217,7 +217,7 @@ class RegistrationViewModel(
             ).onSuccess {
                 sessionsService.changeSession(it.session)
                 hostService.changeHost(host)
-                RegistrationEffect.Navigation.ToHome.emit()
+                RegistrationEffect.Navigation.Home.emit()
             }.onFailure { message ->
                 RegistrationEffect.ShowError(message).emit()
             }

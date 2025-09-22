@@ -1,4 +1,4 @@
-package ru.dsaime.npchat.screens.chats
+package ru.dsaime.npchat.screens.chat.chats
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -33,9 +33,8 @@ import org.koin.androidx.compose.koinViewModel
 import ru.dsaime.npchat.common.base.BaseViewModel
 import ru.dsaime.npchat.data.ChatsService
 import ru.dsaime.npchat.model.Chat
-import ru.dsaime.npchat.screens.chats.Effect.Navigation.ToChat
-import ru.dsaime.npchat.ui.components.Button
 import ru.dsaime.npchat.ui.components.Gap
+import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.theme.ColorBG
 import ru.dsaime.npchat.ui.theme.ColorText
 import ru.dsaime.npchat.ui.theme.Dp20
@@ -47,12 +46,12 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun ChatsScreenDestination(onNavigationRequest: (Effect.Navigation) -> Unit) {
+fun ChatsScreenDestination(onNavigationRequest: (ChatsEffect.Navigation) -> Unit) {
     val vm = koinViewModel<ChatsViewModel>()
     ChatsScreen(
         state = vm.viewState.value,
         effectFlow = vm.effect,
-        onEventSent = vm::handleEvents,
+        onEventSent = vm::setEvent,
         onNavigationRequest = onNavigationRequest,
     )
 }
@@ -60,16 +59,16 @@ fun ChatsScreenDestination(onNavigationRequest: (Effect.Navigation) -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatsScreen(
-    state: State,
-    effectFlow: Flow<Effect>,
-    onEventSent: (Event) -> Unit,
-    onNavigationRequest: (Effect.Navigation) -> Unit,
+    state: ChatsState,
+    effectFlow: Flow<ChatsEffect>,
+    onEventSent: (ChatsEvent) -> Unit,
+    onNavigationRequest: (ChatsEffect.Navigation) -> Unit,
 ) {
     LaunchedEffect(1) {
         effectFlow
             .onEach { effect ->
                 when (effect) {
-                    is Effect.Navigation -> onNavigationRequest(effect)
+                    is ChatsEffect.Navigation -> onNavigationRequest(effect)
                 }
             }.collect()
     }
@@ -85,7 +84,7 @@ fun ChatsScreen(
             }
         }
     LaunchedEffect(lastVisibleIndex) {
-        onEventSent(Event.LastVisibleIndexChanged(lastVisibleIndex))
+        onEventSent(ChatsEvent.LastVisibleIndexChanged(lastVisibleIndex))
     }
 
 //    var isPageRequesterReached by remember { mutableStateOf(false) }
@@ -128,7 +127,7 @@ fun ChatsScreen(
                     chat = chat,
                     lastMessage = state.lastMessage[chat.id],
                     unreadCount = state.unread[chat.id] ?: 0,
-                    onClick = { onEventSent(Event.SelectChat(chat)) },
+                    onClick = { onEventSent(ChatsEvent.SelectChat(chat)) },
                 )
             }
 
@@ -136,8 +135,8 @@ fun ChatsScreen(
                 when (state.trailing) {
                     Trailing.Loading -> CircularProgressIndicator()
                     is Trailing.Err ->
-                        Button("RetryLoading (err:${state.trailing.msg})", onClick = {
-                            onEventSent(Event.RetryPage)
+                        LeftButton("RetryLoading (err:${state.trailing.msg})", onClick = {
+                            onEventSent(ChatsEvent.RetryPage)
                         })
 
                     null -> Text("Конец", style = Font.Text14W400)
@@ -147,18 +146,18 @@ fun ChatsScreen(
     }
 }
 
-sealed interface Event {
+sealed interface ChatsEvent {
     class SelectChat(
         val chat: Chat,
-    ) : Event
+    ) : ChatsEvent
 
     class LastVisibleIndexChanged(
         val value: Int?,
-    ) : Event
+    ) : ChatsEvent
 
     //    object LoadNextItems : Event
 //
-    object RetryPage : Event
+    object RetryPage : ChatsEvent
 
 //    object Reload : ChatsEvent
 //
@@ -197,7 +196,7 @@ sealed interface Content {
     object Ok : Content
 }
 
-data class State(
+data class ChatsState(
     val content: Content = Content.Loading,
     val chats: List<Chat> = emptyList(),
     val trailing: Trailing? = null,
@@ -218,18 +217,18 @@ data class MessageUI(
     }
 }
 
-sealed interface Effect {
-    sealed interface Navigation : Effect {
-        class ToChat(
-            val chat: Chat,
+sealed interface ChatsEffect {
+    sealed interface Navigation : ChatsEffect {
+        class Chat(
+            val chat: ru.dsaime.npchat.model.Chat,
         ) : Navigation
     }
 }
 
 class ChatsViewModel(
     private val chatsService: ChatsService,
-) : BaseViewModel<Event, State, Effect>() {
-    override fun setInitialState() = State()
+) : BaseViewModel<ChatsEvent, ChatsState, ChatsEffect>() {
+    override fun setInitialState() = ChatsState()
 
     private var pageTokenForNext = ""
     private var pagingFinished = false
@@ -255,11 +254,11 @@ class ChatsViewModel(
             }
     }
 
-    override fun handleEvents(event: Event) {
+    override fun handleEvents(event: ChatsEvent) {
         when (event) {
-            is Event.SelectChat -> ToChat(event.chat).emit()
-            Event.RetryPage -> viewModelScope.launch { loadNextPage() }
-            is Event.LastVisibleIndexChanged -> {
+            is ChatsEvent.SelectChat -> ChatsEffect.Navigation.Chat(event.chat).emit()
+            ChatsEvent.RetryPage -> viewModelScope.launch { loadNextPage() }
+            is ChatsEvent.LastVisibleIndexChanged -> {
                 if (event.value == null) {
                     return
                 }

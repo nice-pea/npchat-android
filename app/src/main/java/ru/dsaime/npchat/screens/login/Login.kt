@@ -26,8 +26,8 @@ import ru.dsaime.npchat.common.functions.toast
 import ru.dsaime.npchat.data.BasicAuthService
 import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.data.SessionsService
-import ru.dsaime.npchat.ui.components.Button
 import ru.dsaime.npchat.ui.components.Input
+import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.theme.Dp20
 import ru.dsaime.npchat.ui.theme.White
 
@@ -51,7 +51,7 @@ fun LoginScreenDestination(onNavigationRequest: (LoginEffect.Navigation) -> Unit
     LoginScreen(
         state = vm.viewState.value,
         effectFlow = vm.effect,
-        onEventSent = vm::handleEvents,
+        onEventSent = vm::setEvent,
         onNavigationRequest = onNavigationRequest,
     )
 }
@@ -110,17 +110,21 @@ fun LoginScreen(
             value = state.password,
             onValueChange = { onEventSent(LoginEvent.SetPassword(it)) },
         )
-        Button(
+        LeftButton(
             onClick = { onEventSent(LoginEvent.Enter) },
             text = "Enter",
         )
-        Button(
+        LeftButton(
             onClick = { onEventSent(LoginEvent.GoToRegistration) },
             text = "Перейти к регистрации",
         )
-        Button(
+        LeftButton(
             onClick = { onEventSent(LoginEvent.GoToOAuth) },
             text = "Вход через сторонний сервис",
+        )
+        LeftButton(
+            onClick = { onEventSent(LoginEvent.GoToTest) },
+            text = "Test",
         )
     }
 }
@@ -145,6 +149,8 @@ sealed interface LoginEvent {
     class SetPassword(
         val value: String,
     ) : LoginEvent
+
+    object GoToTest : LoginEvent
 }
 
 data class LoginState(
@@ -170,11 +176,13 @@ sealed interface LoginEffect {
     ) : LoginEffect
 
     sealed interface Navigation : LoginEffect {
-        object ToOAuth : Navigation
+        object Test : Navigation
 
-        object ToRegistration : Navigation
+        object OAuth : Navigation
 
-        object ToHome : Navigation
+        object Registration : Navigation
+
+        object Home : Navigation
     }
 }
 
@@ -223,7 +231,7 @@ class LoginViewModel(
             ).onSuccess {
                 sessionsService.changeSession(it.session)
                 hostService.changeHost(host)
-                LoginEffect.Navigation.ToHome.emit()
+                LoginEffect.Navigation.Home.emit()
             }.onFailure { message ->
                 LoginEffect.ShowError(message).emit()
             }
@@ -236,11 +244,12 @@ class LoginViewModel(
         when (event) {
             LoginEvent.CheckConn -> viewModelScope.launch { checkConn() }
             LoginEvent.Enter -> viewModelScope.launch { enter() }
-            LoginEvent.GoToOAuth -> LoginEffect.Navigation.ToOAuth.emit()
-            LoginEvent.GoToRegistration -> LoginEffect.Navigation.ToRegistration.emit()
+            LoginEvent.GoToOAuth -> LoginEffect.Navigation.OAuth.emit()
+            LoginEvent.GoToRegistration -> LoginEffect.Navigation.Registration.emit()
             is LoginEvent.SetLogin -> setState { copy(login = event.value) }
             is LoginEvent.SetPassword -> setState { copy(password = event.value) }
             is LoginEvent.SetServer -> setState { copy(host = event.value) }
+            LoginEvent.GoToTest -> LoginEffect.Navigation.Test.emit()
         }
     }
 }

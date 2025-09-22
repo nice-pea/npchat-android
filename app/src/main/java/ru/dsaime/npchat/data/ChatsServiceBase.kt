@@ -18,18 +18,18 @@ class ChatsServiceBase(
                 ).run(::Ok)
             }.getOrElse { Err(it.toUserMessage()) }
 
-    override suspend fun create(name: String): Chat {
-        TODO("Not yet implemented")
-    }
+    override suspend fun create(name: String): Result<Chat, String> =
+        api
+            .createChat(
+                ApiModel.CreateChatBody(
+                    name = name,
+                ),
+            ).mapCatching { Ok(it.chat.toModel()) }
+            .getOrElse { Err(it.toUserMessage()) }
 
-    override suspend fun leave(id: String) {
-        TODO("Not yet implemented")
-    }
+    override suspend fun leave(id: String) =
+        api
+            .leaveChat(chatId = id)
+            .mapCatching { Ok(Unit) }
+            .getOrElse { Err(it.toUserMessage()) }
 }
-
-fun ApiModel.Chat.toModel(): Chat =
-    Chat(
-        id = id,
-        name = name,
-        chiefId = chiefId,
-    )

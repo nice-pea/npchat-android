@@ -25,7 +25,9 @@ import ru.dsaime.npchat.data.room.InitialCallback
 import ru.dsaime.npchat.network.BaseUrlProvider
 import ru.dsaime.npchat.network.SessionTokenProvider
 import ru.dsaime.npchat.network.retrofit
-import ru.dsaime.npchat.screens.chats.ChatsViewModel
+import ru.dsaime.npchat.screens.chat.chats.ChatsViewModel
+import ru.dsaime.npchat.screens.chat.create.CreateChatViewModel
+import ru.dsaime.npchat.screens.control.main.ControlViewModel
 import ru.dsaime.npchat.screens.home.HomeViewModel
 import ru.dsaime.npchat.screens.login.LoginViewModel
 import ru.dsaime.npchat.screens.registration.RegistrationViewModel
@@ -53,10 +55,12 @@ val appModule =
         // Токен провайдер, при отсутствии токена, вернет пустую строку
         single<SessionTokenProvider> {
             SessionTokenProvider {
-                get<SessionsService>()
-                    .currentSession()
-                    ?.accessToken
-                    .orEmpty()
+                runBlocking {
+                    get<SessionsService>()
+                        .currentSession()
+                        ?.accessToken
+                        .orEmpty()
+                }
             }
         }
 
@@ -80,10 +84,14 @@ val appModule =
         single<EventsFlowProvider> { EventsFlowProviderKtorSSE(get(), get()) }
         single<ChatsService> { ChatsServiceBase(get()) }
 
-        // ViewModels
+        // Экраны
         viewModelOf(::SplashViewModel)
         viewModelOf(::LoginViewModel)
         viewModelOf(::RegistrationViewModel)
         viewModelOf(::HomeViewModel)
         viewModelOf(::ChatsViewModel)
+
+        // Диалоги
+        viewModelOf(::CreateChatViewModel)
+        viewModelOf(::ControlViewModel)
     }

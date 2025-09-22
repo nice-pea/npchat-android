@@ -18,7 +18,7 @@ class HostServiceBase(
         }
 
     override suspend fun changeHost(host: String) {
-        db.hostDao().insertAll(Host(baseUrl = host))
+        db.hostDao().upsert(Host(baseUrl = host))
     }
 
     override suspend fun known(): List<String> =

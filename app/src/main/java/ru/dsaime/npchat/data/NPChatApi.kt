@@ -4,6 +4,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 private const val OVERRIDE_HOST_HEADER = "X-Override-Host"
@@ -34,6 +35,15 @@ interface NPChatApi {
         @Query("page_token") pageToken: String,
     ): Result<ApiModel.ChatsResp>
 
+    @POST("/chats")
+    suspend fun createChat(
+        @Body body: ApiModel.CreateChatBody,
+    ): Result<ApiModel.CreateChatResp>
+
+    @GET("/chat/{chatId}/leave")
+    suspend fun leaveChat(
+        @Path("chatId") chatId: String,
+    ): Result<Unit>
 //    @GET("/events")
 //    @Streaming
 //    suspend fun events(): Response<ResponseBody>

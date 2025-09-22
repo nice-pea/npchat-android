@@ -48,9 +48,9 @@ interface HostService {
 
 // Описывает интерфейс работы с сессией
 interface SessionsService {
-    fun currentSession(): Session?
+    suspend fun currentSession(): Session?
 
-    fun changeSession(session: Session)
+    suspend fun changeSession(session: Session)
 
     suspend fun isActual(session: Session): Boolean
 
@@ -65,9 +65,9 @@ interface EventsFlowProvider {
 interface ChatsService {
     suspend fun myChats(pageToken: String): Result<MyChatsResult, String>
 
-    suspend fun create(name: String): Chat
+    suspend fun create(name: String): Result<Chat, String>
 
-    suspend fun leave(id: String)
+    suspend fun leave(id: String): Result<Unit, String>
 }
 
 class MyChatsResult(

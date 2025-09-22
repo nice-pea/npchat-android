@@ -1,45 +1,62 @@
 package ru.dsaime.npchat.ui.theme
 
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import ru.dsaime.npchat.R
 
 object Font {
+    private val interFontFamily = FontFamily(Font(R.font.inter))
     private val S12W500 =
         TextStyle(
             fontSize = 12.sp,
             fontWeight = FontWeight.W500,
+            fontFamily = interFontFamily,
         )
     private val S12W400 =
         TextStyle(
             fontSize = 12.sp,
             fontWeight = FontWeight.W400,
+            fontFamily = interFontFamily,
         )
     private val S14W400 =
         TextStyle(
             fontSize = 14.sp,
             fontWeight = FontWeight.W400,
+            fontFamily = interFontFamily,
         )
     private val S14W500 =
         TextStyle(
             fontSize = 14.sp,
             fontWeight = FontWeight.W500,
+            fontFamily = interFontFamily,
         )
     private val S16W400 =
         TextStyle(
             fontSize = 16.sp,
             fontWeight = FontWeight.W400,
+            fontFamily = interFontFamily,
+        )
+    private val S16W600 =
+        TextStyle(
+            fontSize = 16.sp,
+            fontWeight = FontWeight.W600,
+            fontFamily = interFontFamily,
         )
     private val S18W400 =
         TextStyle(
             fontSize = 18.sp,
             fontWeight = FontWeight.W400,
+            fontFamily = interFontFamily,
         )
     private val S20W400 =
         TextStyle(
             fontSize = 20.sp,
             fontWeight = FontWeight.W400,
+            fontFamily = interFontFamily,
         )
 
     // White
@@ -93,7 +110,13 @@ object Font {
     // ColorText
     val Text14W400 = S14W400.copy(ColorText)
     val Text12W400 = S12W400.copy(ColorText)
+    val Text18W400 = S18W400.copy(ColorText)
+    val Text16W600 = S16W600.copy(ColorText)
+    val Text16W400 = S16W400.copy(ColorText)
 
     // ColorAction
     val Action14W400 = S14W400.copy(ColorAction)
+
+    // ColorProperty
+    val Property16W400 = S16W400.copy(ColorProperty)
 }
