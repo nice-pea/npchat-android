@@ -15,6 +15,8 @@ import ru.dsaime.npchat.data.ChatsService
 import ru.dsaime.npchat.data.ChatsServiceBase
 import ru.dsaime.npchat.data.EventsFlowProvider
 import ru.dsaime.npchat.data.EventsFlowProviderKtorSSE
+import ru.dsaime.npchat.data.EventsService
+import ru.dsaime.npchat.data.EventsServiceBase
 import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.data.HostServiceBase
 import ru.dsaime.npchat.data.NPChatApi
@@ -83,6 +85,7 @@ val appModule =
         single<SessionsService> { SessionsServiceBase(get(), get(), get()) }
         single<EventsFlowProvider> { EventsFlowProviderKtorSSE(get(), get()) }
         single<ChatsService> { ChatsServiceBase(get()) }
+        single<EventsService> { EventsServiceBase(get(), get()) }
 
         // Экраны
         viewModelOf(::SplashViewModel)

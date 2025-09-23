@@ -28,8 +28,7 @@ class EventsFlowProviderKtorSSE(
             }) {
                 incoming.collect { event ->
                     when (event.event) {
-                        "keepalive" -> println("keepalive event is here")
-                        "error" -> emit(Err(event.data ?: "received error event"))
+                        "error" -> Err(event.data ?: "received error event")
                         "event" ->
                             retroGson
                                 .fromJson(event.data, RawEvent::class.java)
@@ -41,7 +40,7 @@ class EventsFlowProviderKtorSSE(
         }
 }
 
-fun RawEvent.toEvent() =
+private fun RawEvent.toEvent() =
     when (type) {
         Event.ParticipantAdded.NAME -> {
             val chatId = data["chat_id"] as String
