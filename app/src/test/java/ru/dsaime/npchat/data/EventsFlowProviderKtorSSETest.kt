@@ -11,7 +11,6 @@ import io.ktor.server.sse.sse
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
-import ru.dsaime.npchat.model.Event
 import ru.dsaime.npchat.model.Session
 import ru.dsaime.npchat.network.retroGson
 import java.time.OffsetDateTime
@@ -32,8 +31,8 @@ class EventsFlowProviderKtorSSETest {
             )
         val expectedEvents =
             listOf(
-                Event("qwr", OffsetDateTime.now(), mapOf("a" to 1, "b" to 2)),
-                Event("zcv", OffsetDateTime.now(), mapOf("a" to 1, "b" to 2)),
+                RawEvent("qwr", OffsetDateTime.now(), mapOf("a" to 1, "b" to 2)),
+                RawEvent("zcv", OffsetDateTime.now(), mapOf("a" to 1, "b" to 2)),
             )
 
         runBlocking {

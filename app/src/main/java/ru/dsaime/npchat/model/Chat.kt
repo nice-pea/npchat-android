@@ -6,6 +6,10 @@ data class Chat(
     val chiefId: String,
 )
 
+data class Participant(
+    val userId: String,
+)
+
 // type Chat struct {
 //    ID      uuid.UUID // Уникальный ID чата
 //            Name    string    // Название чата

@@ -59,7 +59,7 @@ interface SessionsService {
 
 // Описывает интерфейс доступа к потоку событий
 interface EventsFlowProvider {
-    suspend fun eventsFlow(session: Session): Flow<Event>
+    suspend fun eventsFlow(session: Session): Flow<Result<Event, String>>
 }
 
 interface ChatsService {
