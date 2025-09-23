@@ -5,12 +5,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewModelScope
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
@@ -21,14 +23,19 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import ru.dsaime.npchat.common.base.BaseViewModel
+import ru.dsaime.npchat.common.base.eventHandler
 import ru.dsaime.npchat.common.functions.ToastDuration
 import ru.dsaime.npchat.common.functions.toast
 import ru.dsaime.npchat.data.BasicAuthService
 import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.data.SessionsService
+import ru.dsaime.npchat.model.Host
+import ru.dsaime.npchat.ui.components.Gap
+import ru.dsaime.npchat.ui.components.HostSelect
 import ru.dsaime.npchat.ui.components.Input
 import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.theme.Dp20
+import ru.dsaime.npchat.ui.theme.Font
 import ru.dsaime.npchat.ui.theme.White
 
 @Preview(
@@ -68,7 +75,6 @@ fun LoginScreen(
         effectFlow
             ?.onEach { effect ->
                 when (effect) {
-//                is SplashEffect.Navigation -> onNavigationRequested(effect)
                     is LoginEffect.Navigation -> onNavigationRequest(effect)
                     is LoginEffect.ShowError -> toast(effect.msg, ctx, ToastDuration.LONG)
                 }
@@ -88,43 +94,61 @@ fun LoginScreen(
                 title = "Сервер",
                 placeholder = "http://example.com",
                 value = state.host,
-                onValueChange = { onEventSent(LoginEvent.SetServer(it)) },
+                onValueChange = onEventSent.eventHandler(LoginEvent::SetServer),
                 enabled = state.hostEnabled,
             )
-            androidx.compose.material3.Button(
-//                modifier = Modifier
-//                    .background()
-//                    .size(20.dp),
-                onClick = { onEventSent(LoginEvent.CheckConn) },
-            ) { Text(state.connStatus::class.simpleName ?: "null", color = White) }
+            Button(onEventSent.eventHandler(LoginEvent.CheckConn)) {
+                Text(state.connStatus::class.simpleName ?: "null", color = White)
+            }
         }
+        val fakeHosts =
+            listOf(
+                Host(url = "https://main.example.com:7877", status = Host.Status.ONLINE),
+                Host(url = "https://test.example.com/api", status = Host.Status.OFFLINE),
+                Host(url = "https://cloud.example.com/v2", status = Host.Status.INCOMPATIBLE),
+                Host(url = "https://api.example.com", status = Host.Status.UNKNOWN),
+                null
+            )
+        fakeHosts.forEach {
+            HostSelect(
+                host = it,
+                onClick = {},
+                onCheckConn = {},
+            )
+        }
+        HostSelect(
+            host = Host(url = state.host, status = Host.Status.ONLINE),
+            onClick = {},
+            onCheckConn = {},
+        )
         Input(
             title = "Логин",
-            placeholder = "Enter key for access to server",
+            placeholder = "",
             value = state.login,
-            onValueChange = { onEventSent(LoginEvent.SetLogin(it)) },
+            onValueChange = onEventSent.eventHandler(LoginEvent::SetLogin),
         )
         Input(
             title = "Пароль",
-            placeholder = "Enter key for access to server",
+            placeholder = "",
             value = state.password,
-            onValueChange = { onEventSent(LoginEvent.SetPassword(it)) },
+            onValueChange = onEventSent.eventHandler(LoginEvent::SetPassword),
+        )
+        Gap(20.dp)
+        LeftButton(
+            text = "Войти",
+            onClick = onEventSent.eventHandler(LoginEvent.Enter),
+            isRight = true,
         )
         LeftButton(
-            onClick = { onEventSent(LoginEvent.Enter) },
-            text = "Enter",
-        )
-        LeftButton(
-            onClick = { onEventSent(LoginEvent.GoToRegistration) },
             text = "Перейти к регистрации",
+            onClick = onEventSent.eventHandler(LoginEvent.GoToRegistration),
         )
+        Gap(20.dp)
+        Text("или", style = Font.Text16W400)
+        Gap(20.dp)
         LeftButton(
-            onClick = { onEventSent(LoginEvent.GoToOAuth) },
             text = "Вход через сторонний сервис",
-        )
-        LeftButton(
-            onClick = { onEventSent(LoginEvent.GoToTest) },
-            text = "Test",
+            onClick = onEventSent.eventHandler(LoginEvent.GoToOAuth),
         )
     }
 }

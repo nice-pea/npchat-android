@@ -14,6 +14,13 @@ val Mint = Color(0xFFA9D8A4)
 val ForestGreen = Color(0xFF40873C)
 
 val ColorScrim = Color(0xFF1A1620).copy(alpha = .5f)
+
+// Host colors
+val ColorHostOnline = Color(0xFF52A04F)
+val ColorHostOffline = Color(0xFFA04F50)
+val ColorHostIncompatible = Color(0xFF9CA04F)
+val ColorHostUnknown = DarkGray
+
 val ColorBG = Black
 val ColorText = LightGray
 val ColorSender = SkyBlue

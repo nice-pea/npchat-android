@@ -73,4 +73,4 @@ abstract class BaseViewModel<A, S, E> : ViewModel() {
 fun <A> ((A) -> Unit).eventHandler(event: A): () -> Unit = { invoke(event) }
 
 // Сокращение для лямбды
-fun <A, T> ((A) -> T).eventHandler(eventConstructor: (T) -> A): (T) -> Unit = { invoke(eventConstructor(it)) }
+fun <A, T> ((A) -> Unit).eventHandler(eventConstructor: (T) -> A): (T) -> Unit = { invoke(eventConstructor(it)) }
