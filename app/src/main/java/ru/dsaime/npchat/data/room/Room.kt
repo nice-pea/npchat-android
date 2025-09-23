@@ -10,7 +10,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.RoomDatabase
-import java.time.Instant
+import kotlinx.coroutines.flow.Flow
 import java.time.OffsetDateTime
 
 @Database(entities = [Session::class, Host::class], version = 1)
@@ -22,20 +22,23 @@ abstract class AppDatabase : RoomDatabase() {
 
 @Dao
 interface SessionDao {
-    @Query("SELECT * FROM Session ORDER BY last_used_at DESC LIMIT 1")
+    @Query("SELECT * FROM Session LIMIT 1")
     suspend fun last(): Session?
 
-//    @Query("SELECT * FROM Session")
-//    suspend fun getAll(): List<Session>
+    @Query("SELECT * FROM Session LIMIT 1")
+    fun lastFlow(): Flow<Session?>
 
-//    @Query("SELECT * FROM Session WHERE id IN (:ids)")
-//    suspend fun loadAllByIds(ids: IntArray): List<Session>
+    @Insert
+    suspend fun upsert(session: Session) {
+        deleteAll()
+        insert(session)
+    }
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsert(vararg sessions: Session)
+    @Query("DELETE FROM Session")
+    suspend fun deleteAll()
 
-    @Delete
-    suspend fun delete(session: Session)
+    @Insert
+    suspend fun insert(session: Session)
 }
 
 @Entity
@@ -47,10 +50,10 @@ data class Session(
     @ColumnInfo("refresh_token_expires_at") val refreshTokenExpiresAt: String,
     @ColumnInfo("access_token") val accessToken: String,
     @ColumnInfo("access_token_expires_at") val accessTokenExpiresAt: String,
-    @ColumnInfo("last_used_at") val lastUsedAt: Long = OffsetDateTime.now().toEpochSecond(),
+//    @ColumnInfo("last_used_at") val lastUsedAt: Long = OffsetDateTime.now().toEpochSecond(),
 ) {
-    val lastUsed: OffsetDateTime
-        get() = Instant.ofEpochSecond(lastUsedAt).atOffset(OffsetDateTime.now().offset)
+//    val lastUsed: OffsetDateTime
+//        get() = Instant.ofEpochSecond(lastUsedAt).atOffset(OffsetDateTime.now().offset)
 
     fun toModel() =
         ru.dsaime.npchat.model.Session(

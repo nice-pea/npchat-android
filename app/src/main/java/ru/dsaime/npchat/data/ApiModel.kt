@@ -4,6 +4,15 @@ import com.google.gson.annotations.SerializedName
 import java.time.OffsetDateTime
 
 object ApiModel {
+    data class Participant(
+        @SerializedName("UserID") val userId: String,
+    ) {
+        fun toModel() =
+            ru.dsaime.npchat.model.Participant(
+                userId = userId,
+            )
+    }
+
     data class RegistrationBody(
         @SerializedName("login") val login: String,
         @SerializedName("password") val password: String,
@@ -25,7 +34,14 @@ object ApiModel {
         @SerializedName("ID") val id: String,
         @SerializedName("Name") val name: String,
         @SerializedName("Nick") val nick: String,
-    )
+    ) {
+        fun toModel() =
+            ru.dsaime.npchat.model.User(
+                id = id,
+                name = name,
+                nick = nick,
+            )
+    }
 
     data class Session(
         @SerializedName("ID") val id: String,

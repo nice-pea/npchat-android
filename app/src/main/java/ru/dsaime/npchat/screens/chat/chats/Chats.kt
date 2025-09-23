@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewModelScope
 import com.github.michaelbull.result.onFailure
@@ -31,7 +32,9 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import ru.dsaime.npchat.common.base.BaseViewModel
+import ru.dsaime.npchat.common.functions.toast
 import ru.dsaime.npchat.data.ChatsService
+import ru.dsaime.npchat.data.EventsService
 import ru.dsaime.npchat.model.Chat
 import ru.dsaime.npchat.ui.components.Gap
 import ru.dsaime.npchat.ui.components.LeftButton
@@ -64,11 +67,13 @@ fun ChatsScreen(
     onEventSent: (ChatsEvent) -> Unit,
     onNavigationRequest: (ChatsEffect.Navigation) -> Unit,
 ) {
+    val ctx = LocalContext.current
     LaunchedEffect(1) {
         effectFlow
             .onEach { effect ->
                 when (effect) {
                     is ChatsEffect.Navigation -> onNavigationRequest(effect)
+                    is ChatsEffect.Err -> toast(effect.msg, ctx)
                 }
             }.collect()
     }
@@ -218,6 +223,10 @@ data class MessageUI(
 }
 
 sealed interface ChatsEffect {
+    class Err(
+        val msg: String,
+    ) : ChatsEffect
+
     sealed interface Navigation : ChatsEffect {
         class Chat(
             val chat: ru.dsaime.npchat.model.Chat,
@@ -227,6 +236,7 @@ sealed interface ChatsEffect {
 
 class ChatsViewModel(
     private val chatsService: ChatsService,
+    private val eventsService: EventsService,
 ) : BaseViewModel<ChatsEvent, ChatsState, ChatsEffect>() {
     override fun setInitialState() = ChatsState()
 
@@ -235,9 +245,24 @@ class ChatsViewModel(
     private val itemsBeforeLoading = 10
 
     init {
-
         viewModelScope.launch {
             loadNextPage()
+            eventsService
+                .onChatCreated()
+                .collect { result ->
+                    result
+                        .onSuccess { event ->
+                            val chat =
+                                Chat(
+                                    id = event.chatId,
+                                    name = event.chatId,
+                                    chiefId = event.chatId,
+                                )
+                            setState { copy(chats = listOf(chat) + chats) }
+                        }.onFailure {
+                            ChatsEffect.Err(it).emit()
+                        }
+                }
         }
     }
 

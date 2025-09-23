@@ -1,11 +1,38 @@
 package ru.dsaime.npchat.model
 
-import com.google.gson.annotations.SerializedName
-import java.time.OffsetDateTime
+sealed interface Event {
+    class ParticipantAdded(
+        val chatId: String,
+        val participant: Participant,
+    ) : Event {
+        companion object {
+            const val NAME = "participant_added"
+        }
+    }
 
+    class ParticipantRemoved(
+        val chatId: String,
+        val participant: Participant,
+    ) : Event {
+        companion object {
+            const val NAME = "participant_removed"
+        }
+    }
 
-data class Event(
-    @SerializedName("Type") val type: String, // Тип события
-    @SerializedName("CreatedIn") val createdIn: OffsetDateTime, // Время создания
-    @SerializedName("Data") val data: Map<String, Any>, // Полезная нагрузка
-)
+    class ChatNameUpdated(
+        val chatId: String,
+        val name: String,
+    ) : Event {
+        companion object {
+            const val NAME = "chat_name_updated"
+        }
+    }
+
+    class ChatCreated(
+        val chatId: String,
+    ) : Event {
+        companion object {
+            const val NAME = "chat_created"
+        }
+    }
+}

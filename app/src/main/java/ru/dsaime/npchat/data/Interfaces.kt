@@ -2,6 +2,7 @@ package ru.dsaime.npchat.data
 
 import com.github.michaelbull.result.Result
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import ru.dsaime.npchat.model.Chat
 import ru.dsaime.npchat.model.Event
 import ru.dsaime.npchat.model.Session
@@ -50,6 +51,8 @@ interface HostService {
 interface SessionsService {
     suspend fun currentSession(): Session?
 
+    fun currentSessionFlow(): StateFlow<Session?>
+
     suspend fun changeSession(session: Session)
 
     suspend fun isActual(session: Session): Boolean
@@ -59,7 +62,7 @@ interface SessionsService {
 
 // Описывает интерфейс доступа к потоку событий
 interface EventsFlowProvider {
-    suspend fun eventsFlow(session: Session): Flow<Event>
+    suspend fun eventsFlow(session: Session): Flow<Result<Event, String>>
 }
 
 interface ChatsService {
@@ -74,3 +77,13 @@ class MyChatsResult(
     val chats: List<Chat>,
     val nextPageToken: String,
 )
+
+interface EventsService {
+    fun onParticipantAdded(): Flow<Result<Event.ParticipantAdded, String>>
+
+    fun onParticipantRemoved(): Flow<Result<Event.ParticipantRemoved, String>>
+
+    fun onChatNameUpdated(): Flow<Result<Event.ChatNameUpdated, String>>
+
+    fun onChatCreated(): Flow<Result<Event.ChatCreated, String>>
+}
