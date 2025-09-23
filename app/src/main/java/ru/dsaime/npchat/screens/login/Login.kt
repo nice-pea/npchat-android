@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,7 +29,6 @@ import ru.dsaime.npchat.data.BasicAuthService
 import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.data.SessionsService
 import ru.dsaime.npchat.ui.components.Gap
-import ru.dsaime.npchat.ui.components.HostSelect
 import ru.dsaime.npchat.ui.components.Input
 import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.theme.Dp20
@@ -84,11 +84,11 @@ fun LoginScreen(
                 .padding(Dp20),
         verticalArrangement = Arrangement.Center,
     ) {
-        HostSelect(
-            host = state.host,
-            onClick = onEventSent.eventHandler(LoginEvent::SelectHost),
-            onCheckConn = onEventSent.eventHandler(LoginEvent::CheckConn),
-        )
+//        HostSelect(
+//            host = state.host,
+//            onClick = onEventSent.eventHandler(LoginEvent::SelectHost),
+//            onCheckConn = onEventSent.eventHandler(LoginEvent::CheckConn),
+//        )
         Input(
             title = "Логин",
             placeholder = "",
@@ -112,7 +112,7 @@ fun LoginScreen(
             onClick = onEventSent.eventHandler(LoginEvent.GoToRegistration),
         )
         Gap(20.dp)
-        Text("или", style = Font.Text16W400)
+        Text("или", style = Font.Text16W400, modifier = Modifier.align(Alignment.CenterHorizontally))
         Gap(20.dp)
         LeftButton(
             text = "Вход через сторонний сервис",
