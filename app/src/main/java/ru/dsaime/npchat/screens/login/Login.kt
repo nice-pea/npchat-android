@@ -2,10 +2,8 @@ package ru.dsaime.npchat.screens.login
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,14 +27,12 @@ import ru.dsaime.npchat.common.functions.toast
 import ru.dsaime.npchat.data.BasicAuthService
 import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.data.SessionsService
-import ru.dsaime.npchat.model.Host
 import ru.dsaime.npchat.ui.components.Gap
 import ru.dsaime.npchat.ui.components.HostSelect
 import ru.dsaime.npchat.ui.components.Input
 import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.theme.Dp20
 import ru.dsaime.npchat.ui.theme.Font
-import ru.dsaime.npchat.ui.theme.White
 
 @Preview(
     backgroundColor = 0xFF000000,
@@ -88,38 +84,10 @@ fun LoginScreen(
                 .padding(Dp20),
         verticalArrangement = Arrangement.Center,
     ) {
-        Row {
-            Input(
-                modifier = Modifier.weight(1f),
-                title = "Сервер",
-                placeholder = "http://example.com",
-                value = state.host,
-                onValueChange = onEventSent.eventHandler(LoginEvent::SetServer),
-                enabled = state.hostEnabled,
-            )
-            Button(onEventSent.eventHandler(LoginEvent.CheckConn)) {
-                Text(state.connStatus::class.simpleName ?: "null", color = White)
-            }
-        }
-        val fakeHosts =
-            listOf(
-                Host(url = "https://main.example.com:7877", status = Host.Status.ONLINE),
-                Host(url = "https://test.example.com/api", status = Host.Status.OFFLINE),
-                Host(url = "https://cloud.example.com/v2", status = Host.Status.INCOMPATIBLE),
-                Host(url = "https://api.example.com", status = Host.Status.UNKNOWN),
-                null
-            )
-        fakeHosts.forEach {
-            HostSelect(
-                host = it,
-                onClick = {},
-                onCheckConn = {},
-            )
-        }
         HostSelect(
-            host = Host(url = state.host, status = Host.Status.ONLINE),
-            onClick = {},
-            onCheckConn = {},
+            host = state.host,
+            onClick = onEventSent.eventHandler(LoginEvent::SelectHost),
+            onCheckConn = onEventSent.eventHandler(LoginEvent::CheckConn),
         )
         Input(
             title = "Логин",
