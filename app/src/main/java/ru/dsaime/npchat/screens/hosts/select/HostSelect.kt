@@ -106,7 +106,7 @@ class HostSelectViewModel(
 
     override fun handleEvents(event: HostSelectEvent) {
         when (event) {
-            HostSelectEvent.Add -> HostSelectEffect.Navigation.AddHost
+            HostSelectEvent.Add -> HostSelectEffect.Navigation.AddHost.emit()
             HostSelectEvent.Delete ->
                 viewModelScope.launch {
                     val baseUrl = viewState.value.selectedHost?.url ?: return@launch
