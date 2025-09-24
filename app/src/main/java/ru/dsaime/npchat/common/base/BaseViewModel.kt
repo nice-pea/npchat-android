@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
@@ -18,8 +18,8 @@ abstract class BaseViewModel<A, S, E> : ViewModel() {
 
     protected abstract fun handleEvents(event: A)
 
-    private val _viewState: MutableStateFlow<S> = MutableStateFlow(setInitialState())
-    val viewState: StateFlow<S> = _viewState
+    private val _viewState = MutableStateFlow(setInitialState())
+    val viewState = _viewState.asStateFlow()
 
     @Suppress("ktlint:standard:backing-property-naming")
     private val _event: MutableSharedFlow<A> = MutableSharedFlow()

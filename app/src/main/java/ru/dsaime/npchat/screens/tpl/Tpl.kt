@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
@@ -21,7 +22,10 @@ const val ROUTE_TPL = "Tpl"
 fun TplScreenDestination(navController: NavController) {
     val vm = koinViewModel<TplViewModel>()
     TplScreen(
-        state = vm.viewState.value,
+        state =
+            vm.viewState
+                .collectAsState()
+                .value,
         effectFlow = vm.effect,
         onEventSent = vm::setEvent,
         onNavigationRequest = {},

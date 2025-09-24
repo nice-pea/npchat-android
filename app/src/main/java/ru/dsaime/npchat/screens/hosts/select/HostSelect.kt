@@ -5,6 +5,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
@@ -28,7 +30,7 @@ object HostSelectReq
 @Composable
 fun ColumnScope.HostSelectDialogContent(onNavigationRequest: (HostSelectEffect.Navigation) -> Unit) {
     val vm = koinViewModel<HostSelectViewModel>()
-    val state = vm.viewState.value
+    val state by vm.viewState.collectAsState()
     LaunchedEffect(1) {
         vm.effect
             .onEach { effect ->
