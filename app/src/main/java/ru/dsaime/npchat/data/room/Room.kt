@@ -95,15 +95,12 @@ interface HostDao {
 @Entity
 data class SavedHost(
     @PrimaryKey @ColumnInfo("base_url") val baseUrl: String,
-    @ColumnInfo("last_used_at") val lastUsedAt: String = OffsetDateTime.now().toString(),
+    @ColumnInfo("last_used_at") val lastUsedAt: Long,
     @ColumnInfo("status") val status: String = Host.Status.UNKNOWN.name,
 ) {
-    val lastUsed: OffsetDateTime
-        get() = OffsetDateTime.parse(lastUsedAt)
-
-    constructor(host: Host) : this(
+    constructor(host: Host, lastUsedAt: Long) : this(
         baseUrl = host.url,
-        lastUsedAt = OffsetDateTime.now().toString(),
+        lastUsedAt = lastUsedAt,
         status = host.status.name,
     )
 

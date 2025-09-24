@@ -80,7 +80,7 @@ fun LoginScreen(
         HostSelect(
             host = state.host,
             onClick = onEventSent.eventHandler(LoginEvent.SelectHost),
-            onCheckConn = onEventSent.eventHandler(LoginEvent.CheckConn),
+            onCheckConn = {},
         )
         Input(
             title = "Логин",

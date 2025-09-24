@@ -18,7 +18,7 @@ import ru.dsaime.npchat.common.functions.tickerFlow
 import ru.dsaime.npchat.data.room.AppDatabase
 import ru.dsaime.npchat.data.room.SavedHost
 import ru.dsaime.npchat.model.Host
-import java.time.OffsetDateTime
+import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Duration.Companion.seconds
 
@@ -59,7 +59,7 @@ class HostServiceBase(
         db
             .hostDao()
             .getAllFlow()
-            .map { it.sortedByDescending { it.lastUsed } }
+            .map { it.sortedByDescending { it.lastUsedAt } }
             .map { it.map { it.toModel() } }
             .transformLatest { hosts ->
                 // Установить значение, даже если хостов нет
@@ -88,7 +88,7 @@ class HostServiceBase(
     override suspend fun changeHost(host: Host) {
         if (host.url.isBlank()) error("Host url cannot be empty")
         // Сохраняем в room
-        val savedHost = SavedHost(host)
+        val savedHost = SavedHost(host, Instant.now().epochSecond)
         db.hostDao().upsert(savedHost)
         // Обновляем текущий хост
         currentSavedHostFlow.emit(savedHost)
@@ -120,7 +120,7 @@ class HostServiceBase(
         db.hostDao().upsert(
             SavedHost(
                 baseUrl = host.url,
-                lastUsedAt = OffsetDateTime.MIN.toString(),
+                lastUsedAt = 0,
                 status = Host.Status.UNKNOWN.name,
             ),
         )
@@ -132,7 +132,11 @@ class HostServiceBase(
     private val currentSavedHostFlow = MutableStateFlow<SavedHost?>(null)
 
     // Возвращает сохраненные хосты
-    private suspend fun savedHosts(): List<SavedHost> = db.hostDao().getAll().sortedByDescending { it.lastUsed }
+    private suspend fun savedHosts(): List<SavedHost> =
+        db
+            .hostDao()
+            .getAll()
+            .sortedByDescending { it.lastUsedAt }
 
     // Возвращает хост по специальному алгоритму
     private suspend fun preferredHost(): SavedHost? =
@@ -140,7 +144,7 @@ class HostServiceBase(
             // Получаем сохраненные хосты, если их нет, то возвращаем null
             val hosts = savedHosts().ifEmpty { return null }
             // Выбираем последний использованный
-            val currentHost = hosts.maxByOrNull { it.lastUsed }
+            val currentHost = hosts.maxByOrNull { it.lastUsedAt }
             // Если текущий хост не задан, то возвращаем первый из списка
             return currentHost ?: hosts.first()
         }
