@@ -38,15 +38,14 @@ interface BasicAuthService {
 interface HostService {
     suspend fun currentBaseUrl(): String?
 
-    fun currentBaseUrlFlow(): StateFlow<String?>
+    fun currentHostFlow(): StateFlow<Host?>
+//    fun currentBaseUrlFlow(): StateFlow<String?>
 
-    suspend fun changeBaseUrl(baseUrl: String)
+    suspend fun changeHost(host: Host)
 
     suspend fun deleteBaseUrl(baseUrl: String)
 
-    suspend fun savedBaseUrls(): List<String>
-
-//    fun savedHostsFlow(): StateFlow<List<Host>>
+    fun hostsFlow(): StateFlow<List<Host>>
 
     suspend fun status(baseUrl: String): Host.Status
 

@@ -2,16 +2,21 @@ package ru.dsaime.npchat.data
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
+import ru.dsaime.npchat.common.functions.runSuspend
 import ru.dsaime.npchat.common.functions.tickerFlow
 import ru.dsaime.npchat.data.room.AppDatabase
-import ru.dsaime.npchat.data.room.KnownHost
+import ru.dsaime.npchat.data.room.SavedHost
 import ru.dsaime.npchat.model.Host
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Duration.Companion.seconds
@@ -24,46 +29,89 @@ class HostServiceBase(
     init {
         // Инициализация flow с выбранным хостом
         coroutineScope.launch {
-            currentHostFlow.emit(preferredHost())
+            currentSavedHostFlow.emit(preferredHost())
         }
     }
 
-    // Возвращает flow с baseUrl выбранного хоста
-    override fun currentBaseUrlFlow() =
-        currentHostFlow
-            .map { it?.baseUrl }
-            .stateIn(
+    // Возвращает flow с выбранным хостом
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun currentHostFlow() =
+        currentSavedHostFlow
+            .map { it?.toModel() }
+            .transformLatest { host ->
+                // Установить значение, даже если равно null
+                emit(host)
+                // Проверять доступность хоста и обновлять значение
+                if (host != null) {
+                    statusFlow(host.url).collect { status ->
+                        emit(host.copy(status = status))
+                    }
+                }
+            }.stateIn(
                 scope = coroutineScope,
                 started = SharingStarted.Eagerly,
-                initialValue = currentHostFlow.value?.baseUrl,
+                initialValue = currentSavedHostFlow.value?.toModel(),
+            )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun hostsFlow() =
+        db
+            .hostDao()
+            .getAllFlow()
+            .map { it.sortedByDescending { it.lastUsed } }
+            .map { it.map { it.toModel() } }
+            .transformLatest { hosts ->
+                // Установить значение, даже если хостов нет
+                emit(hosts)
+                if (hosts.isEmpty()) return@transformLatest
+                // Проверять доступность всех хостов и обновлять значение
+                tickerFlow(1.seconds).collect {
+                    coroutineScope
+                        .async {
+                            hosts
+                                // Асинхронно получить статусы всех хостов
+                                .map {
+                                    async { it.copy(status = status(it.url)) }
+                                }.awaitAll()
+                                // Ждать, пока все хосты будут обработаны и обновить значение
+                                .runSuspend(::emit)
+                        }.await()
+                }
+            }.stateIn(
+                scope = coroutineScope,
+                started = SharingStarted.Eagerly,
+                initialValue = emptyList(),
             )
 
     // Изменяет выбранный хост
-    override suspend fun changeBaseUrl(baseUrl: String) {
-        if (baseUrl.isBlank()) error("Host cannot be empty")
-        val host = KnownHost(baseUrl)
+    override suspend fun changeHost(host: Host) {
+        if (host.url.isBlank()) error("Host url cannot be empty")
         // Сохраняем в room
-        db.hostDao().upsert(host)
+        val savedHost = SavedHost(host)
+        db.hostDao().upsert(savedHost)
         // Обновляем текущий хост
-        currentHostFlow.emit(host)
+        currentSavedHostFlow.emit(savedHost)
     }
 
     override suspend fun deleteBaseUrl(baseUrl: String) {
-        db.hostDao().delete(KnownHost(baseUrl))
+        db.hostDao().delete(SavedHost(baseUrl))
     }
 
     // Возвращает список сохраненных baseUrls
-    override suspend fun savedBaseUrls() = savedHosts().map { it.baseUrl }
+//    override suspend fun savedBaseUrls() = savedHosts().map { it.baseUrl }
 
-    // Возвращает flow с сохраненными хостами
-//    override fun savedHostsFlow(): StateFlow<List<Host>> {
-//        db.hostDao().getAllFlow()
+    // Возвращает flow с сохраненными baseUrls
+//    override fun savedBaseUrlsFlow() =
+//        db
+//            .hostDao()
+//            .getAllFlow()
 //            .map { it.sortedByDescending { it.lastUsed } }
-//            .transformLatest { hosts ->
-//
-//            }
-//
-//    }
+//            .map { it.map { it.baseUrl } }
+//            .stateIn(
+//                scope = coroutineScope,
+//                started = SharingStarted.Eagerly,
+//                initialValue = emptyList(),
+//            )
 
     // Проверяет доступность хоста
     override suspend fun status(baseUrl: String) = api.ping(baseUrl).toHostStatus()
@@ -85,13 +133,13 @@ class HostServiceBase(
     private val statusFlowCache = ConcurrentHashMap<String, StateFlow<Host.Status>>()
 
     // Выбранный хост
-    private val currentHostFlow = MutableStateFlow<KnownHost?>(null)
+    private val currentSavedHostFlow = MutableStateFlow<SavedHost?>(null)
 
     // Возвращает сохраненные хосты
-    private suspend fun savedHosts(): List<KnownHost> = db.hostDao().getAll().sortedByDescending { it.lastUsed }
+    private suspend fun savedHosts(): List<SavedHost> = db.hostDao().getAll().sortedByDescending { it.lastUsed }
 
     // Возвращает хост по специальному алгоритму
-    private suspend fun preferredHost(): KnownHost? =
+    private suspend fun preferredHost(): SavedHost? =
         with(Dispatchers.IO) {
             // Получаем сохраненные хосты, если их нет, то возвращаем null
             val hosts = savedHosts().ifEmpty { return null }

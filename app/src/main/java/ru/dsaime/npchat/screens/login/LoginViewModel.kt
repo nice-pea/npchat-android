@@ -12,8 +12,6 @@ import ru.dsaime.npchat.data.SessionsService
 import ru.dsaime.npchat.model.Host
 
 sealed interface LoginEvent {
-    object CheckConn : LoginEvent
-
     object SelectHost : LoginEvent
 
     object Enter : LoginEvent
@@ -69,41 +67,19 @@ class LoginViewModel(
 
     // Обновляет хост при каждом изменении currentHost
     private suspend fun subscribeToHostChanges() {
-        hostService.currentBaseUrlFlow().collectLatest { baseUrl ->
-            if (baseUrl == null || baseUrl.isBlank()) {
-                setState { copy(host = null) }
-            } else {
-                setState { copy(host = Host(baseUrl, Host.Status.UNKNOWN)) }
-                // Обновлять статус хоста
-//                if (baseUrl = null) {
-                hostService.statusFlow(baseUrl).collectLatest { status ->
-                    setState { copy(host = host?.copy(status = status)) }
-                }
-//                }
-            }
+        hostService.currentHostFlow().collectLatest { host ->
+            setState { copy(host = host) }
         }
     }
 
-    // Проверяет подключение к серверу и обновляет отображаемое состояние
-    private suspend fun checkConn() {
-//        val host =
-//            viewState.value.host ?: run {
-//                setState { copy(connStatus = LoginConnStatus.None) }
-//                return // Если хост не установлен, выходим
-//            }
-//        val pingResult = hostService.ping(host.url)
-//        val status = if (pingResult) LoginConnStatus.Ok else LoginConnStatus.Err
-//        setState { copy(connStatus = status) }
-    }
-
     private suspend fun enter() {
-        val hostUrl =
-            viewState.value.host?.url.orEmpty().ifBlank {
-                LoginEffect.ShowError("host не установлен").emit()
-                return
-            }
+        val host = viewState.value.host
+        if (host == null || host.url.isBlank()) {
+            LoginEffect.ShowError("host не установлен").emit()
+            return
+        }
 
-        if (viewState.value.host?.status != Host.Status.ONLINE) {
+        if (host.status != Host.Status.ONLINE) {
             LoginEffect.ShowError("нет соединения с сервером").emit()
             return
         }
@@ -112,21 +88,18 @@ class LoginViewModel(
             .login(
                 login = viewState.value.login,
                 pass = viewState.value.password,
-                host = hostUrl,
+                host = host.url,
             ).onSuccess {
                 sessionsService.changeSession(it.session)
-                hostService.changeBaseUrl(hostUrl)
+                hostService.changeHost(host)
                 LoginEffect.Navigation.Home.emit()
             }.onFailure { message ->
                 LoginEffect.ShowError(message).emit()
             }
     }
 
-    //    override fun setInitialState(): LoginState = LoginState()
-
     override fun handleEvents(event: LoginEvent) {
         when (event) {
-            LoginEvent.CheckConn -> viewModelScope.launch { checkConn() }
             LoginEvent.Enter -> viewModelScope.launch { enter() }
             LoginEvent.GoToOAuth -> LoginEffect.Navigation.OAuth.emit()
             LoginEvent.GoToRegistration -> LoginEffect.Navigation.Registration.emit()

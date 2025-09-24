@@ -1,4 +1,4 @@
-package ru.dsaime.npchat.screens.hosts.select
+package ru.dsaime.npchat.screens.hosts.add
 
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -22,18 +22,18 @@ import ru.dsaime.npchat.ui.dialog.BottomDialogHeader
 import ru.dsaime.npchat.ui.theme.Dp16
 import ru.dsaime.npchat.ui.theme.Font
 
-object HostSelectReq
+object AddHostReq
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ColumnScope.HostSelectDialogContent(onNavigationRequest: (HostSelectEffect.Navigation) -> Unit) {
-    val vm = koinViewModel<HostSelectViewModel>()
+fun ColumnScope.AddHostDialogContent(onNavigationRequest: (AddHostEffect.Navigation) -> Unit) {
+    val vm = koinViewModel<AddHostViewModel>()
     val state = vm.viewState.value
     LaunchedEffect(1) {
         vm.effect
             .onEach { effect ->
                 when (effect) {
-                    is HostSelectEffect.Navigation -> onNavigationRequest(effect)
+                    is AddHostEffect.Navigation -> onNavigationRequest(effect)
                 }
             }.collect()
     }
@@ -42,7 +42,7 @@ fun ColumnScope.HostSelectDialogContent(onNavigationRequest: (HostSelectEffect.N
     state.hosts.forEach { host ->
         RadioButton(
             text = host.url,
-            onClick = vm.eventHandler(HostSelectEvent.Select(host)),
+            onClick = vm.eventHandler(AddHostEvent.Select(host)),
             selected = host.url == state.selectedHost?.url,
             icon = { HostStatusIcon(host.status) },
         )
@@ -51,39 +51,39 @@ fun ColumnScope.HostSelectDialogContent(onNavigationRequest: (HostSelectEffect.N
         Text("Нет доступных серверов", style = Font.Text16W400)
     }
     Gap(Dp16)
-    LeftButton("Добавить", vm.eventHandler(HostSelectEvent.Add))
+    LeftButton("Добавить", vm.eventHandler(AddHostEvent.Add))
     if (state.selectedHost != null) {
-        LeftButton("Удалить выбранный", vm.eventHandler(HostSelectEvent.Delete), isRight = true)
+        LeftButton("Удалить выбранный", vm.eventHandler(AddHostEvent.Delete), isRight = true)
     }
 }
 
-sealed interface HostSelectEvent {
-    object Add : HostSelectEvent
+sealed interface AddHostEvent {
+    object Add : AddHostEvent
 
-    object Delete : HostSelectEvent
+    object Delete : AddHostEvent
 
     class Select(
         val host: Host,
-    ) : HostSelectEvent
+    ) : AddHostEvent
 }
 
-data class HostSelectState(
+data class AddHostState(
     val hosts: List<Host> = emptyList(),
     val selectedHost: Host? = null,
 )
 
-sealed interface HostSelectEffect {
-    sealed interface Navigation : HostSelectEffect {
+sealed interface AddHostEffect {
+    sealed interface Navigation : AddHostEffect {
         object Close : Navigation
 
-        object AddHost : Navigation
+        object Back : Navigation
     }
 }
 
-class HostSelectViewModel(
+class AddHostViewModel(
     private val hostService: HostService,
-) : BaseViewModel<HostSelectEvent, HostSelectState, HostSelectEffect>() {
-    override fun setInitialState() = HostSelectState()
+) : BaseViewModel<AddHostEvent, AddHostState, AddHostEffect>() {
+    override fun setInitialState() = AddHostState()
 
     init {
         viewModelScope.launch {
@@ -93,30 +93,33 @@ class HostSelectViewModel(
     }
 
     // Обновлять выбранный хост
-    private suspend fun subscribeToCurrentHostChanges() =
+    private suspend fun subscribeToCurrentHostChanges() {
         hostService.currentHostFlow().collectLatest { host ->
             setState { copy(selectedHost = host) }
         }
+    }
 
     // Обновлять список хостов
-    private suspend fun subscribeToHostChanges() =
+    private suspend fun subscribeToHostChanges() {
         hostService.hostsFlow().collectLatest { hosts ->
-            setState { copy(hosts = hosts.sortedBy { it.url }) }
+            setState { copy(hosts = hosts) }
         }
+    }
 
-    override fun handleEvents(event: HostSelectEvent) {
+    override fun handleEvents(event: AddHostEvent) {
         when (event) {
-            HostSelectEvent.Add -> HostSelectEffect.Navigation.AddHost
-            HostSelectEvent.Delete ->
+            AddHostEvent.Add -> {}
+            AddHostEvent.Delete ->
                 viewModelScope.launch {
                     val baseUrl = viewState.value.selectedHost?.url ?: return@launch
                     hostService.deleteBaseUrl(baseUrl)
                 }
 
-            is HostSelectEvent.Select ->
+            is AddHostEvent.Select -> {
                 viewModelScope.launch {
                     hostService.changeHost(event.host)
                 }
+            }
         }
     }
 }

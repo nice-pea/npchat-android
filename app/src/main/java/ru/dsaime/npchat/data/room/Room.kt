@@ -11,9 +11,10 @@ import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.RoomDatabase
 import kotlinx.coroutines.flow.Flow
+import ru.dsaime.npchat.model.Host
 import java.time.OffsetDateTime
 
-@Database(entities = [Session::class, KnownHost::class], version = 1)
+@Database(entities = [Session::class, SavedHost::class], version = 1)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun sessionDao(): SessionDao
 
@@ -79,24 +80,40 @@ data class Session(
 
 @Dao
 interface HostDao {
-    @Query("SELECT * FROM KnownHost")
-    suspend fun getAll(): List<KnownHost>
+    @Query("SELECT * FROM SavedHost")
+    suspend fun getAll(): List<SavedHost>
 
-    @Query("SELECT * FROM KnownHost")
-    fun getAllFlow(): Flow<List<KnownHost>>
+    @Query("SELECT * FROM SavedHost")
+    fun getAllFlow(): Flow<List<SavedHost>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsert(vararg hosts: KnownHost)
+    suspend fun upsert(vararg hosts: SavedHost)
 
     @Delete
-    suspend fun delete(host: KnownHost)
+    suspend fun delete(host: SavedHost)
 }
 
 @Entity
-data class KnownHost(
+data class SavedHost(
     @PrimaryKey @ColumnInfo("base_url") val baseUrl: String,
     @ColumnInfo("last_used_at") val lastUsedAt: String = OffsetDateTime.now().toString(),
+    @ColumnInfo("status") val status: String = Host.Status.UNKNOWN.name,
 ) {
     val lastUsed: OffsetDateTime
         get() = OffsetDateTime.parse(lastUsedAt)
+
+    constructor(host: Host) : this(
+        baseUrl = host.url,
+        lastUsedAt = OffsetDateTime.now().toString(),
+        status = host.status.name,
+    )
+
+    fun toModel() =
+        Host(
+            url = baseUrl,
+            status =
+                Host.Status.entries
+                    .find { it.name == status }
+                    ?: Host.Status.UNKNOWN,
+        )
 }

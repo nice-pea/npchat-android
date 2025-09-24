@@ -14,8 +14,8 @@ class InitialCallback(
         super.onCreate(db)
         CoroutineScope(Dispatchers.IO).launch {
             koinScope.get<AppDatabase>().hostDao().upsert(
-                KnownHost(baseUrl = "http://localhost:8080"),
-                KnownHost(baseUrl = "https://api.npchat.dsaime.ru:443"),
+                SavedHost(baseUrl = "http://localhost:8080"),
+                SavedHost(baseUrl = "https://api.npchat.dsaime.ru:443"),
             )
         }
     }
