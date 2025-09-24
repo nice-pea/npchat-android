@@ -82,9 +82,6 @@ interface HostDao {
     @Query("SELECT * FROM Host")
     suspend fun getAll(): List<Host>
 
-//    @Query("SELECT * FROM Host WHERE base_url IN (:ids)")
-//    fun loadAllByIds(ids: IntArray): List<Host>
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(vararg hosts: Host)
 

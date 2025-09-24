@@ -49,7 +49,7 @@ val appModule =
         single<BaseUrlProvider> {
             BaseUrlProvider {
                 runBlocking {
-                    get<HostService>().currentHost().orEmpty()
+                    get<HostService>().currentBaseUrl().orEmpty()
                 }
             }
         }

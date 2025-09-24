@@ -12,23 +12,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewModelScope
-import com.github.michaelbull.result.onFailure
-import com.github.michaelbull.result.onSuccess
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
-import ru.dsaime.npchat.common.base.BaseViewModel
 import ru.dsaime.npchat.common.base.eventHandler
 import ru.dsaime.npchat.common.functions.ToastDuration
 import ru.dsaime.npchat.common.functions.toast
-import ru.dsaime.npchat.data.BasicAuthService
-import ru.dsaime.npchat.data.HostService
-import ru.dsaime.npchat.data.SessionsService
 import ru.dsaime.npchat.ui.components.Gap
+import ru.dsaime.npchat.ui.components.HostSelect
 import ru.dsaime.npchat.ui.components.Input
 import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.theme.Dp20
@@ -84,11 +77,11 @@ fun LoginScreen(
                 .padding(Dp20),
         verticalArrangement = Arrangement.Center,
     ) {
-//        HostSelect(
-//            host = state.host,
-//            onClick = onEventSent.eventHandler(LoginEvent::SelectHost),
-//            onCheckConn = onEventSent.eventHandler(LoginEvent::CheckConn),
-//        )
+        HostSelect(
+            host = state.host,
+            onClick = onEventSent.eventHandler(LoginEvent.SelectHost),
+            onCheckConn = onEventSent.eventHandler(LoginEvent.CheckConn),
+        )
         Input(
             title = "Логин",
             placeholder = "",
@@ -118,130 +111,5 @@ fun LoginScreen(
             text = "Вход через сторонний сервис",
             onClick = onEventSent.eventHandler(LoginEvent.GoToOAuth),
         )
-    }
-}
-
-sealed interface LoginEvent {
-    object CheckConn : LoginEvent
-
-    object Enter : LoginEvent
-
-    object GoToRegistration : LoginEvent
-
-    object GoToOAuth : LoginEvent
-
-    class SetServer(
-        val value: String,
-    ) : LoginEvent
-
-    class SetLogin(
-        val value: String,
-    ) : LoginEvent
-
-    class SetPassword(
-        val value: String,
-    ) : LoginEvent
-
-    object GoToTest : LoginEvent
-}
-
-data class LoginState(
-    val host: String = "",
-    val hostEnabled: Boolean = false,
-    val connStatus: LoginConnStatus = LoginConnStatus.None,
-    val login: String = "",
-    val password: String = "",
-    val isLoading: Boolean = false,
-)
-
-sealed interface LoginConnStatus {
-    object Ok : LoginConnStatus
-
-    object Err : LoginConnStatus
-
-    object None : LoginConnStatus
-}
-
-sealed interface LoginEffect {
-    data class ShowError(
-        val msg: String,
-    ) : LoginEffect
-
-    sealed interface Navigation : LoginEffect {
-        object Test : Navigation
-
-        object OAuth : Navigation
-
-        object Registration : Navigation
-
-        object Home : Navigation
-    }
-}
-
-class LoginViewModel(
-    private val authService: BasicAuthService,
-    private val hostService: HostService,
-    private val sessionsService: SessionsService,
-) : BaseViewModel<LoginEvent, LoginState, LoginEffect>() {
-    init {
-        viewModelScope.launch {
-            val prefHost = hostService.preferredHost()
-            setState { copy(host = prefHost.orEmpty()) }
-        }
-    }
-
-    private suspend fun checkConn() {
-        val status =
-            if (hostService.ping(viewState.value.host)) {
-                LoginConnStatus.Ok
-            } else {
-                LoginConnStatus.Err
-            }
-        setState { copy(connStatus = status) }
-    }
-
-    private suspend fun enter() {
-        val host =
-            viewState.value.host.ifBlank {
-                LoginEffect.ShowError("host не установлен").emit()
-                return
-            }
-
-        if (viewState.value.connStatus == LoginConnStatus.None) {
-            checkConn()
-        }
-        if (viewState.value.connStatus == LoginConnStatus.Err) {
-            LoginEffect.ShowError("нет соединения с сервером").emit()
-            return
-        }
-
-        authService
-            .login(
-                login = viewState.value.login,
-                pass = viewState.value.password,
-                host = host,
-            ).onSuccess {
-                sessionsService.changeSession(it.session)
-                hostService.changeHost(host)
-                LoginEffect.Navigation.Home.emit()
-            }.onFailure { message ->
-                LoginEffect.ShowError(message).emit()
-            }
-    }
-
-    //    override fun setInitialState(): LoginState = LoginState()
-    override fun setInitialState(): LoginState = LoginState()
-
-    override fun handleEvents(event: LoginEvent) {
-        when (event) {
-            LoginEvent.CheckConn -> viewModelScope.launch { checkConn() }
-            LoginEvent.Enter -> viewModelScope.launch { enter() }
-            LoginEvent.GoToOAuth -> LoginEffect.Navigation.OAuth.emit()
-            LoginEvent.GoToRegistration -> LoginEffect.Navigation.Registration.emit()
-            is LoginEvent.SetLogin -> setState { copy(login = event.value) }
-            is LoginEvent.SetPassword -> setState { copy(password = event.value) }
-            is LoginEvent.SetServer -> setState { copy(host = event.value) }
-            LoginEvent.GoToTest -> LoginEffect.Navigation.Test.emit()
-        }
     }
 }

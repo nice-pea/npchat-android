@@ -35,16 +35,15 @@ interface BasicAuthService {
 
 // Описывает интерфейс работы с хостами
 interface HostService {
-    suspend fun currentHost(): String?
+    suspend fun currentBaseUrl(): String?
 
-    suspend fun changeHost(host: String)
+    fun currentBaseUrlFlow(): StateFlow<String?>
 
-    suspend fun known(): List<String>
+    suspend fun changeBaseUrl(baseUrl: String)
 
-    // Возвращает сервер по специальному алгоритму
-    suspend fun preferredHost(): String?
+    suspend fun savedBaseUrls(): List<String>
 
-    suspend fun ping(host: String): Boolean
+    suspend fun ping(baseUrl: String): Boolean
 }
 
 // Описывает интерфейс работы с сессией

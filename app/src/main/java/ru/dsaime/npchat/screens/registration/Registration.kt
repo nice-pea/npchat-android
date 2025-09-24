@@ -173,8 +173,8 @@ class RegistrationViewModel(
     init {
         viewModelScope
             .launch {
-                val prefHost = hostService.preferredHost()
-                setState { copy(host = prefHost.orEmpty()) }
+                val baseUrl = hostService.currentBaseUrl()
+                setState { copy(host = baseUrl.orEmpty()) }
             }.invokeOnCompletion {
                 setState { copy(hostEnabled = true) }
             }
@@ -216,7 +216,7 @@ class RegistrationViewModel(
                 host = host,
             ).onSuccess {
                 sessionsService.changeSession(it.session)
-                hostService.changeHost(host)
+                hostService.changeBaseUrl(host)
                 RegistrationEffect.Navigation.Home.emit()
             }.onFailure { message ->
                 RegistrationEffect.ShowError(message).emit()

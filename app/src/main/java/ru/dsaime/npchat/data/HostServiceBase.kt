@@ -1,42 +1,70 @@
 package ru.dsaime.npchat.data
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import ru.dsaime.npchat.data.room.AppDatabase
 import ru.dsaime.npchat.data.room.Host
 
 class HostServiceBase(
     private val api: NPChatApi,
     private val db: AppDatabase,
+    private val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
 ) : HostService {
-    override suspend fun currentHost() =
+    private val currentHostFlow = MutableStateFlow<Host?>(null)
+
+    // Возвращает сохраненные хосты
+    private suspend fun savedHosts(): List<Host> = db.hostDao().getAll().sortedByDescending { it.lastUsed }
+
+    // Возвращает хост по специальному алгоритму
+    private suspend fun preferredHost(): Host? =
         with(Dispatchers.IO) {
-            db
-                .hostDao()
-                .getAll()
-                .maxByOrNull { it.lastUsed }
-                ?.baseUrl
+            // Получаем сохраненные хосты, если их нет, то возвращаем null
+            val hosts = savedHosts().ifEmpty { return null }
+            // Выбираем последний использованный
+            val currentHost = hosts.maxByOrNull { it.lastUsed }
+            // Если текущий хост не задан, то возвращаем первый из списка
+            return currentHost ?: hosts.first()
         }
 
-    override suspend fun changeHost(host: String) {
-        db.hostDao().upsert(Host(baseUrl = host))
-    }
-
-    override suspend fun known(): List<String> =
-        db
-            .hostDao()
-            .getAll()
-            .sortedByDescending { it.lastUsed }
-            .map { it.baseUrl }
-
-    // Возвращает сервер по специальному алгоритму
-    override suspend fun preferredHost(): String? {
-        val current = currentHost()
-        if (current != null && current.isNotBlank()) {
-            return current
+    init {
+        // Инициализация текущего хоста
+        coroutineScope.launch {
+            currentHostFlow.emit(preferredHost())
         }
-
-        return known().firstOrNull()
     }
 
-    override suspend fun ping(host: String) = api.ping(host).isSuccess
+    // Возвращает baseUrl выбранного хоста
+    override suspend fun currentBaseUrl() = preferredHost()?.baseUrl
+
+    // Возвращает flow с baseUrl выбранного хоста
+    override fun currentBaseUrlFlow() =
+        currentHostFlow
+            .map { it?.baseUrl }
+            .stateIn(
+                scope = coroutineScope,
+                started = SharingStarted.Eagerly,
+                initialValue = currentHostFlow.value?.baseUrl,
+            )
+
+    // Изменяет выбранный хост
+    override suspend fun changeBaseUrl(baseUrl: String) {
+        if (baseUrl.isBlank()) error("Host cannot be empty")
+        val host = Host(baseUrl)
+        // Сохраняем в room
+        db.hostDao().upsert(host)
+        // Обновляем текущий хост
+        currentHostFlow.emit(host)
+    }
+
+    // Возвращает список сохраненных baseUrls
+    override suspend fun savedBaseUrls() = savedHosts().map { it.baseUrl }
+
+    // Проверяет доступность хоста
+    override suspend fun ping(baseUrl: String) = api.ping(baseUrl).isSuccess
 }
