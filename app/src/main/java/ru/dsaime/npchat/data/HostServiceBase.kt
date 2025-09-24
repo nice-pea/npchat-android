@@ -5,11 +5,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import ru.dsaime.npchat.common.functions.tickerFlow
 import ru.dsaime.npchat.data.room.AppDatabase
-import ru.dsaime.npchat.data.room.Host
+import ru.dsaime.npchat.data.room.KnownHost
+import ru.dsaime.npchat.model.Host
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.time.Duration.Companion.seconds
 
 class HostServiceBase(
     private val api: NPChatApi,
@@ -36,7 +41,7 @@ class HostServiceBase(
     // Изменяет выбранный хост
     override suspend fun changeBaseUrl(baseUrl: String) {
         if (baseUrl.isBlank()) error("Host cannot be empty")
-        val host = Host(baseUrl)
+        val host = KnownHost(baseUrl)
         // Сохраняем в room
         db.hostDao().upsert(host)
         // Обновляем текущий хост
@@ -44,7 +49,7 @@ class HostServiceBase(
     }
 
     override suspend fun deleteBaseUrl(baseUrl: String) {
-        db.hostDao().delete(Host(baseUrl))
+        db.hostDao().delete(KnownHost(baseUrl))
     }
 
     // Возвращает список сохраненных baseUrls
@@ -53,14 +58,31 @@ class HostServiceBase(
     // Проверяет доступность хоста
     override suspend fun ping(baseUrl: String) = api.ping(baseUrl).isSuccess
 
+    // Written with gigacode
+    // Возвращает flow со статусом хоста
+    override fun statusFlow(baseUrl: String): StateFlow<Host.Status> =
+        statusFlowCache.getOrPut(baseUrl) {
+            tickerFlow(1.seconds)
+                .map { api.ping(baseUrl).isSuccess }
+                .map { if (it) Host.Status.ONLINE else Host.Status.OFFLINE }
+                .stateIn(
+                    scope = coroutineScope,
+                    started = SharingStarted.WhileSubscribed(5_000),
+                    initialValue = Host.Status.UNKNOWN,
+                )
+        }
+
+    // Кэш flow со статусом хоста
+    private val statusFlowCache = ConcurrentHashMap<String, StateFlow<Host.Status>>()
+
     // Выбранный хост
-    private val currentHostFlow = MutableStateFlow<Host?>(null)
+    private val currentHostFlow = MutableStateFlow<KnownHost?>(null)
 
     // Возвращает сохраненные хосты
-    private suspend fun savedHosts(): List<Host> = db.hostDao().getAll().sortedByDescending { it.lastUsed }
+    private suspend fun savedHosts(): List<KnownHost> = db.hostDao().getAll().sortedByDescending { it.lastUsed }
 
     // Возвращает хост по специальному алгоритму
-    private suspend fun preferredHost(): Host? =
+    private suspend fun preferredHost(): KnownHost? =
         with(Dispatchers.IO) {
             // Получаем сохраненные хосты, если их нет, то возвращаем null
             val hosts = savedHosts().ifEmpty { return null }

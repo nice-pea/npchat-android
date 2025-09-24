@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -23,6 +24,7 @@ import ru.dsaime.npchat.ui.theme.ColorBG
 import ru.dsaime.npchat.ui.theme.ColorHostOffline
 import ru.dsaime.npchat.ui.theme.DarkGray
 import ru.dsaime.npchat.ui.theme.Dp10
+import ru.dsaime.npchat.ui.theme.Dp16
 import ru.dsaime.npchat.ui.theme.Dp2
 import ru.dsaime.npchat.ui.theme.Dp8
 import ru.dsaime.npchat.ui.theme.Font
@@ -61,7 +63,7 @@ private fun RadioButtonPreview() {
             selected = true,
             icon = {
                 Icon(Icons.Filled.Delete, null, tint = ColorHostOffline)
-            }
+            },
         )
     }
 }
@@ -72,7 +74,7 @@ fun RadioButton(
     onClick: () -> Unit,
     selected: Boolean,
     modifier: Modifier = Modifier,
-    icon: @Composable () -> Unit = {},
+    icon: (@Composable () -> Unit)? = null,
     helperText: String = "",
 ) {
     Column(
@@ -95,7 +97,11 @@ fun RadioButton(
                     .size(Dp10)
                     .background(if (selected) White else DarkGray),
             )
-            icon()
+            if (icon != null) {
+                Box(Modifier.heightIn(max = Dp16)) {
+                    icon()
+                }
+            }
             Text(text, style = Font.Text14W400, modifier = Modifier.weight(1f))
         }
         if (helperText != "") {

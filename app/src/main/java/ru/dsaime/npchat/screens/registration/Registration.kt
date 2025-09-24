@@ -24,7 +24,6 @@ import ru.dsaime.npchat.common.functions.toast
 import ru.dsaime.npchat.data.BasicAuthService
 import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.data.SessionsService
-import ru.dsaime.npchat.screens.login.LoginConnStatus
 import ru.dsaime.npchat.ui.components.Input
 import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.theme.Dp20
@@ -199,13 +198,13 @@ class RegistrationViewModel(
                 return
             }
 
-        if (viewState.value.connStatus == LoginConnStatus.None) {
-            checkConn()
-        }
-        if (viewState.value.connStatus == LoginConnStatus.Err) {
-            RegistrationEffect.ShowError("нет соединения с сервером").emit()
-            return
-        }
+//        if (viewState.value.host == LoginConnStatus.None) {
+//            checkConn()
+//        }
+//        if (viewState.value.connStatus == LoginConnStatus.Err) {
+//            RegistrationEffect.ShowError("нет соединения с сервером").emit()
+//            return
+//        }
 
         authService
             .registration(

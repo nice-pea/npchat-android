@@ -1,28 +1,32 @@
 package ru.dsaime.npchat.screens.hosts.select
 
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import ru.dsaime.npchat.common.base.BaseViewModel
 import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.model.Host
+import ru.dsaime.npchat.ui.components.Gap
 import ru.dsaime.npchat.ui.components.HostStatusIcon
 import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.components.RadioButton
 import ru.dsaime.npchat.ui.dialog.BottomDialogHeader
+import ru.dsaime.npchat.ui.theme.Dp16
 import ru.dsaime.npchat.ui.theme.Font
 
 object HostSelectReq
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HostSelectDialogContent(onNavigationRequest: (HostSelectEffect.Navigation) -> Unit) {
+fun ColumnScope.HostSelectDialogContent(onNavigationRequest: (HostSelectEffect.Navigation) -> Unit) {
     val vm = koinViewModel<HostSelectViewModel>()
     val state = vm.viewState.value
     LaunchedEffect(1) {
@@ -46,7 +50,7 @@ fun HostSelectDialogContent(onNavigationRequest: (HostSelectEffect.Navigation) -
     if (state.hosts.isEmpty()) {
         Text("Нет доступных серверов", style = Font.Text16W400)
     }
-
+    Gap(Dp16)
     LeftButton("Добавить", vm.eventHandler(HostSelectEvent.Add))
     if (state.selectedHost != null) {
         LeftButton("Удалить выбранный", vm.eventHandler(HostSelectEvent.Delete), isRight = true)
@@ -91,7 +95,8 @@ class HostSelectViewModel(
     }
 
     private suspend fun subscribeToHostChanges() {
-        hostService.currentBaseUrlFlow().collect { currentHost ->
+        hostService.currentBaseUrlFlow().collectLatest { currentHost ->
+            // Обновлять выбранный хост
             val host = if (currentHost != null) Host(currentHost, Host.Status.UNKNOWN) else null
             setState { copy(selectedHost = host) }
         }

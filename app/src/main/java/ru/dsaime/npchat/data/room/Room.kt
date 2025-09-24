@@ -13,7 +13,7 @@ import androidx.room.RoomDatabase
 import kotlinx.coroutines.flow.Flow
 import java.time.OffsetDateTime
 
-@Database(entities = [Session::class, Host::class], version = 1)
+@Database(entities = [Session::class, KnownHost::class], version = 1)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun sessionDao(): SessionDao
 
@@ -79,18 +79,18 @@ data class Session(
 
 @Dao
 interface HostDao {
-    @Query("SELECT * FROM Host")
-    suspend fun getAll(): List<Host>
+    @Query("SELECT * FROM KnownHost")
+    suspend fun getAll(): List<KnownHost>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsert(vararg hosts: Host)
+    suspend fun upsert(vararg hosts: KnownHost)
 
     @Delete
-    suspend fun delete(host: Host)
+    suspend fun delete(host: KnownHost)
 }
 
 @Entity
-data class Host(
+data class KnownHost(
     @PrimaryKey @ColumnInfo("base_url") val baseUrl: String,
     @ColumnInfo("last_used_at") val lastUsedAt: String = OffsetDateTime.now().toString(),
 ) {

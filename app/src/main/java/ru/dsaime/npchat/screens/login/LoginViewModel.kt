@@ -3,6 +3,7 @@ package ru.dsaime.npchat.screens.login
 import androidx.lifecycle.viewModelScope
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import ru.dsaime.npchat.common.base.BaseViewModel
 import ru.dsaime.npchat.data.BasicAuthService
@@ -32,19 +33,10 @@ sealed interface LoginEvent {
 
 data class LoginState(
     val host: Host? = null,
-    val connStatus: LoginConnStatus = LoginConnStatus.None,
     val login: String = "",
     val password: String = "",
     val isLoading: Boolean = false,
 )
-
-sealed interface LoginConnStatus {
-    object Ok : LoginConnStatus
-
-    object Err : LoginConnStatus
-
-    object None : LoginConnStatus
-}
 
 sealed interface LoginEffect {
     data class ShowError(
@@ -53,8 +45,6 @@ sealed interface LoginEffect {
 
     sealed interface Navigation : LoginEffect {
         object HostSelect : Navigation
-
-        object Test : Navigation
 
         object OAuth : Navigation
 
@@ -79,26 +69,31 @@ class LoginViewModel(
 
     // Обновляет хост при каждом изменении currentHost
     private suspend fun subscribeToHostChanges() {
-        hostService.currentBaseUrlFlow().collect { currentHost ->
-            if (currentHost == null || currentHost.isBlank()) {
+        hostService.currentBaseUrlFlow().collectLatest { baseUrl ->
+            if (baseUrl == null || baseUrl.isBlank()) {
                 setState { copy(host = null) }
             } else {
-                setState { copy(host = Host(currentHost, Host.Status.UNKNOWN)) }
-                checkConn()
+                setState { copy(host = Host(baseUrl, Host.Status.UNKNOWN)) }
+                // Обновлять статус хоста
+//                if (baseUrl = null) {
+                hostService.statusFlow(baseUrl).collectLatest { status ->
+                    setState { copy(host = host?.copy(status = status)) }
+                }
+//                }
             }
         }
     }
 
     // Проверяет подключение к серверу и обновляет отображаемое состояние
     private suspend fun checkConn() {
-        val host =
-            viewState.value.host ?: run {
-                setState { copy(connStatus = LoginConnStatus.None) }
-                return // Если хост не установлен, выходим
-            }
-        val pingResult = hostService.ping(host.url)
-        val status = if (pingResult) LoginConnStatus.Ok else LoginConnStatus.Err
-        setState { copy(connStatus = status) }
+//        val host =
+//            viewState.value.host ?: run {
+//                setState { copy(connStatus = LoginConnStatus.None) }
+//                return // Если хост не установлен, выходим
+//            }
+//        val pingResult = hostService.ping(host.url)
+//        val status = if (pingResult) LoginConnStatus.Ok else LoginConnStatus.Err
+//        setState { copy(connStatus = status) }
     }
 
     private suspend fun enter() {
@@ -108,10 +103,7 @@ class LoginViewModel(
                 return
             }
 
-        if (viewState.value.connStatus == LoginConnStatus.None) {
-            checkConn()
-        }
-        if (viewState.value.connStatus == LoginConnStatus.Err) {
+        if (viewState.value.host?.status != Host.Status.ONLINE) {
             LoginEffect.ShowError("нет соединения с сервером").emit()
             return
         }

@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import ru.dsaime.npchat.model.Chat
 import ru.dsaime.npchat.model.Event
+import ru.dsaime.npchat.model.Host
 import ru.dsaime.npchat.model.Session
 import ru.dsaime.npchat.model.User
 
@@ -46,6 +47,8 @@ interface HostService {
     suspend fun savedBaseUrls(): List<String>
 
     suspend fun ping(baseUrl: String): Boolean
+
+    fun statusFlow(baseUrl: String): StateFlow<Host.Status>
 }
 
 // Описывает интерфейс работы с сессией
