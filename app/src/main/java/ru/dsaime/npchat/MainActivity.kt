@@ -176,6 +176,8 @@ fun NavController.navRequestHandle(
         ControlEffect.Navigation.CreateChat -> dialogs.add(CreateChatReq)
 
         CreateChatEffect.Navigation.Back -> dialogs.removeLastOrNull()
+
+        LoginEffect.Navigation.HostSelect -> dialogs.add(HostSelectDialogReq)
     }
 }
 

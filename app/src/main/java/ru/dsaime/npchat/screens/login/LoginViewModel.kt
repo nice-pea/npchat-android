@@ -28,8 +28,6 @@ sealed interface LoginEvent {
     class SetPassword(
         val value: String,
     ) : LoginEvent
-
-    object GoToTest : LoginEvent
 }
 
 data class LoginState(
@@ -142,7 +140,6 @@ class LoginViewModel(
             LoginEvent.GoToRegistration -> LoginEffect.Navigation.Registration.emit()
             is LoginEvent.SetLogin -> setState { copy(login = event.value) }
             is LoginEvent.SetPassword -> setState { copy(password = event.value) }
-            LoginEvent.GoToTest -> LoginEffect.Navigation.Test.emit()
             LoginEvent.SelectHost -> LoginEffect.Navigation.HostSelect.emit()
         }
     }

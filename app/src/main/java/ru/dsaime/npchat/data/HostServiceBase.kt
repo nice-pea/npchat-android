@@ -16,31 +16,12 @@ class HostServiceBase(
     private val db: AppDatabase,
     private val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
 ) : HostService {
-    private val currentHostFlow = MutableStateFlow<Host?>(null)
-
-    // Возвращает сохраненные хосты
-    private suspend fun savedHosts(): List<Host> = db.hostDao().getAll().sortedByDescending { it.lastUsed }
-
-    // Возвращает хост по специальному алгоритму
-    private suspend fun preferredHost(): Host? =
-        with(Dispatchers.IO) {
-            // Получаем сохраненные хосты, если их нет, то возвращаем null
-            val hosts = savedHosts().ifEmpty { return null }
-            // Выбираем последний использованный
-            val currentHost = hosts.maxByOrNull { it.lastUsed }
-            // Если текущий хост не задан, то возвращаем первый из списка
-            return currentHost ?: hosts.first()
-        }
-
     init {
-        // Инициализация текущего хоста
+        // Инициализация flow с выбранным хостом
         coroutineScope.launch {
             currentHostFlow.emit(preferredHost())
         }
     }
-
-    // Возвращает baseUrl выбранного хоста
-    override suspend fun currentBaseUrl() = preferredHost()?.baseUrl
 
     // Возвращает flow с baseUrl выбранного хоста
     override fun currentBaseUrlFlow() =
@@ -67,4 +48,24 @@ class HostServiceBase(
 
     // Проверяет доступность хоста
     override suspend fun ping(baseUrl: String) = api.ping(baseUrl).isSuccess
+
+    // Выбранный хост
+    private val currentHostFlow = MutableStateFlow<Host?>(null)
+
+    // Возвращает сохраненные хосты
+    private suspend fun savedHosts(): List<Host> = db.hostDao().getAll().sortedByDescending { it.lastUsed }
+
+    // Возвращает хост по специальному алгоритму
+    private suspend fun preferredHost(): Host? =
+        with(Dispatchers.IO) {
+            // Получаем сохраненные хосты, если их нет, то возвращаем null
+            val hosts = savedHosts().ifEmpty { return null }
+            // Выбираем последний использованный
+            val currentHost = hosts.maxByOrNull { it.lastUsed }
+            // Если текущий хост не задан, то возвращаем первый из списка
+            return currentHost ?: hosts.first()
+        }
+
+    // Возвращает baseUrl выбранного хоста
+    override suspend fun currentBaseUrl() = preferredHost()?.baseUrl
 }
