@@ -41,6 +41,8 @@ interface HostService {
 
     suspend fun changeBaseUrl(baseUrl: String)
 
+    suspend fun deleteBaseUrl(baseUrl: String)
+
     suspend fun savedBaseUrls(): List<String>
 
     suspend fun ping(baseUrl: String): Boolean

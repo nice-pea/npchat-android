@@ -36,6 +36,9 @@ import ru.dsaime.npchat.screens.control.main.ControlEffect
 import ru.dsaime.npchat.screens.control.main.ControlReq
 import ru.dsaime.npchat.screens.home.HomeEffect
 import ru.dsaime.npchat.screens.home.HomeScreenDestination
+import ru.dsaime.npchat.screens.hosts.select.HostSelectDialogContent
+import ru.dsaime.npchat.screens.hosts.select.HostSelectEffect
+import ru.dsaime.npchat.screens.hosts.select.HostSelectReq
 import ru.dsaime.npchat.screens.login.LoginEffect
 import ru.dsaime.npchat.screens.login.LoginScreenDestination
 import ru.dsaime.npchat.screens.registration.RegistrationEffect
@@ -109,6 +112,7 @@ class MainActivity : ComponentActivity() {
                         is DialogLeaveArgs -> LeaveDialogContent(args = args, onBack = onBack, confirm = closeDialog)
                         is ControlReq -> ControlDialogContent { navController.navRequestHandle(it, dialogs) }
                         is CreateChatReq -> CreateChatDialogContent(showBackButton) { navController.navRequestHandle(it, dialogs) }
+                        is HostSelectReq -> HostSelectDialogContent { navController.navRequestHandle(it, dialogs) }
                     }
                 }
                 NavHost(
@@ -169,15 +173,16 @@ fun NavController.navRequestHandle(
 
         is ChatsEffect.Navigation.Chat -> dialogs.add(DialogChatArgs(req.chat))
         is CreateChatEffect.Navigation.Chat -> dialogs.add(DialogChatArgs(req.chat))
-        is CreateChatEffect.Navigation.Close -> dialogs.removeIf { it is CreateChatReq }
+        is CreateChatEffect.Navigation.Close -> dialogs.clear()
 
         HomeEffect.Navigation.Chats -> navigate(ROUTE_CHATS)
         HomeEffect.Navigation.Control -> dialogs.add(ControlReq)
         ControlEffect.Navigation.CreateChat -> dialogs.add(CreateChatReq)
 
-        CreateChatEffect.Navigation.Back -> dialogs.removeLastOrNull()
+        CreateChatEffect.Navigation.Back -> dialogs.removeIf { it is CreateChatReq }
 
-        LoginEffect.Navigation.HostSelect -> dialogs.add(HostSelectDialogReq)
+        LoginEffect.Navigation.HostSelect -> dialogs.add(HostSelectReq)
+        HostSelectEffect.Navigation.Close -> dialogs.clear()
     }
 }
 

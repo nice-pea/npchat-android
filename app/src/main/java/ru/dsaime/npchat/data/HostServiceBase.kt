@@ -43,6 +43,10 @@ class HostServiceBase(
         currentHostFlow.emit(host)
     }
 
+    override suspend fun deleteBaseUrl(baseUrl: String) {
+        db.hostDao().delete(Host(baseUrl))
+    }
+
     // Возвращает список сохраненных baseUrls
     override suspend fun savedBaseUrls() = savedHosts().map { it.baseUrl }
 

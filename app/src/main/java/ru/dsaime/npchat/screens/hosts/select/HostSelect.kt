@@ -1,17 +1,21 @@
 package ru.dsaime.npchat.screens.hosts.select
 
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import ru.dsaime.npchat.common.base.BaseViewModel
 import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.model.Host
 import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.dialog.BottomDialogHeader
+import ru.dsaime.npchat.ui.theme.Font
 
 object HostSelectReq
 
@@ -31,16 +35,24 @@ fun HostSelectDialogContent(onNavigationRequest: (HostSelectEffect.Navigation) -
             }.collect()
     }
 
-    BottomDialogHeader("Управление")
-    LeftButton("Создать чат", vm.eventHandler(HostSelectEvent.CreateChat))
-    LeftButton("Профиль", vm.eventHandler(HostSelectEvent.Profile))
-    LeftButton("Выйти", vm.eventHandler(HostSelectEvent.ProfileExit), isRight = true)
+    BottomDialogHeader("Выбрать сервер")
+    state.hosts.forEach { host ->
+        LeftButton(host.url, vm.eventHandler(HostSelectEvent.Select(host)))
+    }
+    if (state.hosts.isEmpty()) {
+        Text("Нет доступных серверов", style = Font.Text16W400)
+    }
+
+    LeftButton("Добавить", vm.eventHandler(HostSelectEvent.Add))
+    if (state.selectedHost != null) {
+        LeftButton("Удалить выбранный", vm.eventHandler(HostSelectEvent.Delete), isRight = true)
+    }
 }
 
 sealed interface HostSelectEvent {
     object Add : HostSelectEvent
 
-    class Delete : HostSelectEvent
+    object Delete : HostSelectEvent
 
     class Select(
         val host: Host,
@@ -55,7 +67,6 @@ data class HostSelectState(
 sealed interface HostSelectEffect {
     sealed interface Navigation : HostSelectEffect {
         object Close : Navigation
-        class Add
     }
 }
 
@@ -64,11 +75,38 @@ class HostSelectViewModel(
 ) : BaseViewModel<HostSelectEvent, HostSelectState, HostSelectEffect>() {
     override fun setInitialState() = HostSelectState()
 
+    init {
+        viewModelScope.launch {
+            val hosts =
+                hostService
+                    .savedBaseUrls()
+                    .map { Host(it, Host.Status.UNKNOWN) }
+            setState { copy(hosts = hosts) }
+            subscribeToHostChanges()
+        }
+    }
+
+    private suspend fun subscribeToHostChanges() {
+        hostService.currentBaseUrlFlow().collect { currentHost ->
+            val host = if (currentHost != null) Host(currentHost, Host.Status.UNKNOWN) else null
+            setState { copy(selectedHost = host) }
+        }
+    }
+
     override fun handleEvents(event: HostSelectEvent) {
         when (event) {
-            HostSelectEvent.Add ->
-            is HostSelectEvent.Delete -> TODO()
-            is HostSelectEvent.Select -> TODO()
+            HostSelectEvent.Add -> {}
+            HostSelectEvent.Delete ->
+                viewModelScope.launch {
+                    val baseUrl = viewState.value.selectedHost?.url ?: return@launch
+                    hostService.deleteBaseUrl(baseUrl)
+                }
+
+            is HostSelectEvent.Select -> {
+                viewModelScope.launch {
+                    hostService.changeBaseUrl(event.host.url)
+                }
+            }
         }
     }
 }
