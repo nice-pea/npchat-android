@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import ru.dsaime.npchat.common.base.BaseViewModel
+import ru.dsaime.npchat.common.functions.tickerFlow
 import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.model.Host
 import ru.dsaime.npchat.ui.components.Gap
@@ -21,6 +22,7 @@ import ru.dsaime.npchat.ui.components.RadioButton
 import ru.dsaime.npchat.ui.dialog.BottomDialogHeader
 import ru.dsaime.npchat.ui.theme.Dp16
 import ru.dsaime.npchat.ui.theme.Font
+import kotlin.time.Duration.Companion.seconds
 
 object HostSelectReq
 
@@ -90,7 +92,8 @@ class HostSelectViewModel(
                     .savedBaseUrls()
                     .map { Host(it, Host.Status.UNKNOWN) }
             setState { copy(hosts = hosts) }
-            subscribeToHostChanges()
+            launch { subscribeToHostChanges() }
+            subscribeToHostStatusChanges()
         }
     }
 
@@ -100,6 +103,24 @@ class HostSelectViewModel(
             val host = if (currentHost != null) Host(currentHost, Host.Status.UNKNOWN) else null
             setState { copy(selectedHost = host) }
         }
+    }
+
+    private suspend fun subscribeToHostStatusChanges() {
+        tickerFlow(1.seconds)
+            .onEach { println("tick") }
+            .collect {
+                viewState.value.hosts.forEach { host ->
+                    // Получить новый статус хоста
+                    val newStatus = hostService.status(host.url)
+                    if (newStatus == host.status) return@forEach
+                    // Обновить статус хоста в списке
+                    val newHosts =
+                        viewState.value.hosts
+                            .map { if (it.url == host.url) it.copy(status = newStatus) else it }
+                    // Обновить список
+                    setState { copy(hosts = newHosts) }
+                }
+            }
     }
 
     override fun handleEvents(event: HostSelectEvent) {

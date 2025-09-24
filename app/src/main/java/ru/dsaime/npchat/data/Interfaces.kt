@@ -46,7 +46,9 @@ interface HostService {
 
     suspend fun savedBaseUrls(): List<String>
 
-    suspend fun ping(baseUrl: String): Boolean
+//    fun savedHostsFlow(): StateFlow<List<Host>>
+
+    suspend fun status(baseUrl: String): Host.Status
 
     fun statusFlow(baseUrl: String): StateFlow<Host.Status>
 }

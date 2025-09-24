@@ -55,16 +55,25 @@ class HostServiceBase(
     // Возвращает список сохраненных baseUrls
     override suspend fun savedBaseUrls() = savedHosts().map { it.baseUrl }
 
+    // Возвращает flow с сохраненными хостами
+//    override fun savedHostsFlow(): StateFlow<List<Host>> {
+//        db.hostDao().getAllFlow()
+//            .map { it.sortedByDescending { it.lastUsed } }
+//            .transformLatest { hosts ->
+//
+//            }
+//
+//    }
+
     // Проверяет доступность хоста
-    override suspend fun ping(baseUrl: String) = api.ping(baseUrl).isSuccess
+    override suspend fun status(baseUrl: String) = api.ping(baseUrl).toHostStatus()
 
     // Written with gigacode
     // Возвращает flow со статусом хоста
     override fun statusFlow(baseUrl: String): StateFlow<Host.Status> =
         statusFlowCache.getOrPut(baseUrl) {
             tickerFlow(1.seconds)
-                .map { api.ping(baseUrl).isSuccess }
-                .map { if (it) Host.Status.ONLINE else Host.Status.OFFLINE }
+                .map { api.ping(baseUrl).toHostStatus() }
                 .stateIn(
                     scope = coroutineScope,
                     started = SharingStarted.WhileSubscribed(5_000),
@@ -94,4 +103,7 @@ class HostServiceBase(
 
     // Возвращает baseUrl выбранного хоста
     override suspend fun currentBaseUrl() = preferredHost()?.baseUrl
+
+    // Преобразует Result в Host.Status
+    private fun Result<Unit>.toHostStatus() = if (isSuccess) Host.Status.ONLINE else Host.Status.OFFLINE
 }

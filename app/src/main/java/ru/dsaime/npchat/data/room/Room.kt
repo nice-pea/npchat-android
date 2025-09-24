@@ -82,6 +82,9 @@ interface HostDao {
     @Query("SELECT * FROM KnownHost")
     suspend fun getAll(): List<KnownHost>
 
+    @Query("SELECT * FROM KnownHost")
+    fun getAllFlow(): Flow<List<KnownHost>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(vararg hosts: KnownHost)
 
