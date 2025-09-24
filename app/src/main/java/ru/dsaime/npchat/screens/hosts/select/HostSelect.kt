@@ -110,7 +110,7 @@ class HostSelectViewModel(
             HostSelectEvent.Delete ->
                 viewModelScope.launch {
                     val baseUrl = viewState.value.selectedHost?.url ?: return@launch
-                    hostService.deleteBaseUrl(baseUrl)
+                    hostService.deleteHostByUrl(baseUrl)
                 }
 
             is HostSelectEvent.Select ->

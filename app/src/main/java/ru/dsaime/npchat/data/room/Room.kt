@@ -3,7 +3,6 @@ package ru.dsaime.npchat.data.room
 import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Database
-import androidx.room.Delete
 import androidx.room.Entity
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -87,10 +86,10 @@ interface HostDao {
     fun getAllFlow(): Flow<List<SavedHost>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsert(vararg hosts: SavedHost)
+    suspend fun upsert(host: SavedHost)
 
-    @Delete
-    suspend fun delete(host: SavedHost)
+    @Query("DELETE FROM SavedHost WHERE base_url = :url")
+    suspend fun delete(url: String)
 }
 
 @Entity

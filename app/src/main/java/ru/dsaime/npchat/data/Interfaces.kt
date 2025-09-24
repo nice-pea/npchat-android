@@ -39,17 +39,18 @@ interface HostService {
     suspend fun currentBaseUrl(): String?
 
     fun currentHostFlow(): StateFlow<Host?>
-//    fun currentBaseUrlFlow(): StateFlow<String?>
 
     suspend fun changeHost(host: Host)
 
-    suspend fun deleteBaseUrl(baseUrl: String)
+    suspend fun deleteHostByUrl(url: String)
 
     fun hostsFlow(): StateFlow<List<Host>>
 
     suspend fun status(baseUrl: String): Host.Status
 
     fun statusFlow(baseUrl: String): StateFlow<Host.Status>
+
+    suspend fun add(host: Host)
 }
 
 // Описывает интерфейс работы с сессией

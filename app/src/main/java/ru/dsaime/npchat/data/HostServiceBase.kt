@@ -18,6 +18,7 @@ import ru.dsaime.npchat.common.functions.tickerFlow
 import ru.dsaime.npchat.data.room.AppDatabase
 import ru.dsaime.npchat.data.room.SavedHost
 import ru.dsaime.npchat.model.Host
+import java.time.OffsetDateTime
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Duration.Companion.seconds
 
@@ -93,25 +94,10 @@ class HostServiceBase(
         currentSavedHostFlow.emit(savedHost)
     }
 
-    override suspend fun deleteBaseUrl(baseUrl: String) {
-        db.hostDao().delete(SavedHost(baseUrl))
+    // Удаляет хост
+    override suspend fun deleteHostByUrl(url: String) {
+        db.hostDao().delete(url)
     }
-
-    // Возвращает список сохраненных baseUrls
-//    override suspend fun savedBaseUrls() = savedHosts().map { it.baseUrl }
-
-    // Возвращает flow с сохраненными baseUrls
-//    override fun savedBaseUrlsFlow() =
-//        db
-//            .hostDao()
-//            .getAllFlow()
-//            .map { it.sortedByDescending { it.lastUsed } }
-//            .map { it.map { it.baseUrl } }
-//            .stateIn(
-//                scope = coroutineScope,
-//                started = SharingStarted.Eagerly,
-//                initialValue = emptyList(),
-//            )
 
     // Проверяет доступность хоста
     override suspend fun status(baseUrl: String) = api.ping(baseUrl).toHostStatus()
@@ -128,6 +114,16 @@ class HostServiceBase(
                     initialValue = Host.Status.UNKNOWN,
                 )
         }
+
+    // Добавляет хост в сохраненные
+    override suspend fun add(host: Host) =
+        db.hostDao().upsert(
+            SavedHost(
+                baseUrl = host.url,
+                lastUsedAt = OffsetDateTime.MIN.toString(),
+                status = Host.Status.UNKNOWN.name,
+            ),
+        )
 
     // Кэш flow со статусом хоста
     private val statusFlowCache = ConcurrentHashMap<String, StateFlow<Host.Status>>()
