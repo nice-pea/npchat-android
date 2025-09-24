@@ -4,7 +4,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
@@ -13,7 +12,9 @@ import org.koin.androidx.compose.koinViewModel
 import ru.dsaime.npchat.common.base.BaseViewModel
 import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.model.Host
+import ru.dsaime.npchat.ui.components.HostStatusIcon
 import ru.dsaime.npchat.ui.components.LeftButton
+import ru.dsaime.npchat.ui.components.RadioButton
 import ru.dsaime.npchat.ui.dialog.BottomDialogHeader
 import ru.dsaime.npchat.ui.theme.Font
 
@@ -24,8 +25,6 @@ object HostSelectReq
 fun HostSelectDialogContent(onNavigationRequest: (HostSelectEffect.Navigation) -> Unit) {
     val vm = koinViewModel<HostSelectViewModel>()
     val state = vm.viewState.value
-
-    val ctx = LocalContext.current
     LaunchedEffect(1) {
         vm.effect
             .onEach { effect ->
@@ -37,7 +36,12 @@ fun HostSelectDialogContent(onNavigationRequest: (HostSelectEffect.Navigation) -
 
     BottomDialogHeader("Выбрать сервер")
     state.hosts.forEach { host ->
-        LeftButton(host.url, vm.eventHandler(HostSelectEvent.Select(host)))
+        RadioButton(
+            text = host.url,
+            onClick = vm.eventHandler(HostSelectEvent.Select(host)),
+            selected = host.url == state.selectedHost?.url,
+            icon = { HostStatusIcon(host.status) },
+        )
     }
     if (state.hosts.isEmpty()) {
         Text("Нет доступных серверов", style = Font.Text16W400)

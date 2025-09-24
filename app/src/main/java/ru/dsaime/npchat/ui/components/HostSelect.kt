@@ -12,10 +12,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -25,10 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import ru.dsaime.npchat.model.Host
 import ru.dsaime.npchat.ui.theme.Black
-import ru.dsaime.npchat.ui.theme.ColorHostIncompatible
-import ru.dsaime.npchat.ui.theme.ColorHostOffline
-import ru.dsaime.npchat.ui.theme.ColorHostOnline
-import ru.dsaime.npchat.ui.theme.ColorHostUnknown
 import ru.dsaime.npchat.ui.theme.ColorText
 import ru.dsaime.npchat.ui.theme.Dp1
 import ru.dsaime.npchat.ui.theme.Dp10
@@ -94,14 +86,8 @@ private fun StatusButton(
     onClick: () -> Unit,
     status: Host.Status,
 ) {
-    val modifier = Modifier.size(Dp24)
     IconButton(onClick = onClick) {
-        when (status) {
-            Host.Status.ONLINE -> Icon(Icons.Filled.Check, "online", modifier, tint = ColorHostOnline)
-            Host.Status.OFFLINE -> Icon(Icons.Filled.Close, "offline", modifier, tint = ColorHostOffline)
-            Host.Status.INCOMPATIBLE -> Icon(Icons.Filled.Warning, "incompatible", modifier, tint = ColorHostIncompatible)
-            Host.Status.UNKNOWN -> Icon(Icons.Filled.Info, "unknown", modifier, tint = ColorHostUnknown)
-        }
+        HostStatusIcon(status = status, modifier = Modifier.size(Dp24))
     }
 }
 
