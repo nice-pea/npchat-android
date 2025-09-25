@@ -2,6 +2,7 @@ package ru.dsaime.npchat.ui.theme
 
 import androidx.compose.ui.unit.dp
 
+val Dp24 = 24.dp
 val Dp20 = 20.dp
 val Dp16 = 16.dp
 val Dp10 = 10.dp

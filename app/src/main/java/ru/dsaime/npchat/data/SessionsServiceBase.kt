@@ -47,7 +47,7 @@ class SessionsServiceBase(
     }
 
     override suspend fun isActual(session: Session): Boolean {
-        if (db.sessionDao().last() == null || hostService.currentHost() == null) {
+        if (db.sessionDao().last() == null || hostService.currentBaseUrl() == null) {
             return false
         }
 

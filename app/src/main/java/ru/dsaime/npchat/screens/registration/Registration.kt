@@ -2,17 +2,14 @@ package ru.dsaime.npchat.screens.registration
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewModelScope
-import com.github.michaelbull.result.onFailure
-import com.github.michaelbull.result.onSuccess
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
@@ -24,17 +21,19 @@ import ru.dsaime.npchat.common.functions.toast
 import ru.dsaime.npchat.data.BasicAuthService
 import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.data.SessionsService
-import ru.dsaime.npchat.screens.login.LoginConnStatus
+import ru.dsaime.npchat.model.Host
 import ru.dsaime.npchat.ui.components.Input
 import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.theme.Dp20
-import ru.dsaime.npchat.ui.theme.White
 
 @Composable
 fun RegistrationScreenDestination(onNavigationRequest: (RegistrationEffect.Navigation) -> Unit) {
     val vm = koinViewModel<RegistrationViewModel>()
     RegistrationScreen(
-        state = vm.viewState.value,
+        state =
+            vm.viewState
+                .collectAsState()
+                .value,
         effectFlow = vm.effect,
         onEventSent = vm::setEvent,
         onNavigationRequest = onNavigationRequest,
@@ -67,19 +66,19 @@ fun RegistrationScreen(
                 .padding(Dp20),
         verticalArrangement = Arrangement.Center,
     ) {
-        Row {
-            Input(
-                modifier = Modifier.weight(1f),
-                title = "Сервер",
-                placeholder = "http://example.com",
-                value = state.host,
-                onValueChange = { onEventSent(RegistrationEvent.SetHost(it)) },
-                enabled = state.hostEnabled,
-            )
-            androidx.compose.material3.Button(
-                onClick = { onEventSent(RegistrationEvent.CheckConn) },
-            ) { Text(state.connStatus::class.simpleName ?: "null", color = White) }
-        }
+//        Row {
+//            Input(
+//                modifier = Modifier.weight(1f),
+//                title = "Сервер",
+//                placeholder = "http://example.com",
+//                value = state.host,
+//                onValueChange = { onEventSent(RegistrationEvent.SetHost(it)) },
+//                enabled = state.hostEnabled,
+//            )
+//            androidx.compose.material3.Button(
+//                onClick = { onEventSent(RegistrationEvent.CheckConn) },
+//            ) { Text(state.connStatus::class.simpleName ?: "null", color = White) }
+//        }
         Input(
             title = "Видимое имя",
             placeholder = "",
@@ -112,9 +111,9 @@ fun RegistrationScreen(
 }
 
 sealed interface RegistrationEvent {
-    class SetHost(
-        val value: String,
-    ) : RegistrationEvent
+//    class SetHost(
+//        val value: String,
+//    ) : RegistrationEvent
 
     object Confirm : RegistrationEvent
 
@@ -138,9 +137,7 @@ sealed interface RegistrationEvent {
 }
 
 data class RegistrationState(
-    val host: String = "",
-    val hostEnabled: Boolean = false,
-    val connStatus: RegistrationConnStatus = RegistrationConnStatus.None,
+    val host: Host? = null,
     val name: String = "",
     val nick: String = "",
     val login: String = "",
@@ -171,63 +168,63 @@ class RegistrationViewModel(
     private val sessionsService: SessionsService,
 ) : BaseViewModel<RegistrationEvent, RegistrationState, RegistrationEffect>() {
     init {
-        viewModelScope
-            .launch {
-                val prefHost = hostService.preferredHost()
-                setState { copy(host = prefHost.orEmpty()) }
-            }.invokeOnCompletion {
-                setState { copy(hostEnabled = true) }
-            }
+//        viewModelScope
+//            .launch {
+//                val baseUrl = hostService.currentBaseUrl()
+//                setState { copy(host = baseUrl.orEmpty()) }
+//            }.invokeOnCompletion {
+//                setState { copy(hostEnabled = true) }
+//            }
     }
 
     override fun setInitialState() = RegistrationState()
 
     private suspend fun checkConn() {
-        val status =
-            if (hostService.ping(viewState.value.host)) {
-                RegistrationConnStatus.Ok
-            } else {
-                RegistrationConnStatus.Err
-            }
-        setState { copy(connStatus = status) }
+//        val status =
+//            if (hostService.status(viewState.value.host)) {
+//                RegistrationConnStatus.Ok
+//            } else {
+//                RegistrationConnStatus.Err
+//            }
+//        setState { copy(connStatus = status) }
     }
 
     private suspend fun confirm() {
         val host =
-            viewState.value.host.ifBlank {
+            viewState.value.host ?: run {
                 RegistrationEffect.ShowError("host не установлен").emit()
                 return
             }
 
-        if (viewState.value.connStatus == LoginConnStatus.None) {
-            checkConn()
-        }
-        if (viewState.value.connStatus == LoginConnStatus.Err) {
-            RegistrationEffect.ShowError("нет соединения с сервером").emit()
-            return
-        }
+//        if (viewState.value.host == LoginConnStatus.None) {
+//            checkConn()
+//        }
+//        if (viewState.value.connStatus == LoginConnStatus.Err) {
+//            RegistrationEffect.ShowError("нет соединения с сервером").emit()
+//            return
+//        }
 
-        authService
-            .registration(
-                name = viewState.value.name,
-                nick = viewState.value.nick,
-                login = viewState.value.login,
-                pass = viewState.value.password,
-                host = host,
-            ).onSuccess {
-                sessionsService.changeSession(it.session)
-                hostService.changeHost(host)
-                RegistrationEffect.Navigation.Home.emit()
-            }.onFailure { message ->
-                RegistrationEffect.ShowError(message).emit()
-            }
+//        authService
+//            .registration(
+//                name = viewState.value.name,
+//                nick = viewState.value.nick,
+//                login = viewState.value.login,
+//                pass = viewState.value.password,
+//                host = host,
+//            ).onSuccess {
+//                sessionsService.changeSession(it.session)
+//                hostService.changeBaseUrl(host)
+//                RegistrationEffect.Navigation.Home.emit()
+//            }.onFailure { message ->
+//                RegistrationEffect.ShowError(message).emit()
+//            }
     }
 
     override fun handleEvents(event: RegistrationEvent) {
         when (event) {
             RegistrationEvent.CheckConn -> viewModelScope.launch { checkConn() }
             RegistrationEvent.Confirm -> viewModelScope.launch { confirm() }
-            is RegistrationEvent.SetHost -> setState { copy(host = event.value) }
+//            is RegistrationEvent.SetHost -> setState { copy(host = event.value) }
             is RegistrationEvent.SetLogin -> setState { copy(login = event.value) }
             is RegistrationEvent.SetName -> setState { copy(name = event.value) }
             is RegistrationEvent.SetNick -> setState { copy(nick = event.value) }

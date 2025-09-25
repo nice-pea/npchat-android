@@ -36,6 +36,12 @@ import ru.dsaime.npchat.screens.control.main.ControlEffect
 import ru.dsaime.npchat.screens.control.main.ControlReq
 import ru.dsaime.npchat.screens.home.HomeEffect
 import ru.dsaime.npchat.screens.home.HomeScreenDestination
+import ru.dsaime.npchat.screens.hosts.add.AddHostDialogContent
+import ru.dsaime.npchat.screens.hosts.add.AddHostEffect
+import ru.dsaime.npchat.screens.hosts.add.AddHostReq
+import ru.dsaime.npchat.screens.hosts.select.HostSelectDialogContent
+import ru.dsaime.npchat.screens.hosts.select.HostSelectEffect
+import ru.dsaime.npchat.screens.hosts.select.HostSelectReq
 import ru.dsaime.npchat.screens.login.LoginEffect
 import ru.dsaime.npchat.screens.login.LoginScreenDestination
 import ru.dsaime.npchat.screens.registration.RegistrationEffect
@@ -57,12 +63,11 @@ class MainActivity : ComponentActivity() {
 
         installSplashScreen()
 
-        val koinApp =
-            startKoin {
-                logger(PrintLogger(Level.DEBUG)) // ← добавь это
-                androidContext(this@MainActivity)
-                modules(appModule)
-            }
+        startKoin {
+            logger(PrintLogger(Level.DEBUG))
+            androidContext(this@MainActivity)
+            modules(appModule)
+        }
 
         setContent {
             val dialogs = remember { mutableStateListOf<Any>() }
@@ -79,6 +84,7 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
+
             NPChatTheme {
                 val navController = rememberNavController()
                 val scope = rememberCoroutineScope()
@@ -109,6 +115,8 @@ class MainActivity : ComponentActivity() {
                         is DialogLeaveArgs -> LeaveDialogContent(args = args, onBack = onBack, confirm = closeDialog)
                         is ControlReq -> ControlDialogContent { navController.navRequestHandle(it, dialogs) }
                         is CreateChatReq -> CreateChatDialogContent(showBackButton) { navController.navRequestHandle(it, dialogs) }
+                        is HostSelectReq -> HostSelectDialogContent { navController.navRequestHandle(it, dialogs) }
+                        is AddHostReq -> AddHostDialogContent { navController.navRequestHandle(it, dialogs) }
                     }
                 }
                 NavHost(
@@ -149,33 +157,49 @@ private const val ROUTE_LOGIN = "Login"
 private const val ROUTE_REGISTRATION = "Registration"
 private const val ROUTE_CHATS = "Chats"
 
-// private const val DIALOG_CREATE_CHAT = "CreateChat"
-
 fun NavController.navRequestHandle(
     req: Any,
     dialogs: MutableList<Any>,
 ) {
     when (req) {
+        // Экраны /////////////////////
+
         SplashEffect.Navigation.Home,
         LoginEffect.Navigation.Home,
         RegistrationEffect.Navigation.Home,
         -> navigate(ROUTE_HOME)
 
         SplashEffect.Navigation.Login,
-        ControlEffect.Navigation.Login,
         -> navigate(ROUTE_LOGIN)
+
+        ControlEffect.Navigation.Login -> {
+            navigate(ROUTE_LOGIN)
+            dialogs.clear()
+        }
 
         LoginEffect.Navigation.Registration -> navigate(ROUTE_REGISTRATION)
 
+        HomeEffect.Navigation.Chats -> navigate(ROUTE_CHATS)
+
+        // Диалоги /////////////////////
+
+        // Закрыть bottom sheet
+        CreateChatEffect.Navigation.Close,
+        AddHostEffect.Navigation.Close,
+        HostSelectEffect.Navigation.Close,
+        -> dialogs.clear()
+
+        // Вернуться назад
+        CreateChatEffect.Navigation.Back -> dialogs.removeIf { it is CreateChatReq }
+        AddHostEffect.Navigation.Back -> dialogs.removeIf { it is AddHostReq }
+
+        // Добавить диалог в стек
         is ChatsEffect.Navigation.Chat -> dialogs.add(DialogChatArgs(req.chat))
         is CreateChatEffect.Navigation.Chat -> dialogs.add(DialogChatArgs(req.chat))
-        is CreateChatEffect.Navigation.Close -> dialogs.removeIf { it is CreateChatReq }
-
-        HomeEffect.Navigation.Chats -> navigate(ROUTE_CHATS)
         HomeEffect.Navigation.Control -> dialogs.add(ControlReq)
         ControlEffect.Navigation.CreateChat -> dialogs.add(CreateChatReq)
-
-        CreateChatEffect.Navigation.Back -> dialogs.removeLastOrNull()
+        LoginEffect.Navigation.HostSelect -> dialogs.add(HostSelectReq)
+        HostSelectEffect.Navigation.AddHost -> dialogs.add(AddHostReq)
     }
 }
 

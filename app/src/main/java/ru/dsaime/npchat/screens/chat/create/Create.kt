@@ -3,6 +3,8 @@ package ru.dsaime.npchat.screens.chat.create
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewModelScope
 import com.github.michaelbull.result.onFailure
@@ -28,7 +30,7 @@ fun CreateChatDialogContent(
     onNavigationRequest: (CreateChatEffect.Navigation) -> Unit,
 ) {
     val vm = koinViewModel<CreateChatViewModel>()
-    val state = vm.viewState.value
+    val state by vm.viewState.collectAsState()
 
     val ctx = LocalContext.current
     LaunchedEffect(1) {

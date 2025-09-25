@@ -52,7 +52,7 @@ fun LeftButton(
                 .then(modifier),
         horizontalAlignment = if (isRight) Alignment.End else Alignment.Start,
     ) {
-        Text(text.ifEmpty { "<action>" }, style = Font.Text16W600)
+        Text(text, style = Font.Text16W600)
         if (helperText != "") {
             Gap(Dp2)
             Text(helperText, style = Font.Text12W400, textAlign = if (isRight) TextAlign.Right else TextAlign.Left)

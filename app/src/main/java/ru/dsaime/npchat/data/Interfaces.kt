@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import ru.dsaime.npchat.model.Chat
 import ru.dsaime.npchat.model.Event
+import ru.dsaime.npchat.model.Host
 import ru.dsaime.npchat.model.Session
 import ru.dsaime.npchat.model.User
 
@@ -35,16 +36,21 @@ interface BasicAuthService {
 
 // Описывает интерфейс работы с хостами
 interface HostService {
-    suspend fun currentHost(): String?
+    suspend fun currentBaseUrl(): String?
 
-    suspend fun changeHost(host: String)
+    fun currentHostFlow(): StateFlow<Host?>
 
-    suspend fun known(): List<String>
+    suspend fun changeHost(host: Host)
 
-    // Возвращает сервер по специальному алгоритму
-    suspend fun preferredHost(): String?
+    suspend fun deleteHostByUrl(url: String)
 
-    suspend fun ping(host: String): Boolean
+    fun hostsStateFlow(): StateFlow<List<Host>>
+
+    suspend fun status(baseUrl: String): Host.Status
+
+    fun statusFlow(baseUrl: String): StateFlow<Host.Status>
+
+    suspend fun add(host: Host)
 }
 
 // Описывает интерфейс работы с сессией
@@ -83,7 +89,7 @@ interface EventsService {
 
     fun onParticipantRemoved(): Flow<Result<Event.ParticipantRemoved, String>>
 
-    fun onChatNameUpdated(): Flow<Result<Event.ChatNameUpdated, String>>
+    fun onChatUpdated(): Flow<Result<Event.ChatUpdated, String>>
 
     fun onChatCreated(): Flow<Result<Event.ChatCreated, String>>
 }

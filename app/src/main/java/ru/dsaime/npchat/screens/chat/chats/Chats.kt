@@ -15,6 +15,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -52,7 +53,7 @@ import java.time.format.DateTimeFormatter
 fun ChatsScreenDestination(onNavigationRequest: (ChatsEffect.Navigation) -> Unit) {
     val vm = koinViewModel<ChatsViewModel>()
     ChatsScreen(
-        state = vm.viewState.value,
+        state = vm.viewState.collectAsState().value,
         effectFlow = vm.effect,
         onEventSent = vm::setEvent,
         onNavigationRequest = onNavigationRequest,
@@ -252,13 +253,7 @@ class ChatsViewModel(
                 .collect { result ->
                     result
                         .onSuccess { event ->
-                            val chat =
-                                Chat(
-                                    id = event.chatId,
-                                    name = event.chatId,
-                                    chiefId = event.chatId,
-                                )
-                            setState { copy(chats = listOf(chat) + chats) }
+                            setState { copy(chats = listOf(event.chat) + chats) }
                         }.onFailure {
                             ChatsEffect.Err(it).emit()
                         }

@@ -3,6 +3,10 @@ package ru.dsaime.npchat.di.koin
 import androidx.room.Room
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.logging.DEFAULT
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.sse.SSE
 import kotlinx.coroutines.runBlocking
 import org.koin.android.ext.koin.androidContext
@@ -31,6 +35,8 @@ import ru.dsaime.npchat.screens.chat.chats.ChatsViewModel
 import ru.dsaime.npchat.screens.chat.create.CreateChatViewModel
 import ru.dsaime.npchat.screens.control.main.ControlViewModel
 import ru.dsaime.npchat.screens.home.HomeViewModel
+import ru.dsaime.npchat.screens.hosts.add.AddHostViewModel
+import ru.dsaime.npchat.screens.hosts.select.HostSelectViewModel
 import ru.dsaime.npchat.screens.login.LoginViewModel
 import ru.dsaime.npchat.screens.registration.RegistrationViewModel
 import ru.dsaime.npchat.screens.splash.SplashViewModel
@@ -49,7 +55,7 @@ val appModule =
         single<BaseUrlProvider> {
             BaseUrlProvider {
                 runBlocking {
-                    get<HostService>().currentHost().orEmpty()
+                    get<HostService>().currentBaseUrl().orEmpty()
                 }
             }
         }
@@ -69,6 +75,10 @@ val appModule =
         // Ktor - http client
         single<HttpClient> {
             HttpClient(OkHttp) {
+                install(Logging) {
+                    logger = Logger.DEFAULT
+                    level = LogLevel.ALL
+                }
                 install(SSE)
             }
         }
@@ -97,4 +107,6 @@ val appModule =
         // Диалоги
         viewModelOf(::CreateChatViewModel)
         viewModelOf(::ControlViewModel)
+        viewModelOf(::HostSelectViewModel)
+        viewModelOf(::AddHostViewModel)
     }

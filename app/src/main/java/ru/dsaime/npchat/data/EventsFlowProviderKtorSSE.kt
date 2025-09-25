@@ -40,43 +40,32 @@ class EventsFlowProviderKtorSSE(
         }
 }
 
+private inline fun <reified T : Any> RawEvent.prop(name: String): T = retroGson.fromJson(retroGson.toJson(data[name]), T::class.java)
+
 private fun RawEvent.toEvent() =
     when (type) {
         Event.ParticipantAdded.NAME -> {
-            val chatId = data["chat_id"] as String
-            val participant = retroGson.toJson(data["participant"])
-
             Event.ParticipantAdded(
-                chatId = chatId,
-                participant =
-                    retroGson
-                        .fromJson(participant, ApiModel.Participant::class.java)
-                        .toModel(),
+                chat = prop<ApiModel.Chat>("chat").toModel(),
+                participant = prop<ApiModel.Participant>("participant").toModel(),
             )
         }
 
         Event.ParticipantRemoved.NAME -> {
-            val chatId = data["chat_id"] as String
-            val participant = retroGson.toJson(data["participant"])
-
             Event.ParticipantRemoved(
-                chatId = chatId,
-                participant =
-                    retroGson
-                        .fromJson(participant, ApiModel.Participant::class.java)
-                        .toModel(),
+                chat = prop<ApiModel.Chat>("chat").toModel(),
+                participant = prop<ApiModel.Participant>("participant").toModel(),
             )
         }
 
         Event.ChatCreated.NAME ->
             Event.ChatCreated(
-                chatId = data["chat_id"] as String,
+                chat = prop<ApiModel.Chat>("chat").toModel(),
             )
 
-        Event.ChatNameUpdated.NAME ->
-            Event.ChatNameUpdated(
-                chatId = data["chat_id"] as String,
-                name = data["name"] as String,
+        Event.ChatUpdated.NAME ->
+            Event.ChatUpdated(
+                chat = prop<ApiModel.Chat>("chat").toModel(),
             )
 
         else -> null

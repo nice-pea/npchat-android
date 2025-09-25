@@ -1,12 +1,11 @@
 package ru.dsaime.npchat.common.base
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
@@ -19,8 +18,8 @@ abstract class BaseViewModel<A, S, E> : ViewModel() {
 
     protected abstract fun handleEvents(event: A)
 
-    private val _viewState: MutableState<S> = mutableStateOf(setInitialState())
-    val viewState: State<S> = _viewState
+    private val _viewState = MutableStateFlow(setInitialState())
+    val viewState = _viewState.asStateFlow()
 
     @Suppress("ktlint:standard:backing-property-naming")
     private val _event: MutableSharedFlow<A> = MutableSharedFlow()
@@ -73,4 +72,4 @@ abstract class BaseViewModel<A, S, E> : ViewModel() {
 fun <A> ((A) -> Unit).eventHandler(event: A): () -> Unit = { invoke(event) }
 
 // Сокращение для лямбды
-fun <A, T> ((A) -> T).eventHandler(eventConstructor: (T) -> A): (T) -> Unit = { invoke(eventConstructor(it)) }
+fun <A, T> ((A) -> Unit).eventHandler(eventConstructor: (T) -> A): (T) -> Unit = { invoke(eventConstructor(it)) }

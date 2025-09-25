@@ -3,7 +3,6 @@ package ru.dsaime.npchat.data.room
 import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Database
-import androidx.room.Delete
 import androidx.room.Entity
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -11,9 +10,10 @@ import androidx.room.PrimaryKey
 import androidx.room.Query
 import androidx.room.RoomDatabase
 import kotlinx.coroutines.flow.Flow
+import ru.dsaime.npchat.model.Host
 import java.time.OffsetDateTime
 
-@Database(entities = [Session::class, Host::class], version = 1)
+@Database(entities = [Session::class, SavedHost::class], version = 1)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun sessionDao(): SessionDao
 
@@ -79,24 +79,37 @@ data class Session(
 
 @Dao
 interface HostDao {
-    @Query("SELECT * FROM Host")
-    suspend fun getAll(): List<Host>
+    @Query("SELECT * FROM SavedHost")
+    suspend fun getAll(): List<SavedHost>
 
-//    @Query("SELECT * FROM Host WHERE base_url IN (:ids)")
-//    fun loadAllByIds(ids: IntArray): List<Host>
+    @Query("SELECT * FROM SavedHost")
+    fun getAllFlow(): Flow<List<SavedHost>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsert(vararg hosts: Host)
+    suspend fun upsert(host: SavedHost)
 
-    @Delete
-    suspend fun delete(host: Host)
+    @Query("DELETE FROM SavedHost WHERE base_url = :url")
+    suspend fun delete(url: String)
 }
 
 @Entity
-data class Host(
+data class SavedHost(
     @PrimaryKey @ColumnInfo("base_url") val baseUrl: String,
-    @ColumnInfo("last_used_at") val lastUsedAt: String = OffsetDateTime.now().toString(),
+    @ColumnInfo("last_used_at") val lastUsedAt: Long,
+    @ColumnInfo("status") val status: String = Host.Status.UNKNOWN.name,
 ) {
-    val lastUsed: OffsetDateTime
-        get() = OffsetDateTime.parse(lastUsedAt)
+    constructor(host: Host, lastUsedAt: Long) : this(
+        baseUrl = host.url,
+        lastUsedAt = lastUsedAt,
+        status = host.status.name,
+    )
+
+    fun toModel() =
+        Host(
+            url = baseUrl,
+            status =
+                Host.Status.entries
+                    .find { it.name == status }
+                    ?: Host.Status.UNKNOWN,
+        )
 }

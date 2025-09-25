@@ -3,6 +3,7 @@ package ru.dsaime.npchat.screens.control.main
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
@@ -19,7 +20,7 @@ object ControlReq
 @Composable
 fun ControlDialogContent(onNavigationRequest: (ControlEffect.Navigation) -> Unit) {
     val vm = koinViewModel<ControlViewModel>()
-    val state = vm.viewState.value
+    val state = vm.viewState.collectAsState().value
 
     val ctx = LocalContext.current
     LaunchedEffect(1) {

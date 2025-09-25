@@ -15,6 +15,7 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -37,7 +38,10 @@ fun HomeScreenDestination(
 ) {
     val vm = koinViewModel<HomeViewModel>()
     HomeScreen(
-        state = vm.viewState.value,
+        state =
+            vm.viewState
+                .collectAsState()
+                .value,
         effectFlow = vm.effect,
         onEventSent = vm::setEvent,
         onNavigationRequest = onNavigationRequest,

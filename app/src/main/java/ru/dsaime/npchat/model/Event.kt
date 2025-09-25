@@ -2,7 +2,7 @@ package ru.dsaime.npchat.model
 
 sealed interface Event {
     class ParticipantAdded(
-        val chatId: String,
+        val chat: Chat,
         val participant: Participant,
     ) : Event {
         companion object {
@@ -11,7 +11,7 @@ sealed interface Event {
     }
 
     class ParticipantRemoved(
-        val chatId: String,
+        val chat: Chat,
         val participant: Participant,
     ) : Event {
         companion object {
@@ -19,17 +19,16 @@ sealed interface Event {
         }
     }
 
-    class ChatNameUpdated(
-        val chatId: String,
-        val name: String,
+    class ChatUpdated(
+        val chat: Chat,
     ) : Event {
         companion object {
-            const val NAME = "chat_name_updated"
+            const val NAME = "chat_updated"
         }
     }
 
     class ChatCreated(
-        val chatId: String,
+        val chat: Chat,
     ) : Event {
         companion object {
             const val NAME = "chat_created"
