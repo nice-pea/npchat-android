@@ -253,13 +253,7 @@ class ChatsViewModel(
                 .collect { result ->
                     result
                         .onSuccess { event ->
-                            val chat =
-                                Chat(
-                                    id = event.chatId,
-                                    name = event.chatId,
-                                    chiefId = event.chatId,
-                                )
-                            setState { copy(chats = listOf(chat) + chats) }
+                            setState { copy(chats = listOf(event.chat) + chats) }
                         }.onFailure {
                             ChatsEffect.Err(it).emit()
                         }

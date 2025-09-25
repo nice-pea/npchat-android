@@ -3,6 +3,10 @@ package ru.dsaime.npchat.di.koin
 import androidx.room.Room
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.logging.DEFAULT
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.sse.SSE
 import kotlinx.coroutines.runBlocking
 import org.koin.android.ext.koin.androidContext
@@ -71,6 +75,10 @@ val appModule =
         // Ktor - http client
         single<HttpClient> {
             HttpClient(OkHttp) {
+                install(Logging) {
+                    logger = Logger.DEFAULT
+                    level = LogLevel.ALL
+                }
                 install(SSE)
             }
         }

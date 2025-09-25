@@ -39,7 +39,7 @@ class EventsServiceBase(
 
     override fun onParticipantRemoved() = filterEvents<Event.ParticipantRemoved>()
 
-    override fun onChatNameUpdated() = filterEvents<Event.ChatNameUpdated>()
+    override fun onChatUpdated() = filterEvents<Event.ChatUpdated>()
 
     override fun onChatCreated() = filterEvents<Event.ChatCreated>()
 

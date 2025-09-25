@@ -89,7 +89,7 @@ interface EventsService {
 
     fun onParticipantRemoved(): Flow<Result<Event.ParticipantRemoved, String>>
 
-    fun onChatNameUpdated(): Flow<Result<Event.ChatNameUpdated, String>>
+    fun onChatUpdated(): Flow<Result<Event.ChatUpdated, String>>
 
     fun onChatCreated(): Flow<Result<Event.ChatCreated, String>>
 }

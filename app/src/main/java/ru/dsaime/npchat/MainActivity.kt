@@ -155,7 +155,10 @@ class MainActivity : ComponentActivity() {
                     Text(
                         "alpha",
                         style = Font.Text12W400.copy(color = Black),
-                        modifier = Modifier.background(Color(0xFF938B59)).fillMaxWidth(),
+                        modifier =
+                            Modifier
+                                .background(Color(0xFF938B59))
+                                .fillMaxWidth(),
                     )
                 }
             }
@@ -182,8 +185,12 @@ fun NavController.navRequestHandle(
         -> navigate(ROUTE_HOME)
 
         SplashEffect.Navigation.Login,
-        ControlEffect.Navigation.Login,
         -> navigate(ROUTE_LOGIN)
+
+        ControlEffect.Navigation.Login -> {
+            navigate(ROUTE_LOGIN)
+            dialogs.clear()
+        }
 
         LoginEffect.Navigation.Registration -> navigate(ROUTE_REGISTRATION)
 
