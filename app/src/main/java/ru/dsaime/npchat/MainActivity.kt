@@ -5,11 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -17,7 +14,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -58,7 +54,6 @@ import ru.dsaime.npchat.ui.dialog.BottomDialogHeader
 import ru.dsaime.npchat.ui.dialog.BottomDialogProperties
 import ru.dsaime.npchat.ui.dialog.BottomDialogProperty
 import ru.dsaime.npchat.ui.theme.Black
-import ru.dsaime.npchat.ui.theme.Font
 import ru.dsaime.npchat.ui.theme.NPChatTheme
 
 class MainActivity : ComponentActivity() {
@@ -124,42 +119,32 @@ class MainActivity : ComponentActivity() {
                         is AddHostReq -> AddHostDialogContent { navController.navRequestHandle(it, dialogs) }
                     }
                 }
-                Column {
-                    NavHost(
-                        modifier =
-                            Modifier
-                                .fillMaxSize()
-                                .background(Black),
-                        navController = navController,
-                        startDestination = ROUTE_SPLASH,
-                    ) {
-                        composable(ROUTE_SPLASH) { SplashScreenDestination { navController.navRequestHandle(it, dialogs) } }
-                        composable(ROUTE_LOGIN) {
-                            LoginScreenDestination { navController.navRequestHandle(it, dialogs) }
-                        }
-                        composable(ROUTE_REGISTRATION) { RegistrationScreenDestination { navController.navRequestHandle(it, dialogs) } }
-                        composable(ROUTE_HOME) {
-                            HomeScreenDestination(
-                                onNavigationRequest = { navController.navRequestHandle(it, dialogs) },
+                NavHost(
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .background(Black),
+                    navController = navController,
+                    startDestination = ROUTE_SPLASH,
+                ) {
+                    composable(ROUTE_SPLASH) { SplashScreenDestination { navController.navRequestHandle(it, dialogs) } }
+                    composable(ROUTE_LOGIN) {
+                        LoginScreenDestination { navController.navRequestHandle(it, dialogs) }
+                    }
+                    composable(ROUTE_REGISTRATION) { RegistrationScreenDestination { navController.navRequestHandle(it, dialogs) } }
+                    composable(ROUTE_HOME) {
+                        HomeScreenDestination(
+                            onNavigationRequest = { navController.navRequestHandle(it, dialogs) },
+                        ) {
+                            val navController = rememberNavController()
+                            NavHost(
+                                navController = navController,
+                                startDestination = ROUTE_CHATS,
                             ) {
-                                val navController = rememberNavController()
-                                NavHost(
-                                    navController = navController,
-                                    startDestination = ROUTE_CHATS,
-                                ) {
-                                    composable(ROUTE_CHATS) { ChatsScreenDestination { navController.navRequestHandle(it, dialogs) } }
-                                }
+                                composable(ROUTE_CHATS) { ChatsScreenDestination { navController.navRequestHandle(it, dialogs) } }
                             }
                         }
                     }
-                    Text(
-                        "alpha",
-                        style = Font.Text12W400.copy(color = Black),
-                        modifier =
-                            Modifier
-                                .background(Color(0xFF938B59))
-                                .fillMaxWidth(),
-                    )
                 }
             }
         }

@@ -53,7 +53,7 @@ class HostServiceBase(
             )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val hostsFlow =
+    private val hostsStateFlow =
         db
             .hostDao()
             .getAllFlow()
@@ -66,15 +66,13 @@ class HostServiceBase(
                 }
                 // written with qwen
                 // Проверять доступность всех хостов и обновлять значение
-                tickerFlow(1.seconds).flatMapLatest {
-                    val statusFlows =
-                        hosts.map { host ->
-                            statusFlow(host.url)
-                                .map { status -> host.copy(status = status) }
-                        }
-                    // Объединяем все результаты в один список
-                    combine(statusFlows) { results -> results.toList() }
-                }
+                val statusFlows =
+                    hosts.map { host ->
+                        statusFlow(host.url)
+                            .map { status -> host.copy(status = status) }
+                    }
+                // Объединяем все результаты в один список
+                combine(statusFlows) { results -> results.toList() }
             }.stateIn(
                 scope = coroutineScope,
                 started = SharingStarted.WhileSubscribed(2_000),
@@ -92,7 +90,7 @@ class HostServiceBase(
     override fun currentHostFlow() = currentSavedHostFlow
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun hostsFlow() = hostsFlow
+    override fun hostsStateFlow() = hostsStateFlow
 
     // Изменяет выбранный хост
     override suspend fun changeHost(host: Host) {

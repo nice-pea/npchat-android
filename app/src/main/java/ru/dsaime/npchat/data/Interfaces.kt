@@ -44,7 +44,7 @@ interface HostService {
 
     suspend fun deleteHostByUrl(url: String)
 
-    fun hostsFlow(): StateFlow<List<Host>>
+    fun hostsStateFlow(): StateFlow<List<Host>>
 
     suspend fun status(baseUrl: String): Host.Status
 

@@ -102,7 +102,7 @@ class HostSelectViewModel(
 
     // Обновлять список хостов
     private suspend fun subscribeToHostChanges() =
-        hostService.hostsFlow().collectLatest { hosts ->
+        hostService.hostsStateFlow().collectLatest { hosts ->
             setState { copy(hosts = hosts.sortedBy { it.url }) }
         }
 
