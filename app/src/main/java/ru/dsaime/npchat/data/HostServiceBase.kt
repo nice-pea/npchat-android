@@ -4,16 +4,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
-import ru.dsaime.npchat.common.functions.runSuspend
 import ru.dsaime.npchat.common.functions.tickerFlow
 import ru.dsaime.npchat.data.room.AppDatabase
 import ru.dsaime.npchat.data.room.SavedHost
@@ -27,62 +26,73 @@ class HostServiceBase(
     private val db: AppDatabase,
     private val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob()),
 ) : HostService {
-    init {
-        // Инициализация flow с выбранным хостом
-        coroutineScope.launch {
-            currentSavedHostFlow.emit(preferredHost())
-        }
-    }
+    // Кэш flow со статусом хоста
+    private val statusFlowCache = ConcurrentHashMap<String, StateFlow<Host.Status>>()
 
-    // Возвращает flow с выбранным хостом
+    // Выбранный хост (mutable)
+    private val currentSavedHostMutFlow = MutableStateFlow<SavedHost?>(null)
+
+    // Выбранный хост
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun currentHostFlow() =
-        currentSavedHostFlow
+    private val currentSavedHostFlow =
+        currentSavedHostMutFlow
             .map { it?.toModel() }
-            .transformLatest { host ->
-                // Установить значение, даже если равно null
-                emit(host)
-                // Проверять доступность хоста и обновлять значение
-                if (host != null) {
-                    statusFlow(host.url).collect { status ->
-                        emit(host.copy(status = status))
-                    }
+            .flatMapLatest { host ->
+                if (host == null) {
+                    // Установить значение, даже если равно null
+                    flowOf(null)
+                } else {
+                    // Проверять доступность хоста и обновлять значение
+                    statusFlow(host.url)
+                        .map { host.copy(status = it) }
                 }
             }.stateIn(
                 scope = coroutineScope,
-                started = SharingStarted.Eagerly,
-                initialValue = currentSavedHostFlow.value?.toModel(),
+                started = SharingStarted.WhileSubscribed(2_000),
+                initialValue = currentSavedHostMutFlow.value?.toModel(),
             )
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override fun hostsFlow() =
+    private val hostsFlow =
         db
             .hostDao()
             .getAllFlow()
             .map { it.sortedByDescending { it.lastUsedAt } }
             .map { it.map { it.toModel() } }
-            .transformLatest { hosts ->
+            .flatMapLatest { hosts ->
                 // Установить значение, даже если хостов нет
-                emit(hosts)
-                if (hosts.isEmpty()) return@transformLatest
+                if (hosts.isEmpty()) {
+                    return@flatMapLatest flowOf(emptyList())
+                }
+                // written with qwen
                 // Проверять доступность всех хостов и обновлять значение
-                tickerFlow(1.seconds).collect {
-                    coroutineScope
-                        .async {
-                            hosts
-                                // Асинхронно получить статусы всех хостов
-                                .map {
-                                    async { it.copy(status = status(it.url)) }
-                                }.awaitAll()
-                                // Ждать, пока все хосты будут обработаны и обновить значение
-                                .runSuspend(::emit)
-                        }.await()
+                tickerFlow(1.seconds).flatMapLatest {
+                    val statusFlows =
+                        hosts.map { host ->
+                            statusFlow(host.url)
+                                .map { status -> host.copy(status = status) }
+                        }
+                    // Объединяем все результаты в один список
+                    combine(statusFlows) { results -> results.toList() }
                 }
             }.stateIn(
                 scope = coroutineScope,
-                started = SharingStarted.Eagerly,
+                started = SharingStarted.WhileSubscribed(2_000),
                 initialValue = emptyList(),
             )
+
+    init {
+        // Инициализация flow с выбранным хостом
+        coroutineScope.launch {
+            currentSavedHostMutFlow.emit(preferredHost())
+        }
+    }
+
+    // Возвращает flow с выбранным хостом
+    override fun currentHostFlow() = currentSavedHostFlow
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun hostsFlow() = hostsFlow
 
     // Изменяет выбранный хост
     override suspend fun changeHost(host: Host) {
@@ -91,7 +101,7 @@ class HostServiceBase(
         val savedHost = SavedHost(host, Instant.now().epochSecond)
         db.hostDao().upsert(savedHost)
         // Обновляем текущий хост
-        currentSavedHostFlow.emit(savedHost)
+        currentSavedHostMutFlow.emit(savedHost)
     }
 
     // Удаляет хост
@@ -110,7 +120,7 @@ class HostServiceBase(
                 .map { api.ping(baseUrl).toHostStatus() }
                 .stateIn(
                     scope = coroutineScope,
-                    started = SharingStarted.WhileSubscribed(5_000),
+                    started = SharingStarted.WhileSubscribed(2_000),
                     initialValue = Host.Status.UNKNOWN,
                 )
         }
@@ -124,12 +134,6 @@ class HostServiceBase(
                 status = Host.Status.UNKNOWN.name,
             ),
         )
-
-    // Кэш flow со статусом хоста
-    private val statusFlowCache = ConcurrentHashMap<String, StateFlow<Host.Status>>()
-
-    // Выбранный хост
-    private val currentSavedHostFlow = MutableStateFlow<SavedHost?>(null)
 
     // Возвращает сохраненные хосты
     private suspend fun savedHosts(): List<SavedHost> =
