@@ -50,6 +50,7 @@ fun ApiModel.AuthResp.toModel(): BasicAuthService.AuthResult =
                 id = user.id,
                 name = user.name,
                 nick = user.nick,
+                login = user.basicAuth.login,
             ),
         session =
             Session(

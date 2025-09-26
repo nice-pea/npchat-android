@@ -28,7 +28,7 @@ interface NPChatApi {
     ): Result<ApiModel.AuthResp>
 
     @GET("/me")
-    suspend fun me(): Result<ApiModel.User>
+    suspend fun me(): Result<ApiModel.MeResp>
 
     @GET("/chats")
     suspend fun chats(

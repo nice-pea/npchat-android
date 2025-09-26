@@ -34,6 +34,8 @@ import ru.dsaime.npchat.screens.chat.create.CreateChatReq
 import ru.dsaime.npchat.screens.control.main.ControlDialogContent
 import ru.dsaime.npchat.screens.control.main.ControlEffect
 import ru.dsaime.npchat.screens.control.main.ControlReq
+import ru.dsaime.npchat.screens.control.profile.ProfileDialogContent
+import ru.dsaime.npchat.screens.control.profile.ProfileReq
 import ru.dsaime.npchat.screens.home.HomeEffect
 import ru.dsaime.npchat.screens.home.HomeScreenDestination
 import ru.dsaime.npchat.screens.hosts.add.AddHostDialogContent
@@ -117,6 +119,7 @@ class MainActivity : ComponentActivity() {
                         is CreateChatReq -> CreateChatDialogContent(showBackButton) { navController.navRequestHandle(it, dialogs) }
                         is HostSelectReq -> HostSelectDialogContent { navController.navRequestHandle(it, dialogs) }
                         is AddHostReq -> AddHostDialogContent { navController.navRequestHandle(it, dialogs) }
+                        is ProfileReq -> ProfileDialogContent { navController.navRequestHandle(it, dialogs) }
                     }
                 }
                 NavHost(
@@ -172,7 +175,7 @@ fun NavController.navRequestHandle(
         SplashEffect.Navigation.Login,
         -> navigate(ROUTE_LOGIN)
 
-        ControlEffect.Navigation.Login -> {
+        ControlEffect.Navigation.Logout -> {
             navigate(ROUTE_LOGIN)
             dialogs.clear()
         }
@@ -200,6 +203,7 @@ fun NavController.navRequestHandle(
         ControlEffect.Navigation.CreateChat -> dialogs.add(CreateChatReq)
         LoginEffect.Navigation.HostSelect -> dialogs.add(HostSelectReq)
         HostSelectEffect.Navigation.AddHost -> dialogs.add(AddHostReq)
+        ControlEffect.Navigation.Profile -> dialogs.add(ProfileReq)
     }
 }
 

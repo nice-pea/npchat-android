@@ -34,6 +34,7 @@ import ru.dsaime.npchat.network.retrofit
 import ru.dsaime.npchat.screens.chat.chats.ChatsViewModel
 import ru.dsaime.npchat.screens.chat.create.CreateChatViewModel
 import ru.dsaime.npchat.screens.control.main.ControlViewModel
+import ru.dsaime.npchat.screens.control.profile.ProfileViewModel
 import ru.dsaime.npchat.screens.home.HomeViewModel
 import ru.dsaime.npchat.screens.hosts.add.AddHostViewModel
 import ru.dsaime.npchat.screens.hosts.select.HostSelectViewModel
@@ -109,4 +110,5 @@ val appModule =
         viewModelOf(::ControlViewModel)
         viewModelOf(::HostSelectViewModel)
         viewModelOf(::AddHostViewModel)
+        viewModelOf(::ProfileViewModel)
     }

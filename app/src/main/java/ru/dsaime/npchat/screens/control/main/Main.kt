@@ -52,7 +52,9 @@ sealed interface ControlEffect {
     sealed interface Navigation : ControlEffect {
         object CreateChat : Navigation
 
-        object Login : Navigation
+        object Profile : Navigation
+
+        object Logout : Navigation
     }
 }
 
@@ -65,8 +67,8 @@ class ControlViewModel(
     override fun handleEvents(event: ControlEvent) {
         when (event) {
             ControlEvent.CreateChat -> ControlEffect.Navigation.CreateChat.emit()
-            ControlEvent.Profile -> {}
-            ControlEvent.ProfileExit -> ControlEffect.Navigation.Login.emit()
+            ControlEvent.Profile -> ControlEffect.Navigation.Profile.emit()
+            ControlEvent.ProfileExit -> ControlEffect.Navigation.Logout.emit()
         }
     }
 }

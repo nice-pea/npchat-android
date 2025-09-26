@@ -1,11 +1,17 @@
 package ru.dsaime.npchat.screens.control.profile
 
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.viewModelScope
+import com.github.michaelbull.result.onFailure
+import com.github.michaelbull.result.onSuccess
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import ru.dsaime.npchat.common.base.BaseViewModel
 import ru.dsaime.npchat.data.SessionsService
@@ -14,6 +20,7 @@ import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.dialog.BottomDialogHeader
 import ru.dsaime.npchat.ui.dialog.BottomDialogProperties
 import ru.dsaime.npchat.ui.dialog.BottomDialogProperty
+import ru.dsaime.npchat.ui.theme.Font
 
 object ProfileReq
 
@@ -32,21 +39,24 @@ fun ProfileDialogContent(onNavigationRequest: (ProfileEffect.Navigation) -> Unit
             }.collect()
     }
 
-    val profile = state.profile
-    if (profile == null) {
-        return
-    }
-
     BottomDialogHeader("Мой профиль")
-    BottomDialogProperties(
-        BottomDialogProperty(name = "ID", value = profile.id),
-        BottomDialogProperty(name = "Name", value = profile.name),
-        BottomDialogProperty(name = "Nick", value = profile.nick),
-        BottomDialogProperty(name = "Login", value = "noval"),
-    )
-    LeftButton("Редактировать", vm.eventHandler(ProfileEvent.EditProfile))
-    LeftButton("Список сессий", vm.eventHandler(ProfileEvent.Sessions))
-    LeftButton("Завершить сессию", vm.eventHandler(ProfileEvent.EndSession))
+    when (state) {
+        is ProfileState.Error -> Text(state.msg, style = Font.Text16W400)
+        ProfileState.Loading -> CircularProgressIndicator()
+        is ProfileState.Ok -> {
+            val props =
+                listOfNotNull(
+                    BottomDialogProperty(name = "ID", value = state.profile.id),
+                    BottomDialogProperty(name = "Name", value = state.profile.name),
+                    BottomDialogProperty(name = "Nick", value = state.profile.nick),
+                    state.profile.login?.let { BottomDialogProperty(name = "Login", value = it) },
+                )
+            BottomDialogProperties(*props.toTypedArray())
+            LeftButton("Редактировать", vm.eventHandler(ProfileEvent.EditProfile))
+            LeftButton("Список сессий", vm.eventHandler(ProfileEvent.Sessions))
+            LeftButton("Завершить сессию", vm.eventHandler(ProfileEvent.EndSession))
+        }
+    }
 }
 
 sealed interface ProfileEvent {
@@ -59,9 +69,17 @@ sealed interface ProfileEvent {
     object Back : ProfileEvent
 }
 
-data class ProfileState(
-    val profile: User? = null,
-)
+sealed interface ProfileState {
+    data class Ok(
+        val profile: User,
+    ) : ProfileState
+
+    data class Error(
+        val msg: String,
+    ) : ProfileState
+
+    object Loading : ProfileState
+}
 
 sealed interface ProfileEffect {
     sealed interface Navigation : ProfileEffect {
@@ -78,7 +96,19 @@ sealed interface ProfileEffect {
 class ProfileViewModel(
     private val sessionsService: SessionsService,
 ) : BaseViewModel<ProfileEvent, ProfileState, ProfileEffect>() {
-    override fun setInitialState() = ProfileState()
+    override fun setInitialState() = ProfileState.Loading
+
+    init {
+        viewModelScope.launch {
+            sessionsService
+                .me()
+                .onSuccess {
+                    setState { ProfileState.Ok(it) }
+                }.onFailure { msg ->
+                    setState { ProfileState.Error(msg) }
+                }
+        }
+    }
 
     override fun handleEvents(event: ProfileEvent) {
         when (event) {
