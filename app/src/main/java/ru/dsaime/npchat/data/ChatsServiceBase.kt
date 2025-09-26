@@ -13,7 +13,7 @@ class ChatsServiceBase(
             .chats(pageToken)
             .mapCatching {
                 MyChatsResult(
-                    chats = it.chats.map(ApiModel.Chat::toModel),
+                    chats = it.chats?.map(ApiModel.Chat::toModel).orEmpty(),
                     nextPageToken = it.nextPageToken.orEmpty(),
                 ).run(::Ok)
             }.getOrElse { Err(it.toUserMessage()) }

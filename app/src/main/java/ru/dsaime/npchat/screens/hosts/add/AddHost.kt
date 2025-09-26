@@ -21,7 +21,7 @@ import ru.dsaime.npchat.model.Host
 import ru.dsaime.npchat.ui.components.HostStatusIcon
 import ru.dsaime.npchat.ui.components.Input
 import ru.dsaime.npchat.ui.components.LeftButton
-import ru.dsaime.npchat.ui.dialog.BottomDialogHeader
+import ru.dsaime.npchat.ui.components.dialog.BottomDialogHeader
 
 object AddHostReq
 

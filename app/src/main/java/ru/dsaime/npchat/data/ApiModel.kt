@@ -30,18 +30,28 @@ object ApiModel {
         @SerializedName("session") val session: Session,
     )
 
+    data class MeResp(
+        @SerializedName("User") val user: User,
+    )
+
     data class User(
         @SerializedName("ID") val id: String,
         @SerializedName("Name") val name: String,
         @SerializedName("Nick") val nick: String,
+        @SerializedName("BasicAuth") val basicAuth: BasicAuth,
     ) {
         fun toModel() =
             ru.dsaime.npchat.model.User(
                 id = id,
                 name = name,
                 nick = nick,
+                login = basicAuth.login,
             )
     }
+
+    data class BasicAuth(
+        @SerializedName("Login") val login: String,
+    )
 
     data class Session(
         @SerializedName("ID") val id: String,
@@ -72,7 +82,7 @@ object ApiModel {
 
     data class ChatsResp(
         @SerializedName("next_page_token") val nextPageToken: String?,
-        @SerializedName("Chats") val chats: List<Chat>,
+        @SerializedName("Chats") val chats: List<Chat>?,
     )
 
     data class CreateChatBody(

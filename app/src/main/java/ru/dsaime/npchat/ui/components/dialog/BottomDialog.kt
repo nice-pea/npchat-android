@@ -1,5 +1,6 @@
-package ru.dsaime.npchat.ui.dialog
+package ru.dsaime.npchat.ui.components.dialog
 
+import android.content.ClipData
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -19,12 +20,17 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.toClipEntry
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
+import ru.dsaime.npchat.common.functions.runSuspend
 import ru.dsaime.npchat.ui.components.Gap
 import ru.dsaime.npchat.ui.theme.ColorBG
 import ru.dsaime.npchat.ui.theme.ColorScrim
@@ -52,7 +58,21 @@ fun BottomDialogProperty(property: BottomDialogProperty) {
                 style = Font.Property16W400,
             )
         } else {
-            Text(property.value, style = Font.Text16W400)
+            val clipboard = LocalClipboard.current
+            val coroutineScope = rememberCoroutineScope()
+            Text(
+                property.value,
+                style = Font.Text16W400,
+                modifier =
+                    Modifier.clickable {
+                        coroutineScope.launch {
+                            ClipData
+                                .newPlainText(property.name, property.value)
+                                .toClipEntry()
+                                .runSuspend(clipboard::setClipEntry)
+                        }
+                    },
+            )
         }
     }
 }
@@ -82,8 +102,6 @@ data class BottomDialogProperty(
 fun BottomDialogHeader(
     title: String,
     onBack: (() -> Unit)? = null,
-//    isBackVisible: Boolean = false,
-//    onBack: () -> Unit = { },
 ) {
     Row(
         modifier = Modifier.padding(bottom = 20.dp),

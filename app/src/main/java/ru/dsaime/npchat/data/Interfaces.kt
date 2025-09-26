@@ -64,6 +64,10 @@ interface SessionsService {
     suspend fun isActual(session: Session): Boolean
 
     suspend fun refresh(session: Session): Boolean
+
+    suspend fun revoke(session: Session)
+
+    suspend fun me(): Result<User, String>
 }
 
 // Описывает интерфейс доступа к потоку событий

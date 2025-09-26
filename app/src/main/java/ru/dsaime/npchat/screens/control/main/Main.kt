@@ -12,7 +12,7 @@ import ru.dsaime.npchat.common.base.BaseViewModel
 import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.data.SessionsService
 import ru.dsaime.npchat.ui.components.LeftButton
-import ru.dsaime.npchat.ui.dialog.BottomDialogHeader
+import ru.dsaime.npchat.ui.components.dialog.BottomDialogHeader
 
 object ControlReq
 
@@ -35,15 +35,12 @@ fun ControlDialogContent(onNavigationRequest: (ControlEffect.Navigation) -> Unit
     BottomDialogHeader("Управление")
     LeftButton("Создать чат", vm.eventHandler(ControlEvent.CreateChat))
     LeftButton("Профиль", vm.eventHandler(ControlEvent.Profile))
-    LeftButton("Выйти", vm.eventHandler(ControlEvent.ProfileExit), isRight = true)
 }
 
 sealed interface ControlEvent {
     object CreateChat : ControlEvent
 
     object Profile : ControlEvent
-
-    object ProfileExit : ControlEvent
 }
 
 object ControlState
@@ -52,7 +49,7 @@ sealed interface ControlEffect {
     sealed interface Navigation : ControlEffect {
         object CreateChat : Navigation
 
-        object Login : Navigation
+        object Profile : Navigation
     }
 }
 
@@ -65,8 +62,7 @@ class ControlViewModel(
     override fun handleEvents(event: ControlEvent) {
         when (event) {
             ControlEvent.CreateChat -> ControlEffect.Navigation.CreateChat.emit()
-            ControlEvent.Profile -> {}
-            ControlEvent.ProfileExit -> ControlEffect.Navigation.Login.emit()
+            ControlEvent.Profile -> ControlEffect.Navigation.Profile.emit()
         }
     }
 }
