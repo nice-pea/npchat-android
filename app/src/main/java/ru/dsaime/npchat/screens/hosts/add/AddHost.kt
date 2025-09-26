@@ -23,14 +23,9 @@ import ru.dsaime.npchat.ui.components.Input
 import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.components.dialog.BottomDialogHeader
 
-object AddHostReq
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddHostDialogContent(
-    vm1: AddHostViewModel,
-    onNavigationRequest: (AddHostEffect.Navigation) -> Unit,
-) {
+fun AddHostDialogContent(onNavigationRequest: (AddHostEffect.Navigation) -> Unit) {
     val vm = koinViewModel<AddHostViewModel>()
     val state by vm.viewState.collectAsState()
     LaunchedEffect(1) {

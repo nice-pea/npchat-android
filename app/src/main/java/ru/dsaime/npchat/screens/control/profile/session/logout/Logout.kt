@@ -19,10 +19,7 @@ object LogoutReq
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LogoutDialogContent(
-    vm1: LogoutViewModel,
-    onNavigationRequest: (LogoutEffect.Navigation) -> Unit,
-) {
+fun LogoutDialogContent(onNavigationRequest: (LogoutEffect.Navigation) -> Unit) {
     val vm = koinViewModel<LogoutViewModel>()
     val state = vm.viewState.collectAsState().value
 

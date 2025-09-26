@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -134,6 +135,26 @@ fun BottomDialog(
         rememberModalBottomSheetState(
             skipPartiallyExpanded = skipPartiallyExpanded,
         )
+    BottomDialog(
+        isVisibleRequired = isVisibleRequired,
+        onClosed = onClosed,
+        state = state,
+    ) {
+        sheet {
+            state.hide()
+            onClosed()
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BottomDialog(
+    isVisibleRequired: Boolean,
+    onClosed: () -> Unit,
+    state: SheetState = rememberModalBottomSheetState(),
+    sheet: @Composable ColumnScope.() -> Unit,
+) {
     LaunchedEffect(isVisibleRequired) {
         if (isVisibleRequired) {
             state.show()
@@ -141,7 +162,7 @@ fun BottomDialog(
             state.hide()
         }
     }
-//    val scope = rememberCoroutineScope()
+
     if (state.isVisible || state.targetValue != SheetValue.Hidden) {
         ModalBottomSheet(
             shape = RectangleShape,
@@ -160,13 +181,9 @@ fun BottomDialog(
                         .background(ColorBG)
                         .border(1.dp, ColorText)
                         .padding(20.dp)
-                        .animateContentSize(tween()),
+                        .animateContentSize(tween(200)),
             ) {
-                sheet {
-//                    scope.launch {
-                    state.hide()
-//                    }
-                }
+                sheet()
             }
         }
     }

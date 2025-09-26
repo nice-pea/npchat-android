@@ -22,14 +22,9 @@ import ru.dsaime.npchat.ui.components.dialog.BottomDialogProperties
 import ru.dsaime.npchat.ui.components.dialog.BottomDialogProperty
 import ru.dsaime.npchat.ui.theme.Font
 
-object ProfileReq
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileDialogContent(
-    vm1: ProfileViewModel,
-    onNavigationRequest: (ProfileEffect.Navigation) -> Unit,
-) {
+fun ProfileDialogContent(onNavigationRequest: (ProfileEffect.Navigation) -> Unit) {
     val vm = koinViewModel<ProfileViewModel>()
     val state = vm.viewState.collectAsState().value
 

@@ -21,12 +21,9 @@ import ru.dsaime.npchat.ui.components.Input
 import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.components.dialog.BottomDialogHeader
 
-object CreateChatReq
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateChatDialogContent(
-    vm1: CreateChatViewModel,
     showBackButton: Boolean,
     onNavigationRequest: (CreateChatEffect.Navigation) -> Unit,
 ) {

@@ -7,6 +7,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
+import org.koin.androidx.compose.koinViewModel
 import ru.dsaime.npchat.common.base.BaseViewModel
 import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.data.SessionsService
@@ -15,10 +16,8 @@ import ru.dsaime.npchat.ui.components.dialog.BottomDialogHeader
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ControlDialogContent(
-    vm: ControlViewModel,
-    onNavigationRequest: (ControlEffect.Navigation) -> Unit,
-) {
+fun ControlDialogContent(onNavigationRequest: (ControlEffect.Navigation) -> Unit) {
+    val vm = koinViewModel<ControlViewModel>()
     val state = vm.viewState.collectAsState().value
 
     val ctx = LocalContext.current
