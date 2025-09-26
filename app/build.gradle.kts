@@ -106,7 +106,13 @@ dependencies {
 //    implementation(libs.slf4j.android)
 //    implementation(libs.logback.classic)
 
+    // Room
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
+
+    // Навигация
+    implementation(libs.voyager.navigator)
+//    implementation("cafe.adriel.voyager:voyager-bottom-sheet-navigator:1.0.1")
+//    implementation("cafe.adriel.voyager:voyager-koin:1.0.1")
 }

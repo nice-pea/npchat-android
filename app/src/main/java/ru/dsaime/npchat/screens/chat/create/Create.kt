@@ -26,6 +26,7 @@ object CreateChatReq
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateChatDialogContent(
+    vm1: CreateChatViewModel,
     showBackButton: Boolean,
     onNavigationRequest: (CreateChatEffect.Navigation) -> Unit,
 ) {

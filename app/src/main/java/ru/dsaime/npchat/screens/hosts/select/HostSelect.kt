@@ -28,7 +28,10 @@ object HostSelectReq
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ColumnScope.HostSelectDialogContent(onNavigationRequest: (HostSelectEffect.Navigation) -> Unit) {
+fun ColumnScope.HostSelectDialogContent(
+    vm1: HostSelectViewModel,
+    onNavigationRequest: (HostSelectEffect.Navigation) -> Unit,
+) {
     val vm = koinViewModel<HostSelectViewModel>()
     val state by vm.viewState.collectAsState()
     LaunchedEffect(1) {

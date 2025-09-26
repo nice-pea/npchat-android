@@ -31,6 +31,7 @@ roomCompiler = "2.8.0"
 slf4jAndroid = "1.7.36"
 foundation = "1.9.1"
 media3CommonKtx = "1.8.0"
+voyagerNavigator = "1.0.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -83,6 +84,7 @@ retrofit-adapters-result = { module = "com.github.skydoves:retrofit-adapters-res
 slf4j-android = { module = "org.slf4j:slf4j-android", version.ref = "slf4jAndroid" }
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
 androidx-media3-common-ktx = { group = "androidx.media3", name = "media3-common-ktx", version.ref = "media3CommonKtx" }
+voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyagerNavigator" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

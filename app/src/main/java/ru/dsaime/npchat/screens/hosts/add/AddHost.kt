@@ -27,7 +27,10 @@ object AddHostReq
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddHostDialogContent(onNavigationRequest: (AddHostEffect.Navigation) -> Unit) {
+fun AddHostDialogContent(
+    vm1: AddHostViewModel,
+    onNavigationRequest: (AddHostEffect.Navigation) -> Unit,
+) {
     val vm = koinViewModel<AddHostViewModel>()
     val state by vm.viewState.collectAsState()
     LaunchedEffect(1) {

@@ -26,7 +26,10 @@ object ProfileReq
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileDialogContent(onNavigationRequest: (ProfileEffect.Navigation) -> Unit) {
+fun ProfileDialogContent(
+    vm1: ProfileViewModel,
+    onNavigationRequest: (ProfileEffect.Navigation) -> Unit,
+) {
     val vm = koinViewModel<ProfileViewModel>()
     val state = vm.viewState.collectAsState().value
 
