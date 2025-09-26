@@ -82,7 +82,7 @@ object ApiModel {
 
     data class ChatsResp(
         @SerializedName("next_page_token") val nextPageToken: String?,
-        @SerializedName("Chats") val chats: List<Chat>,
+        @SerializedName("Chats") val chats: List<Chat>?,
     )
 
     data class CreateChatBody(

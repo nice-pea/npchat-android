@@ -13,10 +13,11 @@ class ChatsServiceBase(
             .chats(pageToken)
             .mapCatching {
                 MyChatsResult(
-                    chats = it.chats.map(ApiModel.Chat::toModel),
+                    chats = it.chats?.map(ApiModel.Chat::toModel).orEmpty(),
                     nextPageToken = it.nextPageToken.orEmpty(),
                 ).run(::Ok)
-            }.getOrElse { Err(it.toUserMessage()) }
+            }.getOrThrow()
+//            }.getOrElse { Err(it.toUserMessage()) }
 
     override suspend fun create(name: String): Result<Chat, String> =
         api
