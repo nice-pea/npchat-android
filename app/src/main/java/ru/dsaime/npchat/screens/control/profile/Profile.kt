@@ -17,9 +17,9 @@ import ru.dsaime.npchat.common.base.BaseViewModel
 import ru.dsaime.npchat.data.SessionsService
 import ru.dsaime.npchat.model.User
 import ru.dsaime.npchat.ui.components.LeftButton
-import ru.dsaime.npchat.ui.dialog.BottomDialogHeader
-import ru.dsaime.npchat.ui.dialog.BottomDialogProperties
-import ru.dsaime.npchat.ui.dialog.BottomDialogProperty
+import ru.dsaime.npchat.ui.components.dialog.BottomDialogHeader
+import ru.dsaime.npchat.ui.components.dialog.BottomDialogProperties
+import ru.dsaime.npchat.ui.components.dialog.BottomDialogProperty
 import ru.dsaime.npchat.ui.theme.Font
 
 object ProfileReq
@@ -87,7 +87,7 @@ sealed interface ProfileEffect {
 
         object Sessions : Navigation
 
-        object EndSession : Navigation
+        object Logout : Navigation
 
         object Back : Navigation
     }
@@ -114,7 +114,7 @@ class ProfileViewModel(
         when (event) {
             ProfileEvent.Back -> ProfileEffect.Navigation.Back.emit()
             ProfileEvent.EditProfile -> ProfileEffect.Navigation.EditProfile.emit()
-            ProfileEvent.EndSession -> ProfileEffect.Navigation.EndSession.emit()
+            ProfileEvent.EndSession -> ProfileEffect.Navigation.Logout.emit()
             ProfileEvent.Sessions -> ProfileEffect.Navigation.Sessions.emit()
         }
     }

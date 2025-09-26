@@ -35,7 +35,11 @@ import ru.dsaime.npchat.screens.control.main.ControlDialogContent
 import ru.dsaime.npchat.screens.control.main.ControlEffect
 import ru.dsaime.npchat.screens.control.main.ControlReq
 import ru.dsaime.npchat.screens.control.profile.ProfileDialogContent
+import ru.dsaime.npchat.screens.control.profile.ProfileEffect
 import ru.dsaime.npchat.screens.control.profile.ProfileReq
+import ru.dsaime.npchat.screens.control.profile.session.logout.LogoutDialogContent
+import ru.dsaime.npchat.screens.control.profile.session.logout.LogoutEffect
+import ru.dsaime.npchat.screens.control.profile.session.logout.LogoutReq
 import ru.dsaime.npchat.screens.home.HomeEffect
 import ru.dsaime.npchat.screens.home.HomeScreenDestination
 import ru.dsaime.npchat.screens.hosts.add.AddHostDialogContent
@@ -51,10 +55,10 @@ import ru.dsaime.npchat.screens.registration.RegistrationScreenDestination
 import ru.dsaime.npchat.screens.splash.SplashEffect
 import ru.dsaime.npchat.screens.splash.SplashScreenDestination
 import ru.dsaime.npchat.ui.components.LeftButton
-import ru.dsaime.npchat.ui.dialog.BottomDialog
-import ru.dsaime.npchat.ui.dialog.BottomDialogHeader
-import ru.dsaime.npchat.ui.dialog.BottomDialogProperties
-import ru.dsaime.npchat.ui.dialog.BottomDialogProperty
+import ru.dsaime.npchat.ui.components.dialog.BottomDialog
+import ru.dsaime.npchat.ui.components.dialog.BottomDialogHeader
+import ru.dsaime.npchat.ui.components.dialog.BottomDialogProperties
+import ru.dsaime.npchat.ui.components.dialog.BottomDialogProperty
 import ru.dsaime.npchat.ui.theme.Black
 import ru.dsaime.npchat.ui.theme.NPChatTheme
 
@@ -120,6 +124,7 @@ class MainActivity : ComponentActivity() {
                         is HostSelectReq -> HostSelectDialogContent { navController.navRequestHandle(it, dialogs) }
                         is AddHostReq -> AddHostDialogContent { navController.navRequestHandle(it, dialogs) }
                         is ProfileReq -> ProfileDialogContent { navController.navRequestHandle(it, dialogs) }
+                        is LogoutReq -> LogoutDialogContent { navController.navRequestHandle(it, dialogs) }
                     }
                 }
                 NavHost(
@@ -164,6 +169,11 @@ fun NavController.navRequestHandle(
     req: Any,
     dialogs: MutableList<Any>,
 ) {
+    val navigate: (String) -> Unit = {
+        this.navigate(it)
+        dialogs.clear()
+    }
+
     when (req) {
         // Экраны /////////////////////
 
@@ -175,14 +185,10 @@ fun NavController.navRequestHandle(
         SplashEffect.Navigation.Login,
         -> navigate(ROUTE_LOGIN)
 
-        ControlEffect.Navigation.Logout -> {
-            navigate(ROUTE_LOGIN)
-            dialogs.clear()
-        }
-
         LoginEffect.Navigation.Registration -> navigate(ROUTE_REGISTRATION)
 
         HomeEffect.Navigation.Chats -> navigate(ROUTE_CHATS)
+        LogoutEffect.Navigation.Login -> navigate(ROUTE_LOGIN)
 
         // Диалоги /////////////////////
 
@@ -204,6 +210,7 @@ fun NavController.navRequestHandle(
         LoginEffect.Navigation.HostSelect -> dialogs.add(HostSelectReq)
         HostSelectEffect.Navigation.AddHost -> dialogs.add(AddHostReq)
         ControlEffect.Navigation.Profile -> dialogs.add(ProfileReq)
+        ProfileEffect.Navigation.Logout -> dialogs.add(LogoutReq)
     }
 }
 

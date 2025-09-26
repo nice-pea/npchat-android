@@ -19,7 +19,7 @@ import ru.dsaime.npchat.common.functions.toast
 import ru.dsaime.npchat.data.ChatsService
 import ru.dsaime.npchat.ui.components.Input
 import ru.dsaime.npchat.ui.components.LeftButton
-import ru.dsaime.npchat.ui.dialog.BottomDialogHeader
+import ru.dsaime.npchat.ui.components.dialog.BottomDialogHeader
 
 object CreateChatReq
 

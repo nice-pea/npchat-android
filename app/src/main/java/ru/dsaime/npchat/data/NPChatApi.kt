@@ -27,6 +27,11 @@ interface NPChatApi {
         @Body body: ApiModel.LoginBody,
     ): Result<ApiModel.AuthResp>
 
+    @POST("/sessions/:id/revoke")
+    suspend fun revoke(
+        @Path("id") id: String,
+    ): Result<ApiModel.AuthResp>
+
     @GET("/me")
     suspend fun me(): Result<ApiModel.MeResp>
 
@@ -44,7 +49,4 @@ interface NPChatApi {
     suspend fun leaveChat(
         @Path("chatId") chatId: String,
     ): Result<Unit>
-//    @GET("/events")
-//    @Streaming
-//    suspend fun events(): Response<ResponseBody>
 }

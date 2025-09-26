@@ -1,4 +1,4 @@
-package ru.dsaime.npchat.ui.dialog
+package ru.dsaime.npchat.ui.components.dialog
 
 import android.content.ClipData
 import androidx.compose.animation.animateContentSize
@@ -102,8 +102,6 @@ data class BottomDialogProperty(
 fun BottomDialogHeader(
     title: String,
     onBack: (() -> Unit)? = null,
-//    isBackVisible: Boolean = false,
-//    onBack: () -> Unit = { },
 ) {
     Row(
         modifier = Modifier.padding(bottom = 20.dp),

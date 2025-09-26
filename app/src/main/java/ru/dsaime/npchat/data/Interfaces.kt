@@ -65,6 +65,8 @@ interface SessionsService {
 
     suspend fun refresh(session: Session): Boolean
 
+    suspend fun revoke(session: Session)
+
     suspend fun me(): Result<User, String>
 }
 

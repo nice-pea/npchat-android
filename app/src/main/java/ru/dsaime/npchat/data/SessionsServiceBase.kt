@@ -62,6 +62,15 @@ class SessionsServiceBase(
         TODO("Not yet implemented")
     }
 
+    override suspend fun revoke(session: Session) {
+        db.sessionDao().deleteAll()
+        try {
+            api.revoke(session.id)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     override suspend fun me(): Result<User, String> =
         with(Dispatchers.IO) {
             api

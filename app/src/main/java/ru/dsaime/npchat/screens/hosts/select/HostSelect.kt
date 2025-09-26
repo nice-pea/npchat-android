@@ -20,7 +20,7 @@ import ru.dsaime.npchat.ui.components.Gap
 import ru.dsaime.npchat.ui.components.HostStatusIcon
 import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.components.RadioButton
-import ru.dsaime.npchat.ui.dialog.BottomDialogHeader
+import ru.dsaime.npchat.ui.components.dialog.BottomDialogHeader
 import ru.dsaime.npchat.ui.theme.Dp16
 import ru.dsaime.npchat.ui.theme.Font
 

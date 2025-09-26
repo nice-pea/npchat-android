@@ -111,4 +111,5 @@ val appModule =
         viewModelOf(::HostSelectViewModel)
         viewModelOf(::AddHostViewModel)
         viewModelOf(::ProfileViewModel)
+        viewModelOf(::LogoutViewMomdel)
     }

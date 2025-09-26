@@ -16,7 +16,6 @@ class ChatsServiceBase(
                     chats = it.chats?.map(ApiModel.Chat::toModel).orEmpty(),
                     nextPageToken = it.nextPageToken.orEmpty(),
                 ).run(::Ok)
-//            }.getOrThrow()
             }.getOrElse { Err(it.toUserMessage()) }
 
     override suspend fun create(name: String): Result<Chat, String> =
