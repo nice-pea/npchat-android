@@ -27,7 +27,7 @@ interface NPChatApi {
         @Body body: ApiModel.LoginBody,
     ): Result<ApiModel.AuthResp>
 
-    @POST("/sessions/:id/revoke")
+    @POST("/sessions/{id}/revoke")
     suspend fun revoke(
         @Path("id") id: String,
     ): Result<ApiModel.AuthResp>
