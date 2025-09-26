@@ -14,12 +14,16 @@ import ru.dsaime.npchat.data.SessionsService
 import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.components.Paragraph
 import ru.dsaime.npchat.ui.components.dialog.BottomDialogHeader
+import ru.dsaime.npchat.ui.components.dialog.BottomDialogParams
 
 object LogoutReq
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LogoutDialogContent(onNavigationRequest: (LogoutEffect.Navigation) -> Unit) {
+fun LogoutDialogContent(
+    params: BottomDialogParams,
+    onNavigationRequest: (LogoutEffect.Navigation) -> Unit,
+) {
     val vm = koinViewModel<LogoutViewModel>()
     val state = vm.viewState.collectAsState().value
 
@@ -32,7 +36,7 @@ fun LogoutDialogContent(onNavigationRequest: (LogoutEffect.Navigation) -> Unit) 
             }.collect()
     }
 
-    BottomDialogHeader("Завершить сессию")
+    BottomDialogHeader("Завершить сессию", params)
     Paragraph(
         "Чтобы снова войти в профиль, вам придется на" +
             "экране входа в приложение воспользоваться " +

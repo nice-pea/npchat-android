@@ -13,10 +13,14 @@ import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.data.SessionsService
 import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.components.dialog.BottomDialogHeader
+import ru.dsaime.npchat.ui.components.dialog.BottomDialogParams
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ControlDialogContent(onNavigationRequest: (ControlEffect.Navigation) -> Unit) {
+fun ControlDialogContent(
+    params: BottomDialogParams,
+    onNavigationRequest: (ControlEffect.Navigation) -> Unit,
+) {
     val vm = koinViewModel<ControlViewModel>()
     val state = vm.viewState.collectAsState().value
 
@@ -30,7 +34,7 @@ fun ControlDialogContent(onNavigationRequest: (ControlEffect.Navigation) -> Unit
             }.collect()
     }
 
-    BottomDialogHeader("Управление")
+    BottomDialogHeader("Управление", params)
     LeftButton("Создать чат", vm.eventHandler(ControlEvent.CreateChat))
     LeftButton("Профиль", vm.eventHandler(ControlEvent.Profile))
 }

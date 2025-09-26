@@ -55,6 +55,7 @@ import ru.dsaime.npchat.screens.splash.SplashScreenDestination
 import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.components.dialog.BottomDialog
 import ru.dsaime.npchat.ui.components.dialog.BottomDialogHeader
+import ru.dsaime.npchat.ui.components.dialog.BottomDialogParams
 import ru.dsaime.npchat.ui.components.dialog.BottomDialogProperties
 import ru.dsaime.npchat.ui.components.dialog.BottomDialogProperty
 import ru.dsaime.npchat.ui.theme.Black
@@ -91,18 +92,19 @@ class MainActivity : ComponentActivity() {
                     onClosed = dn.eventHandler(NavigatorEvent.Clear),
                 ) {
                     // Кнопка назад будет возвращать на предыдущий диалог
-                    BackHandler(dn.canPop()) {
+                    BackHandler(dn.canPop) {
                         dn.popUp()
                     }
+                    val params = BottomDialogParams(showBackButton = dn.canPop, onBack = dn::popUp)
                     when (val key = dnState.current) {
-                        is DRChat -> ChatDialog(chat = key.chat, onBack = dn::popUp, leave = { dn.push(DRLeave(key.chat)) })
-                        is DRLeave -> LeaveDialogContent(chat = key.chat, onBack = dn::popUp, confirm = hideBottomSheet)
-                        DR_CONTROL -> ControlDialogContent { navController.navRequestHandle(it, dn, hideBottomSheet) }
-                        DR_CREATE_CHAT -> CreateChatDialogContent(dn.canPop(), onNavigationRequest)
-                        DR_HOST_SELECT -> HostSelectDialogContent(onNavigationRequest)
-                        DR_ADD_HOST -> AddHostDialogContent(onNavigationRequest)
-                        DR_PROFILE -> ProfileDialogContent(onNavigationRequest)
-                        DR_LOGOUT -> LogoutDialogContent(onNavigationRequest)
+                        is DRChat -> ChatDialog(chat = key.chat, params, leave = { dn.push(DRLeave(key.chat)) })
+                        is DRLeave -> LeaveDialogContent(chat = key.chat, params, confirm = hideBottomSheet)
+                        DR_CONTROL -> ControlDialogContent(params, onNavigationRequest)
+                        DR_CREATE_CHAT -> CreateChatDialogContent(params, onNavigationRequest)
+                        DR_HOST_SELECT -> HostSelectDialogContent(params, onNavigationRequest)
+                        DR_ADD_HOST -> AddHostDialogContent(params, onNavigationRequest)
+                        DR_PROFILE -> ProfileDialogContent(params, onNavigationRequest)
+                        DR_LOGOUT -> LogoutDialogContent(params, onNavigationRequest)
                     }
                 }
                 NavHost(
@@ -211,10 +213,10 @@ private const val DR_LOGOUT = "DR_Logout"
 @Composable
 fun ChatDialog(
     chat: Chat,
-    onBack: (() -> Unit)? = null,
+    params: BottomDialogParams,
     leave: () -> Unit,
 ) {
-    BottomDialogHeader(chat.name, onBack)
+    BottomDialogHeader(chat.name, params)
     BottomDialogProperties(
         BottomDialogProperty("ID", chat.id),
         BottomDialogProperty("Name", chat.name),
@@ -226,10 +228,10 @@ fun ChatDialog(
 @Composable
 fun LeaveDialogContent(
     chat: Chat,
-    onBack: (() -> Unit)? = null,
+    params: BottomDialogParams,
     confirm: () -> Unit,
 ) {
-    BottomDialogHeader("Покинуть чат", onBack)
+    BottomDialogHeader("Покинуть чат", params)
     BottomDialogProperties(
         BottomDialogProperty("ID", chat.id),
         BottomDialogProperty("Name", chat.name),
@@ -314,7 +316,8 @@ class Navigator : BaseViewModel<NavigatorEvent, NavigatorState, NavigatorEffect>
         setState { copy(stack = emptyList(), current = null) }
     }
 
-    fun canPop() = viewState.value.stack.size > 1
+    val canPop: Boolean
+        get() = viewState.value.stack.size > 1
 
     override fun handleEvents(event: NavigatorEvent) {
         when (event) {

@@ -21,12 +21,16 @@ import ru.dsaime.npchat.ui.components.HostStatusIcon
 import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.components.RadioButton
 import ru.dsaime.npchat.ui.components.dialog.BottomDialogHeader
+import ru.dsaime.npchat.ui.components.dialog.BottomDialogParams
 import ru.dsaime.npchat.ui.theme.Dp16
 import ru.dsaime.npchat.ui.theme.Font
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ColumnScope.HostSelectDialogContent(onNavigationRequest: (HostSelectEffect.Navigation) -> Unit) {
+fun ColumnScope.HostSelectDialogContent(
+    params: BottomDialogParams,
+    onNavigationRequest: (HostSelectEffect.Navigation) -> Unit,
+) {
     val vm = koinViewModel<HostSelectViewModel>()
     val state by vm.viewState.collectAsState()
     LaunchedEffect(1) {
@@ -38,7 +42,7 @@ fun ColumnScope.HostSelectDialogContent(onNavigationRequest: (HostSelectEffect.N
             }.collect()
     }
 
-    BottomDialogHeader("Выбрать сервер")
+    BottomDialogHeader("Выбрать сервер", params)
     state.hosts.forEach { host ->
         RadioButton(
             text = host.url,

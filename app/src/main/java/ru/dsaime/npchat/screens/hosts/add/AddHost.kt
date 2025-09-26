@@ -22,10 +22,14 @@ import ru.dsaime.npchat.ui.components.HostStatusIcon
 import ru.dsaime.npchat.ui.components.Input
 import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.components.dialog.BottomDialogHeader
+import ru.dsaime.npchat.ui.components.dialog.BottomDialogParams
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddHostDialogContent(onNavigationRequest: (AddHostEffect.Navigation) -> Unit) {
+fun AddHostDialogContent(
+    params: BottomDialogParams,
+    onNavigationRequest: (AddHostEffect.Navigation) -> Unit,
+) {
     val vm = koinViewModel<AddHostViewModel>()
     val state by vm.viewState.collectAsState()
     LaunchedEffect(1) {
@@ -37,7 +41,7 @@ fun AddHostDialogContent(onNavigationRequest: (AddHostEffect.Navigation) -> Unit
             }.collect()
     }
 
-    BottomDialogHeader("Добавить сервер")
+    BottomDialogHeader("Добавить сервер", params)
     Input(
         title = "Адрес",
         value = state.url,

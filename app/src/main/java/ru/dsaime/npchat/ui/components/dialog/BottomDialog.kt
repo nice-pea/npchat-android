@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import ru.dsaime.npchat.common.functions.runSuspend
 import ru.dsaime.npchat.ui.components.Gap
+import ru.dsaime.npchat.ui.modifiers.fadeIn
 import ru.dsaime.npchat.ui.theme.ColorBG
 import ru.dsaime.npchat.ui.theme.ColorScrim
 import ru.dsaime.npchat.ui.theme.ColorText
@@ -40,10 +41,6 @@ import ru.dsaime.npchat.ui.theme.Dp16
 import ru.dsaime.npchat.ui.theme.Dp2
 import ru.dsaime.npchat.ui.theme.Dp8
 import ru.dsaime.npchat.ui.theme.Font
-
-@Composable
-fun BottomDialogUI(modifier: Modifier = Modifier) {
-}
 
 @Composable
 fun BottomDialogProperty(property: BottomDialogProperty) {
@@ -99,28 +96,40 @@ data class BottomDialogProperty(
     val action: (() -> Unit)? = null,
 )
 
+data class BottomDialogParams(
+    val showBackButton: Boolean,
+    val onBack: () -> Unit,
+)
+
 @Composable
 fun BottomDialogHeader(
     title: String,
-    onBack: (() -> Unit)? = null,
+    params: BottomDialogParams,
 ) {
     Row(
-        modifier = Modifier.padding(bottom = 20.dp),
+        modifier =
+            Modifier
+                .padding(bottom = 20.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (onBack != null) {
-            Text(
-                text = "<-",
-                modifier =
-                    Modifier
-                        .clip(CircleShape)
-                        .clickable(onClick = onBack)
-                        .padding(start = 5.dp, end = 15.dp),
-                style = Font.Text18W400,
-            )
+        if (params.showBackButton) {
+            BackButton(params.onBack)
         }
-        Text(title, style = Font.Text18W400)
+        Text(title, style = Font.Text18W400, modifier = Modifier.fadeIn(200, .6f))
     }
+}
+
+@Composable
+private fun BackButton(onBack: () -> Unit) {
+    Text(
+        text = "<-",
+        modifier =
+            Modifier
+                .clip(CircleShape)
+                .clickable(onClick = onBack)
+                .padding(start = 5.dp, end = 15.dp),
+        style = Font.Text18W400,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -181,7 +190,8 @@ fun BottomDialog(
                         .background(ColorBG)
                         .border(1.dp, ColorText)
                         .padding(20.dp)
-                        .animateContentSize(tween(200)),
+                        .animateContentSize(tween())
+                        .fadeIn(140, .6f),
             ) {
                 sheet()
             }

@@ -20,11 +20,12 @@ import ru.dsaime.npchat.data.ChatsService
 import ru.dsaime.npchat.ui.components.Input
 import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.components.dialog.BottomDialogHeader
+import ru.dsaime.npchat.ui.components.dialog.BottomDialogParams
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateChatDialogContent(
-    showBackButton: Boolean,
+    params: BottomDialogParams,
     onNavigationRequest: (CreateChatEffect.Navigation) -> Unit,
 ) {
     val vm = koinViewModel<CreateChatViewModel>()
@@ -41,13 +42,7 @@ fun CreateChatDialogContent(
             }.collect()
     }
 
-    BottomDialogHeader(
-        "Создать чат",
-        onBack =
-            vm
-                .eventHandler(CreateChatEvent.Back)
-                .takeIf { showBackButton },
-    )
+    BottomDialogHeader("Создать чат", params)
     Input(
         value = state.name,
         title = "Название",
