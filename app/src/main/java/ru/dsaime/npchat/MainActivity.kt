@@ -15,21 +15,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.sebaslogen.resaca.koin.koinViewModelScoped
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 import org.koin.core.logger.PrintLogger
-import ru.dsaime.npchat.common.base.BaseViewModel
+import ru.dsaime.npchat.common.functions.WithViewModelStoreOwner
 import ru.dsaime.npchat.di.koin.appModule
 import ru.dsaime.npchat.model.Chat
 import ru.dsaime.npchat.screens.chat.chats.ChatsEffect
@@ -78,7 +78,6 @@ class MainActivity : ComponentActivity() {
             }.koin
 
         setContent {
-            val scope = rememberCoroutineScope()
             val dn = koinViewModel<NavigatorViewModel>()
             val dnState by dn.viewState.collectAsState()
 
@@ -95,30 +94,30 @@ class MainActivity : ComponentActivity() {
                 val onNavigationRequest: (Any) -> Unit = { navController.navRequestHandle(it, dn, hideBottomSheet) }
                 // Закрывать нижний диалог при навигации
                 LaunchedEffect(1) {
-                    navController.visibleEntries
-                        .collect {
-                            hideBottomSheet()
-                        }
+                    navController.visibleEntries.collect { hideBottomSheet() }
                 }
                 BottomDialog(
                     isVisibleRequired = dnState.stack.isNotEmpty(),
                     state = sheetState,
-                    onClosed = dn.eventHandler(NavigatorEvent.Clear),
+                    onClosed = dn::clear,
                 ) {
                     // Кнопка назад будет возвращать на предыдущий диалог
                     BackHandler(dn.canPopUp) { dn.popUp() }
                     // Параметры диалога, такие как признак возможности вернуться назад
                     val params = BottomDialogParams(canPopUp = dn.canPopUp, onPopUp = dn::popUp)
-                    // Отображать компонент диалога в зависимости от последнего элемента стека
-                    when (val key = dnState.current) {
-                        is DRChat -> ChatDialog(params, chat = key.chat, leave = { dn.push(DRLeave(key.chat)) })
-                        is DRLeave -> LeaveDialogContent(params, chat = key.chat, confirm = hideBottomSheet)
-                        DR_CONTROL -> ControlDialog(params, onNavigationRequest)
-                        DR_CREATE_CHAT -> CreateChatDialog(params, koinViewModelScoped(), onNavigationRequest)
-                        DR_HOST_SELECT -> HostSelectDialog(params, koinViewModelScoped(), onNavigationRequest)
-                        DR_ADD_HOST -> AddHostDialog(params, koinViewModelScoped(), onNavigationRequest)
-                        DR_PROFILE -> ProfileDialog(params, koinViewModelScoped(), onNavigationRequest)
-                        DR_LOGOUT -> LogoutDialog(params, koinViewModelScoped(), onNavigationRequest)
+                    // Ограничить время жизни viewModels видимостью диалога
+                    WithViewModelStoreOwner {
+                        // Отображать компонент диалога в зависимости от последнего элемента стека
+                        when (val key = dnState.current) {
+                            is DRChat -> ChatDialog(params, chat = key.chat, leave = { dn.push(DRLeave(key.chat)) })
+                            is DRLeave -> LeaveDialog(params, chat = key.chat, confirm = hideBottomSheet)
+                            DR_CONTROL -> ControlDialog(params, onNavigationRequest)
+                            DR_CREATE_CHAT -> CreateChatDialog(params, koinViewModel(), onNavigationRequest)
+                            DR_HOST_SELECT -> HostSelectDialog(params, koinViewModel(), onNavigationRequest)
+                            DR_ADD_HOST -> AddHostDialog(params, koinViewModel(), onNavigationRequest)
+                            DR_PROFILE -> ProfileDialog(params, koinViewModel(), onNavigationRequest)
+                            DR_LOGOUT -> LogoutDialog(params, koinViewModel(), onNavigationRequest)
+                        }
                     }
                 }
                 NavHost(
@@ -205,7 +204,7 @@ fun NavController.navRequestHandle(
     }
 }
 
-private fun NavController.oneWay(key: String): NavOptionsBuilder.() -> Unit =
+private fun oneWay(key: String): NavOptionsBuilder.() -> Unit =
     {
         popUpTo(key) {
             inclusive = true
@@ -244,7 +243,7 @@ fun ChatDialog(
 }
 
 @Composable
-fun LeaveDialogContent(
+fun LeaveDialog(
     params: BottomDialogParams,
     chat: Chat,
     confirm: () -> Unit,
@@ -258,26 +257,6 @@ fun LeaveDialogContent(
     LeftButton("Подтвердить", confirm, isRight = true)
 }
 
-sealed interface NavigatorEvent {
-    object PopUp : NavigatorEvent
-
-    data class PopUpTo(
-        val key: DialogKey,
-    ) : NavigatorEvent
-
-    data class Push(
-        val key: DialogKey,
-    ) : NavigatorEvent
-
-    object Clear : NavigatorEvent
-}
-
-sealed interface NavigatorEffect {
-    object Empty : NavigatorEffect
-
-    object NotEmpty : NavigatorEffect
-}
-
 data class NavigatorState(
     val stack: List<DialogKey> = emptyList(),
 ) {
@@ -287,21 +266,13 @@ data class NavigatorState(
 
 typealias DialogKey = Any
 
-class NavigatorViewModel : BaseViewModel<NavigatorEvent, NavigatorState, NavigatorEffect>() {
-    override fun setInitialState() = NavigatorState()
+class NavigatorViewModel : ViewModel() {
+    private val _viewState = MutableStateFlow(NavigatorState())
+    val viewState = _viewState.asStateFlow()
 
-    init {
-        viewModelScope.launch {
-            viewState
-                .map { it.stack.lastOrNull() }
-                .collect { current ->
-                    if (current != null) {
-                        NavigatorEffect.NotEmpty.emit()
-                    } else {
-                        NavigatorEffect.Empty.emit()
-                    }
-                }
-        }
+    private fun setState(reducer: NavigatorState.() -> NavigatorState) {
+        val newState = viewState.value.reducer()
+        _viewState.value = newState
     }
 
     fun popUp() {
@@ -333,13 +304,4 @@ class NavigatorViewModel : BaseViewModel<NavigatorEvent, NavigatorState, Navigat
 
     val canPopUp: Boolean
         get() = viewState.value.stack.size > 1
-
-    override fun handleEvents(event: NavigatorEvent) {
-        when (event) {
-            NavigatorEvent.PopUp -> popUp()
-            NavigatorEvent.Clear -> clear()
-            is NavigatorEvent.PopUpTo -> popUpTo(event.key)
-            is NavigatorEvent.Push -> push(event.key)
-        }
-    }
 }
