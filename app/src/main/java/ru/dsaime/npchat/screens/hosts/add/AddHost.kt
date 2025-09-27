@@ -20,6 +20,7 @@ import ru.dsaime.npchat.model.Host
 import ru.dsaime.npchat.ui.components.HostStatusIcon
 import ru.dsaime.npchat.ui.components.Input
 import ru.dsaime.npchat.ui.components.LeftButton
+import ru.dsaime.npchat.ui.components.RightButton
 import ru.dsaime.npchat.ui.components.dialog.BottomDialogHeader
 import ru.dsaime.npchat.ui.components.dialog.BottomDialogParams
 
@@ -48,7 +49,7 @@ fun AddHostDialog(
         placeholder = "http://192.168.1.1:8080",
     )
     HostStatusIcon(state.status)
-    LeftButton("Добавить", vm.eventHandler(AddHostEvent.Confirm), isRight = true)
+    RightButton("Добавить", vm.eventHandler(AddHostEvent.Confirm))
 }
 
 sealed interface AddHostEvent {

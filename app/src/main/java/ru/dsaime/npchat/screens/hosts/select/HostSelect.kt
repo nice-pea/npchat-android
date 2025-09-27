@@ -20,6 +20,7 @@ import ru.dsaime.npchat.ui.components.Gap
 import ru.dsaime.npchat.ui.components.HostStatusIcon
 import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.components.RadioButton
+import ru.dsaime.npchat.ui.components.RightButton
 import ru.dsaime.npchat.ui.components.dialog.BottomDialogHeader
 import ru.dsaime.npchat.ui.components.dialog.BottomDialogParams
 import ru.dsaime.npchat.ui.theme.Dp16
@@ -57,7 +58,7 @@ fun ColumnScope.HostSelectDialog(
     Gap(Dp16)
     LeftButton("Добавить", vm.eventHandler(HostSelectEvent.Add))
     if (state.selectedHost != null) {
-        LeftButton("Удалить выбранный", vm.eventHandler(HostSelectEvent.Delete), isRight = true)
+        RightButton("Удалить выбранный", vm.eventHandler(HostSelectEvent.Delete))
     }
 }
 

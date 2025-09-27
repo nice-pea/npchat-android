@@ -23,16 +23,26 @@ import ru.dsaime.npchat.ui.theme.RoundMin
 @Preview
 @Composable
 private fun PreviewButton() {
-    LeftButton(
-        modifier =
-            Modifier
-                .background(Black)
-                .padding(Dp20),
-        text = "Confirm",
-        helperText = "The number of chats that can be created is limited. Created chats cannot be deleted",
-        onClick = {},
-        isRight = true,
-    )
+    Column {
+        LeftButton(
+            modifier =
+                Modifier
+                    .background(Black)
+                    .padding(Dp20),
+            text = "Confirm",
+            helperText = "The number of chats that can be created is limited. Created chats cannot be deleted",
+            onClick = {},
+        )
+        RightButton(
+            modifier =
+                Modifier
+                    .background(Black)
+                    .padding(Dp20),
+            text = "Confirm",
+            helperText = "The number of chats that can be created is limited. Created chats cannot be deleted",
+            onClick = {},
+        )
+    }
 }
 
 @Composable
@@ -41,7 +51,6 @@ fun LeftButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     helperText: String = "",
-    isRight: Boolean = false,
 ) {
     Column(
         modifier =
@@ -52,12 +61,36 @@ fun LeftButton(
                 .padding(Dp8)
                 .fadeIn(200, .5f)
                 .then(modifier),
-        horizontalAlignment = if (isRight) Alignment.End else Alignment.Start,
     ) {
         Text(text, style = Font.Text16W600)
         if (helperText != "") {
             Gap(Dp2)
-            Text(helperText, style = Font.Text12W400, textAlign = if (isRight) TextAlign.Right else TextAlign.Left)
+            Text(helperText, style = Font.Text12W400)
+        }
+    }
+}
+
+@Composable
+fun RightButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    helperText: String = "",
+) {
+    Column(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundMin)
+                .fadeIn(200, .5f)
+                .padding(Dp8)
+                .then(modifier),
+        horizontalAlignment = Alignment.End,
+    ) {
+        Text(text, Modifier.clickable(onClick = onClick), style = Font.Text16W600)
+        if (helperText != "") {
+            Gap(Dp2)
+            Text(helperText, style = Font.Text12W400, textAlign = TextAlign.Right)
         }
     }
 }

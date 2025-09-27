@@ -55,6 +55,7 @@ import ru.dsaime.npchat.screens.registration.RegistrationScreenDestination
 import ru.dsaime.npchat.screens.splash.SplashEffect
 import ru.dsaime.npchat.screens.splash.SplashScreenDestination
 import ru.dsaime.npchat.ui.components.LeftButton
+import ru.dsaime.npchat.ui.components.RightButton
 import ru.dsaime.npchat.ui.components.dialog.BottomDialog
 import ru.dsaime.npchat.ui.components.dialog.BottomDialogHeader
 import ru.dsaime.npchat.ui.components.dialog.BottomDialogParams
@@ -254,7 +255,7 @@ fun LeaveDialog(
         BottomDialogProperty("Name", chat.name),
         BottomDialogProperty("ChiefID", chat.chiefId),
     )
-    LeftButton("Подтвердить", confirm, isRight = true)
+    RightButton("Подтвердить", confirm)
 }
 
 data class NavigatorState(

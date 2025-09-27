@@ -10,8 +10,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import ru.dsaime.npchat.common.base.BaseViewModel
 import ru.dsaime.npchat.data.SessionsService
-import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.components.Paragraph
+import ru.dsaime.npchat.ui.components.RightButton
 import ru.dsaime.npchat.ui.components.dialog.BottomDialogHeader
 import ru.dsaime.npchat.ui.components.dialog.BottomDialogParams
 
@@ -42,7 +42,7 @@ fun LogoutDialog(
             "одним из подключенных методов аутентификации.",
     )
     Paragraph("Вы действительно хотите выйти из своего профиля?")
-    LeftButton("Подтвердить", vm.eventHandler(LogoutEvent.Confirm), isRight = true)
+    RightButton("Подтвердить", vm.eventHandler(LogoutEvent.Confirm))
 }
 
 sealed interface LogoutEvent {
