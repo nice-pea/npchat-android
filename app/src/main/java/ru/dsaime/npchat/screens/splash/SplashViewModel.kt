@@ -3,7 +3,9 @@ package ru.dsaime.npchat.screens.splash
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import ru.dsaime.npchat.common.base.BaseViewModel
+import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.data.SessionsService
+import ru.dsaime.npchat.model.Host
 
 sealed interface SplashEvent {
     object CheckSession : SplashEvent
@@ -23,6 +25,7 @@ sealed interface SplashEffect {
 
 class SplashViewModel(
     private val sessionsService: SessionsService,
+    private val hostService: HostService,
 ) : BaseViewModel<SplashEvent, SplashState, SplashEffect>() {
     override fun setInitialState() = SplashState
 
@@ -30,19 +33,21 @@ class SplashViewModel(
         when (event) {
             SplashEvent.CheckSession ->
                 viewModelScope.launch {
-                    val current =
-                        sessionsService.currentSession() ?: run {
-                            // Если нет сохраненной сессии, перейти на экран логина
-                            SplashEffect.Navigation.Login.emit()
-                            return@launch
-                        }
-
-                    if (sessionsService.isActual(current) || sessionsService.refresh(current)) {
-                        // Если сессия актива, прейти на Главный экран
-                        SplashEffect.Navigation.Home.emit()
-                    } else {
+                    // Если нет соединения с сервером или он не выбран, перейти на экран логина
+                    val host = hostService.currentBaseUrl()
+                    if (host != null && hostService.status(host) != Host.Status.ONLINE) {
                         SplashEffect.Navigation.Login.emit()
+                        return@launch
                     }
+
+                    // Если нет сохраненной сессии или она неактуальна, перейти на экран логина
+                    val session = sessionsService.currentSession()
+                    if (session == null || !(sessionsService.isActual(session) || sessionsService.refresh(session))) {
+                        SplashEffect.Navigation.Login.emit()
+                        return@launch
+                    }
+
+                    SplashEffect.Navigation.Home.emit()
                 }
         }
     }

@@ -167,7 +167,7 @@ fun NavController.navRequestHandle(
 
         LoginEffect.Navigation.Registration -> navigate(ROUTE_REGISTRATION)
 
-        HomeEffect.Navigation.Chats -> navigate(ROUTE_CHATS)
+        HomeEffect.Navigation.Chats -> navigate("$ROUTE_HOME/$ROUTE_CHATS")
         LogoutEffect.Navigation.Login -> navigate(ROUTE_LOGIN)
 
         // Диалоги /////////////////////
