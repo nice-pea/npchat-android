@@ -35,7 +35,7 @@ class SplashViewModel(
                 viewModelScope.launch {
                     // Если нет соединения с сервером или он не выбран, перейти на экран логина
                     val host = hostService.currentBaseUrl()
-                    if (host != null && hostService.status(host) != Host.Status.ONLINE) {
+                    if (host == null || hostService.status(host) != Host.Status.ONLINE) {
                         SplashEffect.Navigation.Login.emit()
                         return@launch
                     }
