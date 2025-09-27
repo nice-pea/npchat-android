@@ -14,21 +14,23 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
 import ru.dsaime.npchat.common.base.BaseViewModel
 import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.model.Host
 import ru.dsaime.npchat.ui.components.HostStatusIcon
 import ru.dsaime.npchat.ui.components.Input
 import ru.dsaime.npchat.ui.components.LeftButton
+import ru.dsaime.npchat.ui.components.RightButton
 import ru.dsaime.npchat.ui.components.dialog.BottomDialogHeader
-
-object AddHostReq
+import ru.dsaime.npchat.ui.components.dialog.BottomDialogParams
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddHostDialogContent(onNavigationRequest: (AddHostEffect.Navigation) -> Unit) {
-    val vm = koinViewModel<AddHostViewModel>()
+fun AddHostDialog(
+    params: BottomDialogParams,
+    vm: AddHostViewModel,
+    onNavigationRequest: (AddHostEffect.Navigation) -> Unit,
+) {
     val state by vm.viewState.collectAsState()
     LaunchedEffect(1) {
         vm.effect
@@ -39,7 +41,7 @@ fun AddHostDialogContent(onNavigationRequest: (AddHostEffect.Navigation) -> Unit
             }.collect()
     }
 
-    BottomDialogHeader("Добавить сервер")
+    BottomDialogHeader("Добавить сервер", params)
     Input(
         title = "Адрес",
         value = state.url,
@@ -47,7 +49,7 @@ fun AddHostDialogContent(onNavigationRequest: (AddHostEffect.Navigation) -> Unit
         placeholder = "http://192.168.1.1:8080",
     )
     HostStatusIcon(state.status)
-    LeftButton("Добавить", vm.eventHandler(AddHostEvent.Confirm), isRight = true)
+    RightButton("Добавить", vm.eventHandler(AddHostEvent.Confirm))
 }
 
 sealed interface AddHostEvent {

@@ -7,47 +7,47 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
+import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 import org.koin.core.logger.PrintLogger
+import ru.dsaime.npchat.common.functions.WithViewModelStoreOwner
 import ru.dsaime.npchat.di.koin.appModule
 import ru.dsaime.npchat.model.Chat
 import ru.dsaime.npchat.screens.chat.chats.ChatsEffect
 import ru.dsaime.npchat.screens.chat.chats.ChatsScreenDestination
-import ru.dsaime.npchat.screens.chat.create.CreateChatDialogContent
+import ru.dsaime.npchat.screens.chat.create.CreateChatDialog
 import ru.dsaime.npchat.screens.chat.create.CreateChatEffect
-import ru.dsaime.npchat.screens.chat.create.CreateChatReq
-import ru.dsaime.npchat.screens.control.main.ControlDialogContent
+import ru.dsaime.npchat.screens.control.main.ControlDialog
 import ru.dsaime.npchat.screens.control.main.ControlEffect
-import ru.dsaime.npchat.screens.control.main.ControlReq
-import ru.dsaime.npchat.screens.control.profile.ProfileDialogContent
+import ru.dsaime.npchat.screens.control.profile.ProfileDialog
 import ru.dsaime.npchat.screens.control.profile.ProfileEffect
-import ru.dsaime.npchat.screens.control.profile.ProfileReq
-import ru.dsaime.npchat.screens.control.profile.session.logout.LogoutDialogContent
+import ru.dsaime.npchat.screens.control.profile.session.logout.LogoutDialog
 import ru.dsaime.npchat.screens.control.profile.session.logout.LogoutEffect
-import ru.dsaime.npchat.screens.control.profile.session.logout.LogoutReq
 import ru.dsaime.npchat.screens.home.HomeEffect
 import ru.dsaime.npchat.screens.home.HomeScreenDestination
-import ru.dsaime.npchat.screens.hosts.add.AddHostDialogContent
+import ru.dsaime.npchat.screens.hosts.add.AddHostDialog
 import ru.dsaime.npchat.screens.hosts.add.AddHostEffect
-import ru.dsaime.npchat.screens.hosts.add.AddHostReq
-import ru.dsaime.npchat.screens.hosts.select.HostSelectDialogContent
+import ru.dsaime.npchat.screens.hosts.select.HostSelectDialog
 import ru.dsaime.npchat.screens.hosts.select.HostSelectEffect
-import ru.dsaime.npchat.screens.hosts.select.HostSelectReq
 import ru.dsaime.npchat.screens.login.LoginEffect
 import ru.dsaime.npchat.screens.login.LoginScreenDestination
 import ru.dsaime.npchat.screens.registration.RegistrationEffect
@@ -55,8 +55,10 @@ import ru.dsaime.npchat.screens.registration.RegistrationScreenDestination
 import ru.dsaime.npchat.screens.splash.SplashEffect
 import ru.dsaime.npchat.screens.splash.SplashScreenDestination
 import ru.dsaime.npchat.ui.components.LeftButton
+import ru.dsaime.npchat.ui.components.RightButton
 import ru.dsaime.npchat.ui.components.dialog.BottomDialog
 import ru.dsaime.npchat.ui.components.dialog.BottomDialogHeader
+import ru.dsaime.npchat.ui.components.dialog.BottomDialogParams
 import ru.dsaime.npchat.ui.components.dialog.BottomDialogProperties
 import ru.dsaime.npchat.ui.components.dialog.BottomDialogProperty
 import ru.dsaime.npchat.ui.theme.Black
@@ -69,62 +71,54 @@ class MainActivity : ComponentActivity() {
 
         installSplashScreen()
 
-        startKoin {
-            logger(PrintLogger(Level.DEBUG))
-            androidContext(this@MainActivity)
-            modules(appModule)
-        }
+        val koin =
+            startKoin {
+                logger(PrintLogger(Level.DEBUG))
+                androidContext(this@MainActivity)
+                modules(appModule)
+            }.koin
 
         setContent {
-            val dialogs = remember { mutableStateListOf<Any>() }
-            val onBack by
-                remember {
-                    derivedStateOf {
-                        if (dialogs.size > 1) {
-                            {
-                                dialogs.removeAt(dialogs.lastIndex)
-                                Unit
-                            }
-                        } else {
-                            null
-                        }
-                    }
-                }
+            val dn = koinViewModel<NavigatorViewModel>()
+            val dnState by dn.viewState.collectAsState()
 
             NPChatTheme {
                 val navController = rememberNavController()
                 val scope = rememberCoroutineScope()
+                val sheetState = rememberModalBottomSheetState(true)
+                val hideBottomSheet: () -> Unit = {
+                    scope.launch {
+                        sheetState.hide()
+                        dn.clear()
+                    }
+                }
+                val onNavigationRequest: (Any) -> Unit = { navController.navRequestHandle(it, dn, hideBottomSheet) }
+                // Закрывать нижний диалог при навигации
+                LaunchedEffect(1) {
+                    navController.visibleEntries.collect { hideBottomSheet() }
+                }
                 BottomDialog(
-                    isVisibleRequired = dialogs.isNotEmpty(),
-                    onClosed = { dialogs.clear() },
-                ) { dismissRequest ->
-                    // Диалоги будут очищаться после того как скроется BottomSheet
-                    val closeDialog: () -> Unit = {
-                        scope.launch {
-                            dismissRequest()
-                            dialogs.clear()
-                        }
-                    }
+                    isVisibleRequired = dnState.stack.isNotEmpty(),
+                    state = sheetState,
+                    onClosed = dn::clear,
+                ) {
                     // Кнопка назад будет возвращать на предыдущий диалог
-                    BackHandler(dialogs.size > 1) {
-                        dialogs.removeLastOrNull()
-                    }
-                    val showBackButton = dialogs.isNotEmpty()
-                    when (val args = dialogs.lastOrNull()) {
-                        is DialogChatArgs ->
-                            ChatDialogContent(
-                                args = args,
-                                onBack = onBack,
-                                leave = { dialogs.add(DialogLeaveArgs(args.chat)) },
-                            )
-
-                        is DialogLeaveArgs -> LeaveDialogContent(args = args, onBack = onBack, confirm = closeDialog)
-                        is ControlReq -> ControlDialogContent { navController.navRequestHandle(it, dialogs) }
-                        is CreateChatReq -> CreateChatDialogContent(showBackButton) { navController.navRequestHandle(it, dialogs) }
-                        is HostSelectReq -> HostSelectDialogContent { navController.navRequestHandle(it, dialogs) }
-                        is AddHostReq -> AddHostDialogContent { navController.navRequestHandle(it, dialogs) }
-                        is ProfileReq -> ProfileDialogContent { navController.navRequestHandle(it, dialogs) }
-                        is LogoutReq -> LogoutDialogContent { navController.navRequestHandle(it, dialogs) }
+                    BackHandler(dn.canPopUp) { dn.popUp() }
+                    // Параметры диалога, такие как признак возможности вернуться назад
+                    val params = BottomDialogParams(canPopUp = dn.canPopUp, onPopUp = dn::popUp)
+                    // Ограничить время жизни viewModels видимостью диалога
+                    WithViewModelStoreOwner {
+                        // Отображать компонент диалога в зависимости от последнего элемента стека
+                        when (val key = dnState.current) {
+                            is DRChat -> ChatDialog(params, chat = key.chat, leave = { dn.push(DRLeave(key.chat)) })
+                            is DRLeave -> LeaveDialog(params, chat = key.chat, confirm = hideBottomSheet)
+                            DR_CONTROL -> ControlDialog(params, onNavigationRequest)
+                            DR_CREATE_CHAT -> CreateChatDialog(params, koinViewModel(), onNavigationRequest)
+                            DR_HOST_SELECT -> HostSelectDialog(params, koinViewModel(), onNavigationRequest)
+                            DR_ADD_HOST -> AddHostDialog(params, koinViewModel(), onNavigationRequest)
+                            DR_PROFILE -> ProfileDialog(params, koinViewModel(), onNavigationRequest)
+                            DR_LOGOUT -> LogoutDialog(params, koinViewModel(), onNavigationRequest)
+                        }
                     }
                 }
                 NavHost(
@@ -135,21 +129,17 @@ class MainActivity : ComponentActivity() {
                     navController = navController,
                     startDestination = ROUTE_SPLASH,
                 ) {
-                    composable(ROUTE_SPLASH) { SplashScreenDestination { navController.navRequestHandle(it, dialogs) } }
-                    composable(ROUTE_LOGIN) {
-                        LoginScreenDestination { navController.navRequestHandle(it, dialogs) }
-                    }
-                    composable(ROUTE_REGISTRATION) { RegistrationScreenDestination { navController.navRequestHandle(it, dialogs) } }
+                    composable(ROUTE_SPLASH) { SplashScreenDestination(onNavigationRequest) }
+                    composable(ROUTE_LOGIN) { LoginScreenDestination(onNavigationRequest) }
+                    composable(ROUTE_REGISTRATION) { RegistrationScreenDestination(onNavigationRequest) }
                     composable(ROUTE_HOME) {
-                        HomeScreenDestination(
-                            onNavigationRequest = { navController.navRequestHandle(it, dialogs) },
-                        ) {
+                        HomeScreenDestination(onNavigationRequest = onNavigationRequest) {
                             val navController = rememberNavController()
                             NavHost(
                                 navController = navController,
                                 startDestination = ROUTE_CHATS,
                             ) {
-                                composable(ROUTE_CHATS) { ChatsScreenDestination { navController.navRequestHandle(it, dialogs) } }
+                                composable(ROUTE_CHATS) { ChatsScreenDestination(onNavigationRequest) }
                             }
                         }
                     }
@@ -167,65 +157,84 @@ private const val ROUTE_CHATS = "Chats"
 
 fun NavController.navRequestHandle(
     req: Any,
-    dialogs: MutableList<Any>,
+    dn: NavigatorViewModel,
+    hideBottomSheet: () -> Unit = {},
 ) {
-    val navigate: (String) -> Unit = {
-        this.navigate(it)
-        dialogs.clear()
-    }
-
     when (req) {
-        // Экраны /////////////////////
+        // SplashEffect
+        SplashEffect.Navigation.Home -> navigate(ROUTE_HOME, oneWay(ROUTE_SPLASH))
+        SplashEffect.Navigation.Login -> navigate(ROUTE_LOGIN, oneWay(ROUTE_SPLASH))
 
-        SplashEffect.Navigation.Home,
-        LoginEffect.Navigation.Home,
-        RegistrationEffect.Navigation.Home,
-        -> navigate(ROUTE_HOME)
-
-        SplashEffect.Navigation.Login,
-        -> navigate(ROUTE_LOGIN)
-
+        // LoginEffect
+        LoginEffect.Navigation.Home -> navigate(ROUTE_HOME, oneWay(ROUTE_LOGIN))
         LoginEffect.Navigation.Registration -> navigate(ROUTE_REGISTRATION)
+        LoginEffect.Navigation.HostSelect -> dn.push(DR_HOST_SELECT)
 
-        HomeEffect.Navigation.Chats -> navigate(ROUTE_CHATS)
-        LogoutEffect.Navigation.Login -> navigate(ROUTE_LOGIN)
+        // RegistrationEffect
+        RegistrationEffect.Navigation.Home -> navigate(ROUTE_HOME, oneWay(ROUTE_REGISTRATION))
 
-        // Диалоги /////////////////////
+        // HomeEffect
+        HomeEffect.Navigation.Chats -> navigate("$ROUTE_HOME/$ROUTE_CHATS")
+        HomeEffect.Navigation.Control -> dn.push(DR_CONTROL)
 
-        // Закрыть bottom sheet
-        CreateChatEffect.Navigation.Close,
-        AddHostEffect.Navigation.Close,
-        HostSelectEffect.Navigation.Close,
-        -> dialogs.clear()
+        // LogoutEffect
+        LogoutEffect.Navigation.Login -> navigate(ROUTE_LOGIN, oneWay(ROUTE_HOME))
 
-        // Вернуться назад
-        CreateChatEffect.Navigation.Back -> dialogs.removeIf { it is CreateChatReq }
-        AddHostEffect.Navigation.Back -> dialogs.removeIf { it is AddHostReq }
+        // ChatsEffect
+        is ChatsEffect.Navigation.Chat -> dn.push(DRChat(req.chat))
 
-        // Добавить диалог в стек
-        is ChatsEffect.Navigation.Chat -> dialogs.add(DialogChatArgs(req.chat))
-        is CreateChatEffect.Navigation.Chat -> dialogs.add(DialogChatArgs(req.chat))
-        HomeEffect.Navigation.Control -> dialogs.add(ControlReq)
-        ControlEffect.Navigation.CreateChat -> dialogs.add(CreateChatReq)
-        LoginEffect.Navigation.HostSelect -> dialogs.add(HostSelectReq)
-        HostSelectEffect.Navigation.AddHost -> dialogs.add(AddHostReq)
-        ControlEffect.Navigation.Profile -> dialogs.add(ProfileReq)
-        ProfileEffect.Navigation.Logout -> dialogs.add(LogoutReq)
+        // CreateChatEffect
+        CreateChatEffect.Navigation.Close -> hideBottomSheet()
+        CreateChatEffect.Navigation.Back -> dn.popUp()
+        is CreateChatEffect.Navigation.Chat -> dn.push(DRChat(req.chat))
+
+        // AddHostEffect
+        AddHostEffect.Navigation.Close -> hideBottomSheet()
+        AddHostEffect.Navigation.Back -> dn.popUp()
+
+        // HostSelectEffect
+        HostSelectEffect.Navigation.Close -> hideBottomSheet()
+        HostSelectEffect.Navigation.AddHost -> dn.push(DR_ADD_HOST)
+
+        // ControlEffect
+        ControlEffect.Navigation.CreateChat -> dn.push(DR_CREATE_CHAT)
+        ControlEffect.Navigation.Profile -> dn.push(DR_PROFILE)
+
+        // ProfileEffect
+        ProfileEffect.Navigation.Logout -> dn.push(DR_LOGOUT)
     }
 }
 
-class DialogChatArgs(
+private fun oneWay(key: String): NavOptionsBuilder.() -> Unit =
+    {
+        popUpTo(key) {
+            inclusive = true
+        }
+        launchSingleTop = true
+    }
+
+data class DRChat(
     val chat: Chat,
 )
 
+data class DRLeave(
+    val chat: Chat,
+)
+
+private const val DR_CONTROL = "DR_Control"
+private const val DR_CREATE_CHAT = "DR_CreateChat"
+private const val DR_HOST_SELECT = "DR_HostSelect"
+private const val DR_ADD_HOST = "DR_AddHost"
+private const val DR_PROFILE = "DR_Profile"
+private const val DR_LOGOUT = "DR_Logout"
+
 @Composable
-fun ChatDialogContent(
-    args: DialogChatArgs,
-    onBack: (() -> Unit)? = null,
+fun ChatDialog(
+    params: BottomDialogParams,
+    chat: Chat,
     leave: () -> Unit,
 ) {
-    val chat = args.chat
-    BottomDialogHeader(chat.name, onBack)
+    BottomDialogHeader(chat.name, params)
     BottomDialogProperties(
         BottomDialogProperty("ID", chat.id),
         BottomDialogProperty("Name", chat.name),
@@ -234,21 +243,65 @@ fun ChatDialogContent(
     LeftButton("Покинуть чат", leave)
 }
 
-class DialogLeaveArgs(
-    val chat: Chat,
-)
-
 @Composable
-fun LeaveDialogContent(
-    args: DialogLeaveArgs,
-    onBack: (() -> Unit)? = null,
+fun LeaveDialog(
+    params: BottomDialogParams,
+    chat: Chat,
     confirm: () -> Unit,
 ) {
-    BottomDialogHeader("Покинуть чат", onBack)
+    BottomDialogHeader("Покинуть чат", params)
     BottomDialogProperties(
-        BottomDialogProperty("ID", args.chat.id),
-        BottomDialogProperty("Name", args.chat.name),
-        BottomDialogProperty("ChiefID", args.chat.chiefId),
+        BottomDialogProperty("ID", chat.id),
+        BottomDialogProperty("Name", chat.name),
+        BottomDialogProperty("ChiefID", chat.chiefId),
     )
-    LeftButton("Подтвердить", confirm, isRight = true)
+    RightButton("Подтвердить", confirm)
+}
+
+data class NavigatorState(
+    val stack: List<DialogKey> = emptyList(),
+) {
+    val current: DialogKey?
+        get() = stack.lastOrNull()
+}
+
+typealias DialogKey = Any
+
+class NavigatorViewModel : ViewModel() {
+    private val _viewState = MutableStateFlow(NavigatorState())
+    val viewState = _viewState.asStateFlow()
+
+    private fun setState(reducer: NavigatorState.() -> NavigatorState) {
+        val newState = viewState.value.reducer()
+        _viewState.value = newState
+    }
+
+    fun popUp() {
+        val currentStack = viewState.value.stack
+        if (currentStack.isEmpty()) return
+
+        setState {
+            val newStack = currentStack.dropLast(1)
+            copy(stack = newStack)
+        }
+    }
+
+    fun push(key: DialogKey) {
+        setState { copy(stack = stack + key) }
+    }
+
+    fun popUpTo(key: DialogKey) {
+        setState {
+            val index = stack.lastIndexOf(key)
+            if (index == -1) return@setState this
+            copy(stack = stack.take(index + 1))
+        }
+    }
+
+    fun clear() {
+        setState { copy(stack = emptyList()) }
+    }
+
+    val canPopUp: Boolean
+        get() = viewState.value.stack.size > 1
 }

@@ -25,6 +25,7 @@ import ru.dsaime.npchat.ui.components.Gap
 import ru.dsaime.npchat.ui.components.HostSelect
 import ru.dsaime.npchat.ui.components.Input
 import ru.dsaime.npchat.ui.components.LeftButton
+import ru.dsaime.npchat.ui.components.RightButton
 import ru.dsaime.npchat.ui.theme.Dp20
 import ru.dsaime.npchat.ui.theme.Font
 
@@ -96,10 +97,9 @@ fun LoginScreen(
             onValueChange = onEventSent.eventHandler(LoginEvent::SetPassword),
         )
         Gap(20.dp)
-        LeftButton(
+        RightButton(
             text = "Войти",
             onClick = onEventSent.eventHandler(LoginEvent.Enter),
-            isRight = true,
         )
         LeftButton(
             text = "Перейти к регистрации",

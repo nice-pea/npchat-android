@@ -20,7 +20,6 @@ import ru.dsaime.npchat.ui.components.Progress
 import ru.dsaime.npchat.ui.modifiers.fadeIn
 import ru.dsaime.npchat.ui.theme.Dp10
 import ru.dsaime.npchat.ui.theme.Font
-import kotlin.time.Duration.Companion.milliseconds
 
 @Preview()
 @Composable
@@ -66,13 +65,13 @@ fun SplashScreen(
         verticalArrangement = Arrangement.Center,
     ) {
         Text(
-            modifier = Modifier.fadeIn(300.milliseconds),
+            modifier = Modifier.fadeIn(),
             text = TITLE,
             style = Font.White16W400,
             textAlign = TextAlign.Center,
         )
         Gap(Dp10)
-        Progress(modifier = Modifier.fadeIn(300.milliseconds))
+        Progress(modifier = Modifier.fadeIn())
     }
 
     LaunchedEffect(1) {

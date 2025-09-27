@@ -8,19 +8,22 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
 import ru.dsaime.npchat.common.base.BaseViewModel
 import ru.dsaime.npchat.data.SessionsService
-import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.components.Paragraph
+import ru.dsaime.npchat.ui.components.RightButton
 import ru.dsaime.npchat.ui.components.dialog.BottomDialogHeader
+import ru.dsaime.npchat.ui.components.dialog.BottomDialogParams
 
 object LogoutReq
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LogoutDialogContent(onNavigationRequest: (LogoutEffect.Navigation) -> Unit) {
-    val vm = koinViewModel<LogoutViewModel>()
+fun LogoutDialog(
+    params: BottomDialogParams,
+    vm: LogoutViewModel,
+    onNavigationRequest: (LogoutEffect.Navigation) -> Unit,
+) {
     val state = vm.viewState.collectAsState().value
 
     LaunchedEffect(1) {
@@ -32,14 +35,14 @@ fun LogoutDialogContent(onNavigationRequest: (LogoutEffect.Navigation) -> Unit) 
             }.collect()
     }
 
-    BottomDialogHeader("Завершить сессию")
+    BottomDialogHeader("Завершить сессию", params)
     Paragraph(
         "Чтобы снова войти в профиль, вам придется на" +
             "экране входа в приложение воспользоваться " +
             "одним из подключенных методов аутентификации.",
     )
     Paragraph("Вы действительно хотите выйти из своего профиля?")
-    LeftButton("Подтвердить", vm.eventHandler(LogoutEvent.Confirm), isRight = true)
+    RightButton("Подтвердить", vm.eventHandler(LogoutEvent.Confirm))
 }
 
 sealed interface LogoutEvent {

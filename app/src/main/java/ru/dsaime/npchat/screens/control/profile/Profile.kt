@@ -12,22 +12,23 @@ import com.github.michaelbull.result.onSuccess
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
 import ru.dsaime.npchat.common.base.BaseViewModel
 import ru.dsaime.npchat.data.SessionsService
 import ru.dsaime.npchat.model.User
 import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.components.dialog.BottomDialogHeader
+import ru.dsaime.npchat.ui.components.dialog.BottomDialogParams
 import ru.dsaime.npchat.ui.components.dialog.BottomDialogProperties
 import ru.dsaime.npchat.ui.components.dialog.BottomDialogProperty
 import ru.dsaime.npchat.ui.theme.Font
 
-object ProfileReq
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileDialogContent(onNavigationRequest: (ProfileEffect.Navigation) -> Unit) {
-    val vm = koinViewModel<ProfileViewModel>()
+fun ProfileDialog(
+    params: BottomDialogParams,
+    vm: ProfileViewModel,
+    onNavigationRequest: (ProfileEffect.Navigation) -> Unit,
+) {
     val state = vm.viewState.collectAsState().value
 
     LaunchedEffect(1) {
@@ -39,7 +40,7 @@ fun ProfileDialogContent(onNavigationRequest: (ProfileEffect.Navigation) -> Unit
             }.collect()
     }
 
-    BottomDialogHeader("Мой профиль")
+    BottomDialogHeader("Мой профиль", params)
     when (state) {
         is ProfileState.Error -> Text(state.msg, style = Font.Text16W400)
         ProfileState.Loading -> CircularProgressIndicator()

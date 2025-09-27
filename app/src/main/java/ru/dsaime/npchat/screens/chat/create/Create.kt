@@ -1,6 +1,5 @@
 package ru.dsaime.npchat.screens.chat.create
 
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -12,24 +11,21 @@ import com.github.michaelbull.result.onSuccess
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
 import ru.dsaime.npchat.common.base.BaseViewModel
 import ru.dsaime.npchat.common.functions.ToastDuration
 import ru.dsaime.npchat.common.functions.toast
 import ru.dsaime.npchat.data.ChatsService
 import ru.dsaime.npchat.ui.components.Input
-import ru.dsaime.npchat.ui.components.LeftButton
+import ru.dsaime.npchat.ui.components.RightButton
 import ru.dsaime.npchat.ui.components.dialog.BottomDialogHeader
+import ru.dsaime.npchat.ui.components.dialog.BottomDialogParams
 
-object CreateChatReq
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateChatDialogContent(
-    showBackButton: Boolean,
+fun CreateChatDialog(
+    params: BottomDialogParams,
+    vm: CreateChatViewModel,
     onNavigationRequest: (CreateChatEffect.Navigation) -> Unit,
 ) {
-    val vm = koinViewModel<CreateChatViewModel>()
     val state by vm.viewState.collectAsState()
 
     val ctx = LocalContext.current
@@ -43,13 +39,7 @@ fun CreateChatDialogContent(
             }.collect()
     }
 
-    BottomDialogHeader(
-        "Создать чат",
-        onBack =
-            vm
-                .eventHandler(CreateChatEvent.Back)
-                .takeIf { showBackButton },
-    )
+    BottomDialogHeader("Создать чат", params)
     Input(
         value = state.name,
         title = "Название",
@@ -57,7 +47,7 @@ fun CreateChatDialogContent(
         onValueChange = vm.eventHandler(CreateChatEvent::SetName),
         helperText = "Позже можно изменить",
     )
-    LeftButton("Создать", vm.eventHandler(CreateChatEvent.Confirm), isRight = true)
+    RightButton("Создать", vm.eventHandler(CreateChatEvent.Confirm))
 }
 
 sealed interface CreateChatEvent {

@@ -13,6 +13,7 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 import retrofit2.Retrofit
+import ru.dsaime.npchat.NavigatorViewModel
 import ru.dsaime.npchat.data.BasicAuthService
 import ru.dsaime.npchat.data.BasicAuthServiceBase
 import ru.dsaime.npchat.data.ChatsService
@@ -33,7 +34,6 @@ import ru.dsaime.npchat.network.SessionTokenProvider
 import ru.dsaime.npchat.network.retrofit
 import ru.dsaime.npchat.screens.chat.chats.ChatsViewModel
 import ru.dsaime.npchat.screens.chat.create.CreateChatViewModel
-import ru.dsaime.npchat.screens.control.main.ControlViewModel
 import ru.dsaime.npchat.screens.control.profile.ProfileViewModel
 import ru.dsaime.npchat.screens.control.profile.session.logout.LogoutViewModel
 import ru.dsaime.npchat.screens.home.HomeViewModel
@@ -107,8 +107,8 @@ val appModule =
         viewModelOf(::ChatsViewModel)
 
         // Диалоги
+        viewModelOf(::NavigatorViewModel)
         viewModelOf(::CreateChatViewModel)
-        viewModelOf(::ControlViewModel)
         viewModelOf(::HostSelectViewModel)
         viewModelOf(::AddHostViewModel)
         viewModelOf(::ProfileViewModel)

@@ -51,11 +51,11 @@ class SessionsServiceBase(
     }
 
     override suspend fun isActual(session: Session): Boolean {
-        if (db.sessionDao().last() == null || hostService.currentBaseUrl() == null) {
+        if (db.sessionDao().last() == null) {
             return false
         }
 
-        return api.chats("").isSuccess
+        return api.me().isSuccess
     }
 
     override suspend fun refresh(session: Session): Boolean {

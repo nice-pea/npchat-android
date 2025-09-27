@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
 import ru.dsaime.npchat.common.base.BaseViewModel
 import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.model.Host
@@ -20,16 +19,19 @@ import ru.dsaime.npchat.ui.components.Gap
 import ru.dsaime.npchat.ui.components.HostStatusIcon
 import ru.dsaime.npchat.ui.components.LeftButton
 import ru.dsaime.npchat.ui.components.RadioButton
+import ru.dsaime.npchat.ui.components.RightButton
 import ru.dsaime.npchat.ui.components.dialog.BottomDialogHeader
+import ru.dsaime.npchat.ui.components.dialog.BottomDialogParams
 import ru.dsaime.npchat.ui.theme.Dp16
 import ru.dsaime.npchat.ui.theme.Font
 
-object HostSelectReq
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ColumnScope.HostSelectDialogContent(onNavigationRequest: (HostSelectEffect.Navigation) -> Unit) {
-    val vm = koinViewModel<HostSelectViewModel>()
+fun ColumnScope.HostSelectDialog(
+    params: BottomDialogParams,
+    vm: HostSelectViewModel,
+    onNavigationRequest: (HostSelectEffect.Navigation) -> Unit,
+) {
     val state by vm.viewState.collectAsState()
     LaunchedEffect(1) {
         vm.effect
@@ -40,7 +42,7 @@ fun ColumnScope.HostSelectDialogContent(onNavigationRequest: (HostSelectEffect.N
             }.collect()
     }
 
-    BottomDialogHeader("Выбрать сервер")
+    BottomDialogHeader("Выбрать сервер", params)
     state.hosts.forEach { host ->
         RadioButton(
             text = host.url,
@@ -55,7 +57,7 @@ fun ColumnScope.HostSelectDialogContent(onNavigationRequest: (HostSelectEffect.N
     Gap(Dp16)
     LeftButton("Добавить", vm.eventHandler(HostSelectEvent.Add))
     if (state.selectedHost != null) {
-        LeftButton("Удалить выбранный", vm.eventHandler(HostSelectEvent.Delete), isRight = true)
+        RightButton("Удалить выбранный", vm.eventHandler(HostSelectEvent.Delete))
     }
 }
 

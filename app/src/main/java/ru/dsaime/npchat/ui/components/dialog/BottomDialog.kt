@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -32,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import ru.dsaime.npchat.common.functions.runSuspend
 import ru.dsaime.npchat.ui.components.Gap
+import ru.dsaime.npchat.ui.modifiers.fadeIn
 import ru.dsaime.npchat.ui.theme.ColorBG
 import ru.dsaime.npchat.ui.theme.ColorScrim
 import ru.dsaime.npchat.ui.theme.ColorText
@@ -39,10 +41,6 @@ import ru.dsaime.npchat.ui.theme.Dp16
 import ru.dsaime.npchat.ui.theme.Dp2
 import ru.dsaime.npchat.ui.theme.Dp8
 import ru.dsaime.npchat.ui.theme.Font
-
-@Composable
-fun BottomDialogUI(modifier: Modifier = Modifier) {
-}
 
 @Composable
 fun BottomDialogProperty(property: BottomDialogProperty) {
@@ -98,28 +96,40 @@ data class BottomDialogProperty(
     val action: (() -> Unit)? = null,
 )
 
+data class BottomDialogParams(
+    val canPopUp: Boolean,
+    val onPopUp: () -> Unit,
+)
+
 @Composable
 fun BottomDialogHeader(
     title: String,
-    onBack: (() -> Unit)? = null,
+    params: BottomDialogParams,
 ) {
     Row(
-        modifier = Modifier.padding(bottom = 20.dp),
+        modifier =
+            Modifier
+                .padding(bottom = 20.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (onBack != null) {
-            Text(
-                text = "<-",
-                modifier =
-                    Modifier
-                        .clip(CircleShape)
-                        .clickable(onClick = onBack)
-                        .padding(start = 5.dp, end = 15.dp),
-                style = Font.Text18W400,
-            )
+        if (params.canPopUp) {
+            PopUpButton(params.onPopUp)
         }
-        Text(title, style = Font.Text18W400)
+        Text(title, style = Font.Text18W400, modifier = Modifier.fadeIn(200, .6f))
     }
+}
+
+@Composable
+private fun PopUpButton(onClick: () -> Unit) {
+    Text(
+        text = "<-",
+        modifier =
+            Modifier
+                .clip(CircleShape)
+                .clickable(onClick = onClick)
+                .padding(start = 5.dp, end = 15.dp),
+        style = Font.Text18W400,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -134,6 +144,26 @@ fun BottomDialog(
         rememberModalBottomSheetState(
             skipPartiallyExpanded = skipPartiallyExpanded,
         )
+    BottomDialog(
+        isVisibleRequired = isVisibleRequired,
+        onClosed = onClosed,
+        state = state,
+    ) {
+        sheet {
+            state.hide()
+            onClosed()
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BottomDialog(
+    isVisibleRequired: Boolean,
+    onClosed: () -> Unit,
+    state: SheetState = rememberModalBottomSheetState(),
+    sheet: @Composable ColumnScope.() -> Unit,
+) {
     LaunchedEffect(isVisibleRequired) {
         if (isVisibleRequired) {
             state.show()
@@ -141,7 +171,7 @@ fun BottomDialog(
             state.hide()
         }
     }
-//    val scope = rememberCoroutineScope()
+
     if (state.isVisible || state.targetValue != SheetValue.Hidden) {
         ModalBottomSheet(
             shape = RectangleShape,
@@ -162,11 +192,7 @@ fun BottomDialog(
                         .padding(20.dp)
                         .animateContentSize(tween()),
             ) {
-                sheet {
-//                    scope.launch {
-                    state.hide()
-//                    }
-                }
+                sheet()
             }
         }
     }

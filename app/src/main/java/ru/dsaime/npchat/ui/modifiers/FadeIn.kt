@@ -7,15 +7,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.alpha
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 
-fun Modifier.fadeIn(duration: Duration = 300.milliseconds): Modifier =
+fun Modifier.fadeIn(
+    durationMillis: Int = 300,
+    from: Float = 0f,
+): Modifier =
     composed {
-        val animatedFloat = remember { Animatable(0f) }
-        val durationMillis = duration.inWholeMilliseconds.toInt()
-        LaunchedEffect(Unit) {
-            animatedFloat.animateTo(1f, animationSpec = tween(durationMillis = durationMillis))
+        val animatedFloat = remember(from) { Animatable(from) }
+        LaunchedEffect(from, durationMillis) {
+            animatedFloat.snapTo(from)
+            animatedFloat.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(durationMillis = durationMillis),
+            )
         }
 
         this.then(Modifier.alpha(animatedFloat.value))
