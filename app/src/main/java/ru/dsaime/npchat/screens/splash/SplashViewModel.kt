@@ -42,7 +42,7 @@ class SplashViewModel(
 
                     // Если нет сохраненной сессии или она неактуальна, перейти на экран логина
                     val session = sessionsService.currentSession()
-                    if (session == null || !(sessionsService.isActual(session) || sessionsService.refresh(session))) {
+                    if (session == null || !(sessionsService.isActual(session) || !sessionsService.refresh(session))) {
                         SplashEffect.Navigation.Login.emit()
                         return@launch
                     }
