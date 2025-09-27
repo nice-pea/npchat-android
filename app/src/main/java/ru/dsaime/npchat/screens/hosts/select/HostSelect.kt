@@ -8,6 +8,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.onEach
@@ -92,6 +93,12 @@ class HostSelectViewModel(
     init {
         viewModelScope.launch {
             launch { subscribeToCurrentHostChanges() }
+            launch {
+                while (true) {
+                    delay(1000)
+                    println("HostSelectViewModel: жив")
+                }
+            }
             subscribeToHostChanges()
         }
     }

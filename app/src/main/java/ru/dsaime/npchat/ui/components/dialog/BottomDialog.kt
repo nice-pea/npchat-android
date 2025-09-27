@@ -190,8 +190,7 @@ fun BottomDialog(
                         .background(ColorBG)
                         .border(1.dp, ColorText)
                         .padding(20.dp)
-                        .animateContentSize(tween())
-                        .fadeIn(140, .6f),
+                        .animateContentSize(tween()),
             ) {
                 sheet()
             }

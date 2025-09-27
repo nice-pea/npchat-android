@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import ru.dsaime.npchat.ui.modifiers.fadeIn
 import ru.dsaime.npchat.ui.theme.Black
 import ru.dsaime.npchat.ui.theme.Dp2
 import ru.dsaime.npchat.ui.theme.Dp20
@@ -49,6 +50,7 @@ fun LeftButton(
                 .clip(RoundMin)
                 .clickable(onClick = onClick)
                 .padding(Dp8)
+                .fadeIn(200, .5f)
                 .then(modifier),
         horizontalAlignment = if (isRight) Alignment.End else Alignment.Start,
     ) {
