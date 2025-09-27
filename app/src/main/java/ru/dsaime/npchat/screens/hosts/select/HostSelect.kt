@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
 import ru.dsaime.npchat.common.base.BaseViewModel
 import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.model.Host
@@ -28,11 +27,11 @@ import ru.dsaime.npchat.ui.theme.Font
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ColumnScope.HostSelectDialogContent(
+fun ColumnScope.HostSelectDialog(
     params: BottomDialogParams,
+    vm: HostSelectViewModel,
     onNavigationRequest: (HostSelectEffect.Navigation) -> Unit,
 ) {
-    val vm = koinViewModel<HostSelectViewModel>()
     val state by vm.viewState.collectAsState()
     LaunchedEffect(1) {
         vm.effect

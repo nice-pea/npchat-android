@@ -12,7 +12,6 @@ import com.github.michaelbull.result.onSuccess
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
 import ru.dsaime.npchat.common.base.BaseViewModel
 import ru.dsaime.npchat.data.SessionsService
 import ru.dsaime.npchat.model.User
@@ -25,11 +24,11 @@ import ru.dsaime.npchat.ui.theme.Font
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileDialogContent(
+fun ProfileDialog(
     params: BottomDialogParams,
+    vm: ProfileViewModel,
     onNavigationRequest: (ProfileEffect.Navigation) -> Unit,
 ) {
-    val vm = koinViewModel<ProfileViewModel>()
     val state = vm.viewState.collectAsState().value
 
     LaunchedEffect(1) {

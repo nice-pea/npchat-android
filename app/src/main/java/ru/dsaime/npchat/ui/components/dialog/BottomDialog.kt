@@ -97,8 +97,8 @@ data class BottomDialogProperty(
 )
 
 data class BottomDialogParams(
-    val showBackButton: Boolean,
-    val onBack: () -> Unit,
+    val canPopUp: Boolean,
+    val onPopUp: () -> Unit,
 )
 
 @Composable
@@ -112,21 +112,21 @@ fun BottomDialogHeader(
                 .padding(bottom = 20.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (params.showBackButton) {
-            BackButton(params.onBack)
+        if (params.canPopUp) {
+            PopUpButton(params.onPopUp)
         }
         Text(title, style = Font.Text18W400, modifier = Modifier.fadeIn(200, .6f))
     }
 }
 
 @Composable
-private fun BackButton(onBack: () -> Unit) {
+private fun PopUpButton(onClick: () -> Unit) {
     Text(
         text = "<-",
         modifier =
             Modifier
                 .clip(CircleShape)
-                .clickable(onClick = onBack)
+                .clickable(onClick = onClick)
                 .padding(start = 5.dp, end = 15.dp),
         style = Font.Text18W400,
     )

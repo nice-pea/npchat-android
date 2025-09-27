@@ -8,7 +8,6 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
 import ru.dsaime.npchat.common.base.BaseViewModel
 import ru.dsaime.npchat.data.SessionsService
 import ru.dsaime.npchat.ui.components.LeftButton
@@ -20,11 +19,11 @@ object LogoutReq
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LogoutDialogContent(
+fun LogoutDialog(
     params: BottomDialogParams,
+    vm: LogoutViewModel,
     onNavigationRequest: (LogoutEffect.Navigation) -> Unit,
 ) {
-    val vm = koinViewModel<LogoutViewModel>()
     val state = vm.viewState.collectAsState().value
 
     LaunchedEffect(1) {

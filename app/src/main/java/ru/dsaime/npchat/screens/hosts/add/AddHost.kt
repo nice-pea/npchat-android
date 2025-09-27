@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import org.koin.androidx.compose.koinViewModel
 import ru.dsaime.npchat.common.base.BaseViewModel
 import ru.dsaime.npchat.data.HostService
 import ru.dsaime.npchat.model.Host
@@ -26,11 +25,11 @@ import ru.dsaime.npchat.ui.components.dialog.BottomDialogParams
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddHostDialogContent(
+fun AddHostDialog(
     params: BottomDialogParams,
+    vm: AddHostViewModel,
     onNavigationRequest: (AddHostEffect.Navigation) -> Unit,
 ) {
-    val vm = koinViewModel<AddHostViewModel>()
     val state by vm.viewState.collectAsState()
     LaunchedEffect(1) {
         vm.effect
