@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -16,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -91,6 +93,13 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 val onNavigationRequest: (Any) -> Unit = { navController.navRequestHandle(it, dn, hideBottomSheet) }
+                // Закрывать нижний диалог при навигации
+                LaunchedEffect(1) {
+                    navController.visibleEntries
+                        .collect {
+                            hideBottomSheet()
+                        }
+                }
                 BottomDialog(
                     isVisibleRequired = dnState.stack.isNotEmpty(),
                     state = sheetState,
@@ -155,25 +164,18 @@ fun NavController.navRequestHandle(
     dn: Navigator,
     hideBottomSheet: () -> Unit = {},
 ) {
-    val navigate: (String) -> Unit = {
-        this.navigate(it)
-        hideBottomSheet()
-    }
     when (req) {
         // Экраны /////////////////////
 
-        SplashEffect.Navigation.Home,
-        LoginEffect.Navigation.Home,
-        RegistrationEffect.Navigation.Home,
-        -> navigate(ROUTE_HOME)
+        SplashEffect.Navigation.Home -> navigate(ROUTE_HOME, oneWay(ROUTE_SPLASH))
+        LoginEffect.Navigation.Home -> navigate(ROUTE_HOME, oneWay(ROUTE_LOGIN))
+        RegistrationEffect.Navigation.Home -> navigate(ROUTE_HOME, oneWay(ROUTE_REGISTRATION))
 
-        SplashEffect.Navigation.Login,
-        -> navigate(ROUTE_LOGIN)
+        SplashEffect.Navigation.Login -> navigate(ROUTE_LOGIN, oneWay(ROUTE_SPLASH))
 
         LoginEffect.Navigation.Registration -> navigate(ROUTE_REGISTRATION)
-
         HomeEffect.Navigation.Chats -> navigate("$ROUTE_HOME/$ROUTE_CHATS")
-        LogoutEffect.Navigation.Login -> navigate(ROUTE_LOGIN)
+        LogoutEffect.Navigation.Login -> navigate(ROUTE_LOGIN, oneWay(ROUTE_HOME))
 
         // Диалоги /////////////////////
 
@@ -199,6 +201,14 @@ fun NavController.navRequestHandle(
         ProfileEffect.Navigation.Logout -> dn.push(DR_LOGOUT)
     }
 }
+
+private fun NavController.oneWay(key: String): NavOptionsBuilder.() -> Unit =
+    {
+        popUpTo(key) {
+            inclusive = true
+        }
+        launchSingleTop = true
+    }
 
 data class DRChat(
     val chat: Chat,
