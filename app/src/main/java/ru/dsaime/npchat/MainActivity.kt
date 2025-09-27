@@ -84,7 +84,12 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val scope = rememberCoroutineScope()
                 val sheetState = rememberModalBottomSheetState(true)
-                val hideBottomSheet: () -> Unit = { scope.launch { sheetState.hide() } }
+                val hideBottomSheet: () -> Unit = {
+                    scope.launch {
+                        sheetState.hide()
+                        dn.clear()
+                    }
+                }
                 val onNavigationRequest: (Any) -> Unit = { navController.navRequestHandle(it, dn, hideBottomSheet) }
                 BottomDialog(
                     isVisibleRequired = dnState.stack.isNotEmpty(),
