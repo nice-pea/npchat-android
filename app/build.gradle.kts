@@ -113,6 +113,8 @@ dependencies {
 
     // Навигация
     implementation(libs.voyager.navigator)
-//    implementation("cafe.adriel.voyager:voyager-bottom-sheet-navigator:1.0.1")
+    implementation(libs.voyager.bottom.sheet.navigator)
 //    implementation("cafe.adriel.voyager:voyager-koin:1.0.1")
+
+    implementation(libs.resaca)
 }

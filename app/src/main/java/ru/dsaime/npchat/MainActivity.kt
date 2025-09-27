@@ -9,13 +9,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.navigation.NavController
 import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.NavHost
@@ -70,16 +76,15 @@ class MainActivity : ComponentActivity() {
 
         installSplashScreen()
 
-        val koin =
-            startKoin {
-                logger(PrintLogger(Level.DEBUG))
-                androidContext(this@MainActivity)
-                modules(appModule)
-            }.koin
+        startKoin {
+            logger(PrintLogger(Level.DEBUG))
+            androidContext(this@MainActivity)
+            modules(appModule)
+        }.koin
 
         setContent {
             val scope = rememberCoroutineScope()
-            val dn = koinViewModel<Navigator>()
+            val dn = koinViewModel<NavigatorViewModel>()
             val dnState by dn.viewState.collectAsState()
 
             NPChatTheme {
@@ -109,16 +114,30 @@ class MainActivity : ComponentActivity() {
                     BackHandler(dn.canPop) {
                         dn.popUp()
                     }
-                    val params = BottomDialogParams(showBackButton = dn.canPop, onBack = dn::popUp)
-                    when (val key = dnState.current) {
-                        is DRChat -> ChatDialog(chat = key.chat, params, leave = { dn.push(DRLeave(key.chat)) })
-                        is DRLeave -> LeaveDialogContent(chat = key.chat, params, confirm = hideBottomSheet)
-                        DR_CONTROL -> ControlDialogContent(params, onNavigationRequest)
-                        DR_CREATE_CHAT -> CreateChatDialogContent(params, onNavigationRequest)
-                        DR_HOST_SELECT -> HostSelectDialogContent(params, onNavigationRequest)
-                        DR_ADD_HOST -> AddHostDialogContent(params, onNavigationRequest)
-                        DR_PROFILE -> ProfileDialogContent(params, onNavigationRequest)
-                        DR_LOGOUT -> LogoutDialogContent(params, onNavigationRequest)
+                    val localViewModelStore =
+                        remember {
+                            object : ViewModelStoreOwner {
+                                override val viewModelStore = ViewModelStore()
+                            }
+                        }
+                    DisposableEffect(localViewModelStore) {
+                        onDispose {
+                            localViewModelStore.viewModelStore.clear()
+                        }
+                    }
+
+                    CompositionLocalProvider(LocalViewModelStoreOwner provides localViewModelStore) {
+                        val params = BottomDialogParams(showBackButton = dn.canPop, onBack = dn::popUp)
+                        when (val key = dnState.current) {
+                            is DRChat -> ChatDialog(chat = key.chat, params, leave = { dn.push(DRLeave(key.chat)) })
+                            is DRLeave -> LeaveDialogContent(chat = key.chat, params, confirm = hideBottomSheet)
+                            DR_CONTROL -> ControlDialogContent(params, onNavigationRequest)
+                            DR_CREATE_CHAT -> CreateChatDialogContent(params, onNavigationRequest)
+                            DR_HOST_SELECT -> HostSelectDialogContent(params, onNavigationRequest)
+                            DR_ADD_HOST -> AddHostDialogContent(params, onNavigationRequest)
+                            DR_PROFILE -> ProfileDialogContent(params, onNavigationRequest)
+                            DR_LOGOUT -> LogoutDialogContent(params, onNavigationRequest)
+                        }
                     }
                 }
                 NavHost(
@@ -161,7 +180,7 @@ private const val ROUTE_CHATS = "Chats"
 
 fun NavController.navRequestHandle(
     req: Any,
-    dn: Navigator,
+    dn: NavigatorViewModel,
     hideBottomSheet: () -> Unit = {},
 ) {
     when (req) {
@@ -289,7 +308,7 @@ data class NavigatorState(
 
 typealias DialogKey = Any
 
-class Navigator : BaseViewModel<NavigatorEvent, NavigatorState, NavigatorEffect>() {
+class NavigatorViewModel : BaseViewModel<NavigatorEvent, NavigatorState, NavigatorEffect>() {
     override fun setInitialState() = NavigatorState()
 
     init {

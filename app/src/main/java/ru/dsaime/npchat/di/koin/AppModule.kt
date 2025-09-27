@@ -13,7 +13,7 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 import retrofit2.Retrofit
-import ru.dsaime.npchat.Navigator
+import ru.dsaime.npchat.NavigatorViewModel
 import ru.dsaime.npchat.data.BasicAuthService
 import ru.dsaime.npchat.data.BasicAuthServiceBase
 import ru.dsaime.npchat.data.ChatsService
@@ -108,7 +108,7 @@ val appModule =
         viewModelOf(::ChatsViewModel)
 
         // Диалоги
-        viewModelOf(::Navigator)
+        viewModelOf(::NavigatorViewModel)
         viewModelOf(::CreateChatViewModel)
         viewModelOf(::ControlViewModel)
         viewModelOf(::HostSelectViewModel)
