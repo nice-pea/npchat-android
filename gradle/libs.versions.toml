@@ -26,6 +26,7 @@ mockk = "1.14.5"
 navigationCompose = "2.9.4"
 okhttpSse = "5.1.0"
 resaca = "4.6.1"
+resacakoin = "4.6.1"
 retrofit = "3.0.0"
 retrofitAdaptersResult = "1.1.0"
 roomCompiler = "2.8.0"
@@ -82,6 +83,7 @@ mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 okhttp-sse = { module = "com.squareup.okhttp3:okhttp-sse", version.ref = "okhttpSse" }
 okhttp3-logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "loggingInterceptorVersion" }
 resaca = { module = "io.github.sebaslogen:resaca", version.ref = "resaca" }
+resacakoin = { module = "io.github.sebaslogen:resacakoin", version.ref = "resacakoin" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 retrofit-adapters-result = { module = "com.github.skydoves:retrofit-adapters-result", version.ref = "retrofitAdaptersResult" }
 slf4j-android = { module = "org.slf4j:slf4j-android", version.ref = "slf4jAndroid" }

@@ -121,4 +121,5 @@ dependencies {
 //    implementation("cafe.adriel.voyager:voyager-koin:1.0.1")
 
     implementation(libs.resaca)
+    implementation(libs.resacakoin)
 }

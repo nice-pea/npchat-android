@@ -21,7 +21,7 @@ import androidx.navigation.NavOptionsBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.sebaslogen.resaca.viewModelScoped
+import com.sebaslogen.resaca.koin.koinViewModelScoped
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
@@ -114,11 +114,11 @@ class MainActivity : ComponentActivity() {
                         is DRChat -> ChatDialog(params, chat = key.chat, leave = { dn.push(DRLeave(key.chat)) })
                         is DRLeave -> LeaveDialogContent(params, chat = key.chat, confirm = hideBottomSheet)
                         DR_CONTROL -> ControlDialog(params, onNavigationRequest)
-                        DR_CREATE_CHAT -> CreateChatDialog(params, viewModelScoped { koin.get() }, onNavigationRequest)
-                        DR_HOST_SELECT -> HostSelectDialog(params, viewModelScoped { koin.get() }, onNavigationRequest)
-                        DR_ADD_HOST -> AddHostDialog(params, viewModelScoped { koin.get() }, onNavigationRequest)
-                        DR_PROFILE -> ProfileDialog(params, viewModelScoped { koin.get() }, onNavigationRequest)
-                        DR_LOGOUT -> LogoutDialog(params, viewModelScoped { koin.get() }, onNavigationRequest)
+                        DR_CREATE_CHAT -> CreateChatDialog(params, koinViewModelScoped(), onNavigationRequest)
+                        DR_HOST_SELECT -> HostSelectDialog(params, koinViewModelScoped(), onNavigationRequest)
+                        DR_ADD_HOST -> AddHostDialog(params, koinViewModelScoped(), onNavigationRequest)
+                        DR_PROFILE -> ProfileDialog(params, koinViewModelScoped(), onNavigationRequest)
+                        DR_LOGOUT -> LogoutDialog(params, koinViewModelScoped(), onNavigationRequest)
                     }
                 }
                 NavHost(
