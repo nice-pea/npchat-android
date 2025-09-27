@@ -165,39 +165,46 @@ fun NavController.navRequestHandle(
     hideBottomSheet: () -> Unit = {},
 ) {
     when (req) {
-        // Экраны /////////////////////
-
+        // SplashEffect
         SplashEffect.Navigation.Home -> navigate(ROUTE_HOME, oneWay(ROUTE_SPLASH))
-        LoginEffect.Navigation.Home -> navigate(ROUTE_HOME, oneWay(ROUTE_LOGIN))
-        RegistrationEffect.Navigation.Home -> navigate(ROUTE_HOME, oneWay(ROUTE_REGISTRATION))
-
         SplashEffect.Navigation.Login -> navigate(ROUTE_LOGIN, oneWay(ROUTE_SPLASH))
 
+        // LoginEffect
+        LoginEffect.Navigation.Home -> navigate(ROUTE_HOME, oneWay(ROUTE_LOGIN))
         LoginEffect.Navigation.Registration -> navigate(ROUTE_REGISTRATION)
+        LoginEffect.Navigation.HostSelect -> dn.push(DR_HOST_SELECT)
+
+        // RegistrationEffect
+        RegistrationEffect.Navigation.Home -> navigate(ROUTE_HOME, oneWay(ROUTE_REGISTRATION))
+
+        // HomeEffect
         HomeEffect.Navigation.Chats -> navigate("$ROUTE_HOME/$ROUTE_CHATS")
+        HomeEffect.Navigation.Control -> dn.push(DR_CONTROL)
+
+        // LogoutEffect
         LogoutEffect.Navigation.Login -> navigate(ROUTE_LOGIN, oneWay(ROUTE_HOME))
 
-        // Диалоги /////////////////////
-
-        // Закрыть bottom sheet
-        CreateChatEffect.Navigation.Close,
-        AddHostEffect.Navigation.Close,
-        HostSelectEffect.Navigation.Close,
-        -> hideBottomSheet()
-
-        // Вернуться назад
-        CreateChatEffect.Navigation.Back,
-        AddHostEffect.Navigation.Back,
-        -> dn.popUp()
-
-        // Добавить диалог в стек
+        // ChatsEffect
         is ChatsEffect.Navigation.Chat -> dn.push(DRChat(req.chat))
+
+        // CreateChatEffect
+        CreateChatEffect.Navigation.Close -> hideBottomSheet()
+        CreateChatEffect.Navigation.Back -> dn.popUp()
         is CreateChatEffect.Navigation.Chat -> dn.push(DRChat(req.chat))
-        HomeEffect.Navigation.Control -> dn.push(DR_CONTROL)
-        ControlEffect.Navigation.CreateChat -> dn.push(DR_CREATE_CHAT)
-        LoginEffect.Navigation.HostSelect -> dn.push(DR_HOST_SELECT)
+
+        // AddHostEffect
+        AddHostEffect.Navigation.Close -> hideBottomSheet()
+        AddHostEffect.Navigation.Back -> dn.popUp()
+
+        // HostSelectEffect
+        HostSelectEffect.Navigation.Close -> hideBottomSheet()
         HostSelectEffect.Navigation.AddHost -> dn.push(DR_ADD_HOST)
+
+        // ControlEffect
+        ControlEffect.Navigation.CreateChat -> dn.push(DR_CREATE_CHAT)
         ControlEffect.Navigation.Profile -> dn.push(DR_PROFILE)
+
+        // ProfileEffect
         ProfileEffect.Navigation.Logout -> dn.push(DR_LOGOUT)
     }
 }
