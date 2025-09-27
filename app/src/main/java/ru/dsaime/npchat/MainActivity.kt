@@ -291,11 +291,10 @@ class NavigatorViewModel : ViewModel() {
     }
 
     fun popUpTo(key: DialogKey) {
-        if (viewState.value.stack.isEmpty()) return
-
         setState {
-            val new = stack.toMutableList().dropWhile { it != key }
-            copy(stack = new)
+            val index = stack.lastIndexOf(key)
+            if (index == -1) return@setState this
+            copy(stack = stack.take(index + 1))
         }
     }
 

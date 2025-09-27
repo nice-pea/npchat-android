@@ -14,8 +14,12 @@ fun Modifier.fadeIn(
 ): Modifier =
     composed {
         val animatedFloat = remember(from) { Animatable(from) }
-        LaunchedEffect(Unit) {
-            animatedFloat.animateTo(1f, animationSpec = tween(durationMillis = durationMillis))
+        LaunchedEffect(from, durationMillis) {
+            animatedFloat.snapTo(from)
+            animatedFloat.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(durationMillis = durationMillis),
+            )
         }
 
         this.then(Modifier.alpha(animatedFloat.value))
